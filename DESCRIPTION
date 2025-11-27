@@ -1,0 +1,9 @@
+Package: alphagraph
+Type: Package
+Version: 0.1-0
+Date: 2025-11-13
+Title: alphagraph: Graphical Multiple Comparison Tool
+Author: Friedrich Pahlke
+Maintainer: fpahlke <friedrich.pahlke@rpact.com>
+Description: 
+License: file LICENSE
