@@ -9,12 +9,12 @@ library(visNetwork)
 ui <- fluidPage(
     tags$head(
         tags$style(HTML("
-                    .vis-network {
-                    background-image: linear-gradient(#e0e0e0 1px, transparent 1px),
-                    linear-gradient(90deg, #e0e0e0 1px, transparent 1px);
-                    background-size: 40px 40px;
-                    }
-                    "))
+            .vis-network {
+            background-image: linear-gradient(#e0e0e0 1px, transparent 1px),
+            linear-gradient(90deg, #e0e0e0 1px, transparent 1px);
+            background-size: 40px 40px;
+            }
+        "))
     ),
     visNetworkOutput("gmcptest", height = "700px")
 )
@@ -41,7 +41,7 @@ server <- function(input, output) {
             
             # ---- NODES ----
             nodes <- data.frame(
-                id    = c("H1_NI"   , "H1_S"   , "H2_NI"   , "H2_S"   ),
+                id    = c("H1_NI", "H1_S", "H2_NI", "H2_S"),
                 label = c(
                     getHypothesisLabel(1, "ni", 1), 
                     getHypothesisLabel(1, "s", 0), 
@@ -51,7 +51,6 @@ server <- function(input, output) {
                 x = c(0, 300, 0, 300),
                 y = c(0, 0, 200, 200),
                 shape = "circle",
-                #color = c("#7CFF7C", "white", "white", "white"),
                 color.background = c("#7CFF7C", "white", "white", "white"),
                 color.border = "black",  
                 borderWidth = 2,
@@ -89,7 +88,7 @@ server <- function(input, output) {
                     dragView = TRUE,
                     zoomView = TRUE
                 ) |>
-                visPhysics(enabled = FALSE)  # <– wichtig für gMCP-ähnliches Verhalten
+                visPhysics(enabled = FALSE)
         })
 }
 
