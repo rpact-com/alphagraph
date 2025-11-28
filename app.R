@@ -2,6 +2,7 @@ library(shiny)
 library(bs4Dash)
 library(visNetwork)
 library(DT)
+library(markdown)
 
 
 options("shiny.autoload.r" = FALSE)
