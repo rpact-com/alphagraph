@@ -1,5 +1,5 @@
 
-setwd("D:/R/workspace/alphagraph")
+#setwd("D:/R/workspace/alphagraph")
 
 library(shiny)
 library(bs4Dash)
