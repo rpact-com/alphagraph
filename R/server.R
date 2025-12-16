@@ -47,72 +47,77 @@ createServer <- function(input, output, session) {
     })
 
     observeEvent(input$add_node, {
-        visNetworkProxy("vis") |>
-            visUpdateNodes(
+        visNetwork::visNetworkProxy("vis") |>
+            visNetwork::visUpdateNodes(
                 data.frame(
                     id = paste0("H_new_", sample(10000, 1)),
-                    label = "H_new\n0",
-                    x = 100,
-                    y = 100,
+                    label = getHypothesisLabel(0, "n", 0),
+                    x = 1,
+                    y = 1,
                     color.background = "white",
                     color.border = "black",
                     shape = "circle",
-                    borderWidth = 2
+                    borderWidth = 2,
+                    value = 1, 
+                    font = list(size = 20, align = "top"),
+                    font.size = 20,
+                    font.align = "top",
+                    title = "New Node"
                 )
             )
     })
 
     observeEvent(input$add_edge, {
-        visNetwork::visNetworkProxy("vis") |>
-            visNetwork::visConfigure(enabled = TRUE) |>
-            visNetwork::visOptions(manipulation = list(
-                enabled = TRUE,
-                addEdge = TRUE,
-                editEdge = FALSE,
-                addNode = FALSE,
-                deleteNode = FALSE
-            ))
+#        visNetwork::visNetworkProxy("vis") |>
+#            visNetwork::visConfigure(enabled = TRUE) |>
+#            visNetwork::visOptions(manipulation = list(
+#                enabled = TRUE,
+#                addEdge = TRUE,
+#                editEdge = FALSE,
+#                addNode = FALSE,
+#                deleteNode = FALSE
+#            ))
     })
 
     observeEvent(input$edit_node, {
-        visNetwork::visNetworkProxy("vis") |>
-            visNetwork::visOptions(manipulation = list(
-                enabled = TRUE,
-                editNode = TRUE,
-                addNode = FALSE,
-                addEdge = FALSE
-            ))
+#        visNetwork::visNetworkProxy("vis") |>
+#            visNetwork::visOptions(manipulation = list(
+#                enabled = TRUE,
+#                editNode = TRUE,
+#                addNode = FALSE,
+#                addEdge = FALSE
+#            ))
     })
 
     observeEvent(input$delete, {
-        visNetwork::visNetworkProxy("vis") |>
-            visNetwork::visOptions(manipulation = list(
-                enabled = TRUE,
-                deleteNode = TRUE,
-                deleteEdge = TRUE
-            ))
+#        visNetwork::visNetworkProxy("vis") |>
+#            visNetwork::visOptions(manipulation = list(
+#                enabled = TRUE,
+#                deleteNode = TRUE,
+#                deleteEdge = TRUE
+#            ))
     })
 
     observeEvent(input$reset_view, {
-        visNetwork::visNetworkProxy("vis") |> 
-            visNetwork::visFit()
+#        visNetwork::visNetworkProxy("vis") |> 
+#            visNetwork::visFit()
     })
 
     observeEvent(input$zoom_in, {
-        #visNetwork::visNetworkProxy("vis") |> visZoom(1.2)
+        #visNetwork::visNetworkProxy("vis") |> visNetwork::visZoom(1.2)
     })
 
     observeEvent(input$zoom_out, {
-        #visNetwork::visNetworkProxy("vis") |> visZoom(0.8)
+        #visNetwork::visNetworkProxy("vis") |> visNetwork::visZoom(0.8)
     })
 
     observeEvent(input$lock_pos, {
-        visNetwork::visNetworkProxy("vis") |>
-            visNetwork::visPhysics(enabled = FALSE)
+#        visNetwork::visNetworkProxy("vis") |>
+#            visNetwork::visPhysics(enabled = FALSE)
     })
 
     observeEvent(input$unlock_pos, {
-        visNetwork::visNetworkProxy("vis") |>
-            visNetwork::visPhysics(enabled = TRUE)
+#        visNetwork::visNetworkProxy("vis") |>
+#            visNetwork::visPhysics(enabled = TRUE)
     })
 }

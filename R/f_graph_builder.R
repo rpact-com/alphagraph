@@ -48,11 +48,14 @@ getDemoGraph <- function() {
         font = list(size = 20, align = "top")
     )
 
+    grid_size <- 40
+    ox <- 14
+    oy <- -5
     visNetwork::visNetwork(
         nodes,
         edges,
         width = "100%",
-        height = "700px"
+        height = "400px"
     ) |>
         visNetwork::visEdges(
             arrows = "to",
@@ -65,14 +68,71 @@ getDemoGraph <- function() {
                 background = "white",
                 border = "black"
             ),
-            scaling = list(label = list(enabled = TRUE, min = 10, max = 30))
+            scaling = list(
+                label = list(
+                    enabled = TRUE, 
+                    min = 10, 
+                    max = 16
+                )
+            )
         ) |>
         visNetwork::visInteraction(
             dragNodes = TRUE,
             dragView = TRUE,
-            zoomView = TRUE
+            zoomView = FALSE # disables mouse wheel zoom
         ) |>
-        visNetwork::visPhysics(enabled = FALSE)
+        visNetwork::visPhysics(enabled = FALSE) |>
+        visEvents(
+            afterDrawing = sprintf("
+                function(ctx) {
+                // run only once after the first draw
+                if (this.__alphagraphInitialSnapDone) return;
+                this.__alphagraphInitialSnapDone = true;
+                
+                var grid = %d;
+                var ox = %d;
+                var oy = %d;
+                
+                var ids = this.body.data.nodes.getIds();
+                var updates = [];
+                
+                for (var i = 0; i < ids.length; i++) {
+                var id = ids[i];
+                var n = this.body.nodes[id];
+                if (!n) continue;
+                
+                var x = Math.round((n.x - ox) / grid) * grid + ox;
+                var y = Math.round((n.y - oy) / grid) * grid + oy;
+                
+                updates.push({ id: id, x: x, y: y });
+                }
+                
+                this.body.data.nodes.update(updates);
+                
+                // optional: fit view after snapping
+                // this.fit();
+                }
+                ", grid_size, ox, oy)
+        ) |>
+        visNetwork::visEvents(
+            dragEnd = sprintf("
+                function (params) {
+                if (params.nodes.length === 0) return;
+                
+                var grid = %d;
+                var ox = %d;
+                var oy = %d;
+                
+                var nodeId = params.nodes[0];
+                var node = this.body.nodes[nodeId];
+                
+                var x = Math.round((node.x - ox) / grid) * grid + ox;
+                var y = Math.round((node.y - oy) / grid) * grid + oy;
+                
+                this.body.data.nodes.update({ id: nodeId, x: x, y: y });
+                }
+                ", grid_size, ox, oy)
+        )
 }
 
 getGraphDescription <- function() {
