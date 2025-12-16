@@ -1,6 +1,6 @@
 createUI <- function(request) {
     dashboardPage(
-        dashboardHeader(title = "alphagraph POC"),
+        dashboardHeader(title = "alphagraph PoC"),
         dashboardSidebar(
             sidebarMenu(
                 menuItem("Graph Editor", tabName = "graph", icon = icon("project-diagram")),
