@@ -27,14 +27,14 @@ createUI <- function(request) {
                         ),
                         column(
                             7,
-                        
+
                             # LEFT: GRAPH + Description/Analysis
                             box(
-                                width = 12, 
-                                height = "430px", 
+                                width = 12,
+                                height = "430px",
                                 solidHeader = TRUE,
                                 title = "Graph",
-                                #maximizable = TRUE,
+                                # maximizable = TRUE,
                                 fluidRow(
                                     column(
                                         12,
@@ -53,11 +53,10 @@ createUI <- function(request) {
                                         )
                                     )
                                 ),
-    
+
                                 # visNetwork output
                                 visNetwork::visNetworkOutput("vis", height = "350px")
                             ),
-                        
                             tabBox(
                                 width = 12,
                                 tabPanel(
@@ -75,8 +74,8 @@ createUI <- function(request) {
                         column(
                             5,
                             box(
-                                width = 12, 
-                                height = "850px", 
+                                width = 12,
+                                height = "850px",
                                 solidHeader = TRUE,
                                 title = "Transition Matrix",
                                 DTOutput("transitionMatrix"),
