@@ -32,6 +32,7 @@ getDemoGraph <- function() {
         x = c(0, 300, 0, 300),
         y = c(0, 0, 200, 200),
         shape = "circle",
+        
         color.background = c("#7CFF7C", "white", "white", "white"),
         color.border = "black",
         borderWidth = 2,
@@ -117,22 +118,59 @@ getDemoGraph <- function() {
         visNetwork::visEvents(
             dragEnd = sprintf("
                 function (params) {
-                if (params.nodes.length === 0) return;
-                
-                var grid = %d;
-                var ox = %d;
-                var oy = %d;
-                
-                var nodeId = params.nodes[0];
-                var node = this.body.nodes[nodeId];
-                
-                var x = Math.round((node.x - ox) / grid) * grid + ox;
-                var y = Math.round((node.y - oy) / grid) * grid + oy;
-                
-                this.body.data.nodes.update({ id: nodeId, x: x, y: y });
+                    if (params.nodes.length === 0) return;
+                    
+                    var grid = %d;
+                    var ox = %d;
+                    var oy = %d;
+                    
+                    var nodeId = params.nodes[0];
+                    var node = this.body.nodes[nodeId];
+                    
+                    var x = Math.round((node.x - ox) / grid) * grid + ox;
+                    var y = Math.round((node.y - oy) / grid) * grid + oy;
+                    
+                    this.body.data.nodes.update({ id: nodeId, x: x, y: y });
                 }
                 ", grid_size, ox, oy)
+        ) |>
+        visNetwork::visEvents(
+            # Right click / context menu
+            oncontext = "
+                function(params) {
+                params.event.preventDefault(); // disable browser context menu
+                
+                var nodeId = this.getNodeAt(params.pointer.DOM);
+                if (nodeId) {
+                Shiny.setInputValue('node_right_click', {
+                id: nodeId,
+                x: params.event.clientX,
+                y: params.event.clientY,
+                nonce: Math.random()
+                }, {priority: 'event'});
+                } else {
+                // clicked on empty space -> close any open menu
+                Shiny.setInputValue('ctx_close', Math.random(), {priority: 'event'});
+                }
+                }
+                "
         )
+#        visNetwork::visEvents(
+#            # Right-click handler (vis.js event: "oncontext")
+#            oncontext = "
+#                function(params) {
+#                    params.event.preventDefault(); // suppress browser context menu
+#                    
+#                    var nodeId = this.getNodeAt(params.pointer.DOM);
+#                    if (nodeId) {
+#                    	Shiny.setInputValue('node_right_click',
+#                    		{ id: nodeId, x: params.pointer.DOM.x, y: params.pointer.DOM.y, nonce: Math.random() },
+#                    		{ priority: 'event' }
+#                    	);
+#                	}
+#                }
+#                "
+#        )
 }
 
 getGraphDescription <- function() {

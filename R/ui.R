@@ -8,12 +8,43 @@ createUI <- function(request) {
             )
         ),
         dashboardBody(
+            tags$head(
+                tags$style(HTML("
+                /* Click-away overlay when context menu is open */
+                #ctx-overlay {
+                position: fixed;
+                top: 0; left: 0;
+                width: 100vw; height: 100vh;
+                background: rgba(0,0,0,0.0);
+                z-index: 1040; /* below menu but above content */
+                }
+                
+                /* Context menu styling (Bootstrap-like) */
+                #ctx-menu {
+                position: fixed;
+                z-index: 1050;
+                min-width: 220px;
+                box-shadow: 0 .5rem 1rem rgba(0,0,0,.15);
+                }
+                
+                /* Make menu items feel like native context menu */
+                #ctx-menu .dropdown-item {
+                cursor: pointer;
+                }
+                "))
+            ),
+            
             tabItems(
                 # ============================================================
                 #                     GRAPH TAB (MAIN)
                 # ============================================================
                 tabItem(
                     tabName = "graph",
+                    
+                    # These are rendered dynamically when menu is open
+                    uiOutput("ctx_overlay"),
+                    uiOutput("ctx_menu"),
+                    
                     fluidRow(
                         tags$head(
                             tags$style(HTML("
