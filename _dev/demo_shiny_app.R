@@ -1,7 +1,7 @@
 
 
 # install.packages("visNetwork") # cran
-# devtools::install_github("datastorm-open/visNetwork") # development version
+# pak::pak("datastorm-open/visNetwork") # development version
 
 library(shiny)
 library(visNetwork)

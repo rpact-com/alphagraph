@@ -104,13 +104,14 @@ createUI <- function(request) {
                         # RIGHT: TRANSITION MATRIX + HYPOTHESIS PANEL
                         column(
                             5,
+                            moduleTransitionMatrixUI("transitionMatrix"),
                             box(
                                 width = 12,
                                 height = "850px",
                                 solidHeader = TRUE,
-                                title = "Transition Matrix",
-                                DTOutput("transitionMatrix"),
-                                br(),
+                                #title = "Transition Matrix",
+                                #moduleTransitionMatrixUI("transitionMatrix"),
+                                #br(),
                                 tags$h4("Hypotheses"),
                                 fluidRow(
                                     column(4, tags$b("Hypothesis")),

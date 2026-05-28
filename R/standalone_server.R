@@ -18,6 +18,8 @@ createServer <- function(input, output, session) {
         )
     })
 
+    moduleTransitionMatrixServer("transitionMatrix")
+
     # -------------------------------------------------------------
     # 3) Hypothesis Panel (mockup)
     # -------------------------------------------------------------
