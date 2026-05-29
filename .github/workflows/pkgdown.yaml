@@ -1,0 +1,112 @@
+# Workflow derived from https://github.com/r-lib/actions/tree/v2/examples
+# Need help debugging build failures? Start at https://github.com/r-lib/actions#where-to-find-help
+on:
+  push:
+    branches: [main, master]
+  release:
+    types: [published]
+  workflow_dispatch:
+
+name: pkgdown
+
+jobs:
+  pkgdown:
+    runs-on: ubuntu-latest
+    # Only restrict concurrency for non-PR jobs
+    concurrency:
+      group: pkgdown-${{ github.event_name != 'pull_request' || github.run_id }}
+    
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      GITHUB_REPOSITORY: ${{ github.repository }}
+      RPACT_LATEST: false
+      CHROMOTE_LATEST: false
+    
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+
+      - name: Set up Pandoc
+        uses: r-lib/actions/setup-pandoc@v2
+
+      - name: Set up R
+        uses: r-lib/actions/setup-r@v2
+        with:
+          use-public-rspm: true
+          
+      - name: Set up R dependencies
+        uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: |
+            any::devtools
+            any::testthat
+            any::mockery
+            any::rlang
+            any::chromote
+            any::rpact
+            any::pkgdown
+            local::.
+          needs: website
+          
+      - name: Install known-good shinytest2 
+        run: |
+          install.packages("remotes")
+          remotes::install_version("shinytest2", version = "0.4.1", upgrade = "never")
+        shell: Rscript {0}
+
+      - name: Install latest version of chromote from GitHub
+        run: |
+          chromoteLatest <- Sys.getenv("CHROMOTE_LATEST")
+          if (length(chromoteLatest) == 1 && isTRUE(as.logical(ifelse(identical(chromoteLatest, "yes"), "true", chromoteLatest)))) {
+            pak::pak("rstudio/chromote")
+            chromote::local_chrome_version("latest-stable", binary = "chrome-headless-shell")
+          }
+        shell: Rscript {0}
+        
+      - name: Install latest version of rpact from GitHub
+        run: |
+          rpactLatest <- Sys.getenv("RPACT_LATEST")
+          if (length(rpactLatest) == 1 && isTRUE(as.logical(ifelse(identical(rpactLatest, "yes"), "true", rpactLatest)))) {
+            pak::pak("rpact-com/rpact")
+          }
+        shell: Rscript {0}
+
+      - name: Install rpact.cloud from GitHub
+        run: |
+          pak::pkg_install(paste0(Sys.getenv("GITHUB_REPOSITORY"), "?reinstall"))
+        shell: Rscript {0}
+
+      - name: Build site
+        run: pkgdown::build_site_github_pages(new_process = FALSE, install = FALSE)
+        shell: Rscript {0}
+
+      - name: Deploy to GitHub pages
+        if: github.event_name != 'pull_request'
+        uses: JamesIves/github-pages-deploy-action@v4.4.1
+        with:
+          clean: false
+          branch: gh-pages
+          folder: docs
+          
+      - name: Run tests with log and write artifacts
+        continue-on-error: true
+        shell: Rscript {0}
+        run: |
+          library(rpact.cloud, warn.conflicts = FALSE, quietly = TRUE)
+          dir.create("artifacts", recursive = TRUE, showWarnings = FALSE)
+          res <- runUnitTests(loggingEnabled = TRUE)
+          writeLines(if (length(res$logLines)) res$logLines else "No log lines captured.", "artifacts/test-log.txt")
+          short <- summarizeTestResultsShort(res$testResults)
+          if (!is.null(short)) write.csv(short, "artifacts/test-summary-short.csv", row.names = FALSE)
+          writeLines(capture.output(sessionInfo()), "artifacts/session-info.txt")
+
+      - name: Upload artifacts
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-logs-${{ github.run_id }}
+          path: artifacts/
+          retention-days: 14

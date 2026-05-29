@@ -3,13 +3,16 @@
 # Author: Friedrich Pahlke
 ###############################################################################
 
+# install.packages("pak")
+pak::pak("openpharma/graphicalMCP")
+
 
 # multtest
 # graph
 if (!require("BiocManager", quietly = TRUE)) install.packages("BiocManager")
 BiocManager::install("graph")
 BiocManager::install("multtest")
-devtools::install_github("kornl/gMCP", subdir="pkg/gMCP", dependencies = TRUE, build_vignettes = TRUE)
+pak::pak("kornl/gMCP", subdir="pkg/gMCP", dependencies = TRUE, build_vignettes = TRUE)
 
 
 # Achtung: Funktioniert nur in der einfachen RGui.exe!

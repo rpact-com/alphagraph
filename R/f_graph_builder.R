@@ -83,7 +83,7 @@ getDemoGraph <- function() {
             zoomView = FALSE # disables mouse wheel zoom
         ) |>
         visNetwork::visPhysics(enabled = FALSE) |>
-        visEvents(
+        visNetwork::visEvents(
             afterDrawing = sprintf("
                 function(ctx) {
                 // run only once after the first draw

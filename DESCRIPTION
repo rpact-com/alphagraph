@@ -1,9 +1,60 @@
 Package: alphagraph
 Type: Package
-Version: 0.1-0
-Date: 2025-11-13
+Version: 0.1.0.9005
+Date: 2026-05-29
 Title: alphagraph: Graphical Multiple Comparison Tool
-Author: Friedrich Pahlke
-Maintainer: fpahlke <friedrich.pahlke@rpact.com>
-Description: 
-License: file LICENSE
+Authors@R: c(
+    person(
+    	given = "Friedrich", 
+    	family = "Pahlke", 
+    	email = "friedrich.pahlke@rpact.com", 
+    	role = c("aut", "cre")),
+    person(
+    	given = "Daniel", 
+    	family = "Sabanes Bove", 
+    	email = "daniel.sabanes_bove@rconis.com",
+        comment = c(ORCID = "0000-0002-0176-9239"), 
+    	role = c("ctb")
+	),
+    person(
+        "Novartis Pharma AG", 
+        role = c("cph", "fnd")
+    ),
+    person(
+        "RPACT GmbH", 
+        role = c("cph", "fnd"), 
+        email = "info@rpact.com"
+    ))
+Description: The alphagraph package provides a graphical multiple comparison tool for 
+    visualizing and interpreting the results of multiple comparisons in 
+    statistical analyses. It offers an intuitive interface for comparing 
+    groups and understanding the relationships between them, making it easier 
+    to identify significant differences and patterns in the data.
+License: LGPL-3
+Encoding: UTF-8
+LazyData: true
+URL: 
+    https://rpact-com.github.io/alphagraph/,
+    https://github.com/rpact-com/alphagraph/
+BugReports: https://github.com/rpact-com/alphagraph/issues
+Depends: 
+	R (>= 4.3.0),
+	shiny (>= 1.6.0)
+Imports:
+    visNetwork,
+    DT,
+    R6,
+    bs4Dash,
+    fontawesome, 
+    here,
+    config,
+    glue
+Suggests: 
+	testthat (>= 3.0.0),
+    devtools,
+    pagedown
+Roxygen: list(markdown = TRUE)
+VignetteBuilder: knitr
+Config/testthat/edition: 3
+Config/testthat/parallel: false
+RoxygenNote: 7.3.3
