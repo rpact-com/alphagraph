@@ -1,12 +1,12 @@
 moduleTransitionMatrixServer <- function(id, ..., args = list()) {
-    moduleServer(
+    shiny::moduleServer(
         id,
         function(input, output, session) {
             ns <- session$ns
 
             logDebug("///--- moduleTransitionMatrixServer id = ", id, " (", session$ns("xxx"), ")")
 
-            output$transitionMatrix <- renderDT({
+            output$transitionMatrix <- DT::renderDT({
                 mat <- getTransitionMatrix()
                 DT::datatable(
                     mat,

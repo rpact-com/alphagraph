@@ -5,10 +5,6 @@ isLocalDeveloperSystem <- function(developers = c("fried")) {
                 return(FALSE)
             }
 
-            if (isProductionTestModeEnabled()) {
-                return(FALSE)
-            }
-
             return(Sys.info()[["user"]] %in% developers)
         },
         error = function(e) {
@@ -37,9 +33,13 @@ isAppRunningAsAPackage <- function(loggingEnabled = TRUE) {
 }
 
 getSystemFile <- function(path) {
-    if (isAppRunningAsAPackage() && "alphagraph" %in% rownames(installed.packages())) {
+    if (isAppRunningAsAPackage() && "alphagraph" %in% rownames(utils::installed.packages())) {
         return(system.file(path, package = "alphagraph"))
     }
 
     return(file.path(here::here(), 'inst', path))
+}
+
+.getClassName <- function(x) {
+    return(as.character(class(x))[1])
 }

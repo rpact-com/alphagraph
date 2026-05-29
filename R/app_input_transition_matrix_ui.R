@@ -1,9 +1,9 @@
 moduleTransitionMatrixUI <- function(id) {
-    ns <- NS(id)
-    box(
+    ns <- shiny::NS(id)
+    bs4Dash::box(
         width = 12,
         solidHeader = TRUE,
         title = "Transition Matrix",
-        DTOutput(ns("transitionMatrix"))
+        DT::DTOutput(ns("transitionMatrix"))
     )
 }

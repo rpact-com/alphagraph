@@ -41,6 +41,10 @@ Depends:
 	R (>= 4.3.0),
 	shiny (>= 1.6.0)
 Imports:
+    visNetwork,
+    DT,
+    R6,
+    bs4Dash,
     fontawesome, 
     here,
     config,
@@ -53,3 +57,4 @@ Roxygen: list(markdown = TRUE)
 VignetteBuilder: knitr
 Config/testthat/edition: 3
 Config/testthat/parallel: false
+RoxygenNote: 7.3.3

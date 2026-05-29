@@ -1,38 +1,38 @@
 moduleHypothesisUI <- function(id) {
-    ns <- NS(id)
+    ns <- shiny::NS(id)
     
-    box(
+    bs4Dash::box(
         width = 12,
         height = "850px",
         solidHeader = TRUE,
         title = "Hypotheses",
-        fluidRow(
-            column(4, tags$b("Hypothesis")),
-            column(4, tags$b("Weight")),
-            column(4, tags$b("P-Value"))
+        shiny::fluidRow(
+            bs4Dash::column(4, shiny::tags$b("Hypothesis")),
+            bs4Dash::column(4, shiny::tags$b("Weight")),
+            bs4Dash::column(4, shiny::tags$b("P-Value"))
         ),
-        uiOutput(ns("hypothesisPanel")),
-        br(),
-        fluidRow(
-            column(
+        shiny::uiOutput(ns("hypothesisPanel")),
+        shiny::tags$br(),
+        shiny::fluidRow(
+            bs4Dash::column(
                 6,
-                numericInput("totalAlpha", "Total a:", value = 0.05)
+                shiny::numericInput("totalAlpha", "Total a:", value = 0.05)
             ),
-            column(
+            bs4Dash::column(
                 6,
-                actionButton("loadPValues", "Load p-values from R")
+                shiny::actionButton("loadPValues", "Load p-values from R")
             )
         ),
-        hr(),
-        radioButtons("corrInfo", "Correlation Information",
+        shiny::tags$hr(),
+        shiny::radioButtons("corrInfo", "Correlation Information",
             choices = c(
                 "No Information" = "none",
                 "Use R correlation matrix" = "r",
                 "Use Simes test" = "simes"
             )
         ),
-        hr(),
-        actionButton("refresh", "Refresh"),
-        actionButton("createMatrix", "Create Matrix")
+        shiny::tags$hr(),
+        shiny::actionButton("refresh", "Refresh"),
+        shiny::actionButton("createMatrix", "Create Matrix")
     )
 }

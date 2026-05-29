@@ -271,31 +271,31 @@ getSessionInfoLogLines <- function(logInstalledPackages = FALSE) {
 
             output <- c(output, "# Session Info", "\n\n")
 
-            output <- c(output, paste0(h2("R Version"), "\n\n"))
+            output <- c(output, paste0(shiny::tags$h2("R Version"), "\n\n"))
             output <- c(output, paste0("- Version: ", si$R.version$version.string, "\n"))
             output <- c(output, paste0("- Platform: ", si$R.version$platform, "\n"))
             output <- c(output, paste0("- Running under: ", si$running, "\n\n"))
 
-            output <- c(output, paste0(h2("Matrix Products"), "\n\n"))
+            output <- c(output, paste0(shiny::tags$h2("Matrix Products"), "\n\n"))
             output <- c(output, paste0("- ", si$matprod, "\n\n"))
 
-            output <- c(output, paste0(h2("Locale"), "\n\n"))
+            output <- c(output, paste0(shiny::tags$h2("Locale"), "\n\n"))
             for (locale in strsplit(si$locale, ";")[[1]]) {
                 output <- c(output, paste0("- ", sub("=", " = ", locale, fixed = TRUE), "\n"))
             }
             output <- c(output, "\n")
 
-            output <- c(output, paste0(h2("Time Zone"), "\n\n"))
+            output <- c(output, paste0(shiny::tags$h2("Time Zone"), "\n\n"))
             output <- c(output, paste0("- Time Zone: ", si$tzone, "\n"))
             output <- c(output, paste0("- TZCode Source: ", si$tzcode_type, "\n\n"))
 
-            output <- c(output, paste0(h2("Attached Base Packages"), "\n\n"))
+            output <- c(output, paste0(shiny::tags$h2("Attached Base Packages"), "\n\n"))
             for (pkg in si$basePkgs) {
                 output <- c(output, paste0("- ", pkg, "\n"))
             }
             output <- c(output, "\n")
 
-            output <- c(output, paste0(h2("Other Attached Packages"), "\n\n"))
+            output <- c(output, paste0(shiny::tags$h2("Other Attached Packages"), "\n\n"))
             for (pkg in names(si$otherPkgs)) {
                 tryCatch(
                     {
@@ -308,7 +308,7 @@ getSessionInfoLogLines <- function(logInstalledPackages = FALSE) {
             }
             output <- c(output, "\n")
 
-            output <- c(output, paste0(h2("Loaded via a Namespace (and not attached)"), "\n\n"))
+            output <- c(output, paste0(shiny::tags$h2("Loaded via a Namespace (and not attached)"), "\n\n"))
             for (pkg in names(si$loadedOnly)) {
                 tryCatch(
                     {
@@ -322,8 +322,8 @@ getSessionInfoLogLines <- function(logInstalledPackages = FALSE) {
             output <- c(output, "\n")
 
             if (isTRUE(logInstalledPackages)) {
-                installedPackages <- installed.packages()[, c("Package", "Version")]
-                output <- c(output, paste0(h2("Installed Packages"), "\n\n"))
+                installedPackages <- utils::installed.packages()[, c("Package", "Version")]
+                output <- c(output, paste0(shiny::tags$h2("Installed Packages"), "\n\n"))
                 for (i in 1:nrow(installedPackages)) {
                     pkg <- installedPackages[i, "Package"]
                     tryCatch(
@@ -348,7 +348,7 @@ getSessionInfoLogLines <- function(logInstalledPackages = FALSE) {
                 "OTEL_EXPORTER_OTLP_PROTOCOL"
             ), unset = "<unset>")
             output <- c(output, "\n")
-            output <- c(output, paste0(h2("OpenTelemetry related environment variables"), "\n\n"))
+            output <- c(output, paste0(shiny::tags$h2("OpenTelemetry related environment variables"), "\n\n"))
             for (var in names(openTelemtryVars)) {
                 output <- c(output, paste0("- ", var, ": ", openTelemtryVars[[var]], "\n"))
             }

@@ -7,8 +7,8 @@ library(shiny)
 library(visNetwork)
 
 ui <- fluidPage(
-    tags$head(
-        tags$style(HTML("
+    shiny::tags$head(
+        shiny::tags$style(HTML("
             .vis-network {
             background-image: linear-gradient(#e0e0e0 1px, transparent 1px),
             linear-gradient(90deg, #e0e0e0 1px, transparent 1px);
