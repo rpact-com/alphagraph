@@ -428,16 +428,9 @@ The following screenshots illustrate that the PoC implementation can closely
 resemble the graphical representation and interaction model of the original
 `gMCP` GUI.
 
-<!-- Placeholder: Overview of the alphagraph PoC GUI -->
-![`alphagraph` PoC – Overview](../man/figures/vignettes/alphagraph_poc_overview.png)
+![`alphagraph` PoC – Overview](../man/figures/alphagraph_poc_overview.png)
 
-![`alphagraph` PoC – Overview (dark mode)](../man/figures/vignettes/alphagraph_poc_overview_2.png)
-
-<!-- Placeholder: Graph editor with grid-based layout -->
-<!--![`alphagraph` PoC – Graph editor](../man/figures/vignettes/alphagraph_poc_graph.png)-->
-
-<!-- Placeholder: Transition matrix and side panels -->
-<!--![`alphagraph` PoC – Transition matrix](../man/figures/vignettes/alphagraph_poc_matrix.png)-->
+![`alphagraph` PoC – Overview (dark mode)](../man/figures/alphagraph_poc_overview_2.png)
 
 These examples demonstrate that a **visual and functional alignment with gMCP**
 is achievable while benefiting from a modern, web-based architecture.

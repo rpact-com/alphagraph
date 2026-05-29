@@ -7,18 +7,20 @@ Authors@R: c(
     person(
     	given = "Friedrich", 
     	family = "Pahlke", 
-    	email = "friedrich.pahlke@rpact.com", 
-    	role = c("aut", "cre")),
+    	email = "friedrich.pahlke@rpact.com",
+    	comment = c(ORCID = "0000-0003-2105-2582"), 
+    	role = c("aut", "cre")
+    ),
     person(
     	given = "Daniel", 
     	family = "Sabanes Bove", 
-    	email = "daniel.sabanes_bove@rconis.com",
+    	email = "daniel.sabanes_bove@rpact.com",
         comment = c(ORCID = "0000-0002-0176-9239"), 
     	role = c("ctb")
 	),
     person(
         "Novartis Pharma AG", 
-        role = c("cph", "fnd")
+        role = c("fnd")
     ),
     person(
         "RPACT GmbH", 
