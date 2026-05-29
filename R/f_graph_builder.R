@@ -18,7 +18,7 @@ getHypothesisLabel <- function(number, x, i = NULL) {
     return(label)
 }
 
-getDemoGraph <- function() {
+getDemoGraph <- function(ns) {
     # ---- NODES ----
     nodes <- data.frame(
         id = c("H1_NI", "H1_S", "H2_NI", "H2_S"),
@@ -136,13 +136,13 @@ getDemoGraph <- function() {
         ) |>
         visNetwork::visEvents(
             # Right click / context menu
-            oncontext = "
+            oncontext = paste0("
                 function(params) {
                 params.event.preventDefault(); // disable browser context menu
                 
                 var nodeId = this.getNodeAt(params.pointer.DOM);
                 if (nodeId) {
-                Shiny.setInputValue('node_right_click', {
+                Shiny.setInputValue('", ns("node_right_click"), "', {
                 id: nodeId,
                 x: params.event.clientX,
                 y: params.event.clientY,
@@ -150,10 +150,10 @@ getDemoGraph <- function() {
                 }, {priority: 'event'});
                 } else {
                 // clicked on empty space -> close any open menu
-                Shiny.setInputValue('ctx_close', Math.random(), {priority: 'event'});
+                Shiny.setInputValue('", ns("ctx_close"), "', Math.random(), {priority: 'event'});
                 }
                 }
-                "
+                ")
         )
 #        visNetwork::visEvents(
 #            # Right-click handler (vis.js event: "oncontext")
