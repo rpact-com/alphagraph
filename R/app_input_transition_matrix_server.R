@@ -4,7 +4,7 @@ moduleTransitionMatrixServer <- function(id, ..., args = list()) {
         function(input, output, session) {
             ns <- session$ns
 
-            logDebug("///--- modulePlotServer id = ", id, " (", session$ns("xxx"), ")")
+            logDebug("///--- moduleTransitionMatrixServer id = ", id, " (", session$ns("xxx"), ")")
 
             output$transitionMatrix <- renderDT({
                 mat <- getTransitionMatrix()
