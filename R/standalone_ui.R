@@ -1,5 +1,6 @@
 createUI <- function(request) {
     dashboardPage(
+        includeCSS(getSystemFile("www/style.css")),
         dashboardHeader(title = "alphagraph"),
         dashboardSidebar(
             sidebarMenu(
@@ -35,9 +36,6 @@ createUI <- function(request) {
             ),
             
             tabItems(
-                # ============================================================
-                #                     GRAPH TAB (MAIN)
-                # ============================================================
                 tabItem(
                     tabName = "graph",
                     
@@ -58,36 +56,7 @@ createUI <- function(request) {
                         ),
                         column(
                             7,
-
-                            # LEFT: GRAPH + Description/Analysis
-                            box(
-                                width = 12,
-                                height = "430px",
-                                solidHeader = TRUE,
-                                title = "Graph",
-                                # maximizable = TRUE,
-                                fluidRow(
-                                    column(
-                                        12,
-                                        div(
-                                            style = "margin-bottom:10px;",
-                                            actionButton("add_node", label = NULL, icon = icon("plus-circle")),
-                                            actionButton("add_edge", label = NULL, icon = icon("share")),
-                                            actionButton("edit_node", label = NULL, icon = icon("edit")),
-                                            actionButton("edit_edge", label = NULL, icon = icon("pencil-ruler")),
-                                            actionButton("delete", label = NULL, icon = icon("trash")),
-                                            actionButton("reset_view", label = NULL, icon = icon("crosshairs")),
-                                            actionButton("zoom_in", label = NULL, icon = icon("search-plus")),
-                                            actionButton("zoom_out", label = NULL, icon = icon("search-minus")),
-                                            actionButton("lock_pos", label = NULL, icon = icon("lock")),
-                                            actionButton("unlock_pos", label = NULL, icon = icon("unlock"))
-                                        )
-                                    )
-                                ),
-
-                                # visNetwork output
-                                visNetwork::visNetworkOutput("vis", height = "350px")
-                            ),
+                            moduleGraphUI("graphIO"),
                             tabBox(
                                 width = 12,
                                 tabPanel(
@@ -101,7 +70,6 @@ createUI <- function(request) {
                             )
                         ),
 
-                        # RIGHT: TRANSITION MATRIX + HYPOTHESIS PANEL
                         column(
                             5,
                             moduleTransitionMatrixUI("transitionMatrix"),
@@ -110,9 +78,6 @@ createUI <- function(request) {
                     )
                 ),
 
-                # ============================================================
-                #                      SETTINGS TAB
-                # ============================================================
                 tabItem(
                     tabName = "settings",
                     h2("Settings"),

@@ -1,6 +1,5 @@
 moduleHypothesisUI <- function(id) {
     ns <- NS(id)
-    #uiOutput(ns("demo"))
     
     box(
         width = 12,
