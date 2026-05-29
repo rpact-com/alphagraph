@@ -1,6 +1,6 @@
 createUI <- function(request) {
     dashboardPage(
-        dashboardHeader(title = "alphagraph PoC"),
+        dashboardHeader(title = "alphagraph"),
         dashboardSidebar(
             sidebarMenu(
                 menuItem("Graph Editor", tabName = "graph", icon = icon("project-diagram")),
@@ -105,43 +105,7 @@ createUI <- function(request) {
                         column(
                             5,
                             moduleTransitionMatrixUI("transitionMatrix"),
-                            box(
-                                width = 12,
-                                height = "850px",
-                                solidHeader = TRUE,
-                                #title = "Transition Matrix",
-                                #moduleTransitionMatrixUI("transitionMatrix"),
-                                #br(),
-                                tags$h4("Hypotheses"),
-                                fluidRow(
-                                    column(4, tags$b("Hypothesis")),
-                                    column(4, tags$b("Weight")),
-                                    column(4, tags$b("P-Value"))
-                                ),
-                                uiOutput("hypothesisPanel"),
-                                br(),
-                                fluidRow(
-                                    column(
-                                        6,
-                                        numericInput("totalAlpha", "Total a:", value = 0.05)
-                                    ),
-                                    column(
-                                        6,
-                                        actionButton("loadPValues", "Load p-values from R")
-                                    )
-                                ),
-                                hr(),
-                                radioButtons("corrInfo", "Correlation Information",
-                                    choices = c(
-                                        "No Information" = "none",
-                                        "Use R correlation matrix" = "r",
-                                        "Use Simes test" = "simes"
-                                    )
-                                ),
-                                hr(),
-                                actionButton("refresh", "Refresh"),
-                                actionButton("createMatrix", "Create Matrix")
-                            )
+                            moduleHypothesisUI("hypothesisPanel")
                         )
                     )
                 ),
