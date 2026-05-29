@@ -1,0 +1,25 @@
+url: https://docs.alphagraph.org
+
+template:
+  bootstrap: 5
+  includes:
+    in_header: |
+      <meta name="keywords" content="alphagraph, graphicalMCP, rpact, RPACT Cloud, R Shiny, Shiny, Clinical Trials, rstats, Friedrich Pahlke"/>
+      <link href="/reference/figures/pkgdown.css" rel="stylesheet"/>
+      <link href="/reference/figures/favicon.ico" rel="icon"/>
+      <link href="/reference/figures/favicon.ico" rel="apple-touch-icon"/>
+      <link href="/reference/figures/favicon.ico" rel="shortcut icon" type="image/vnd.microsoft.icon"/>
+  params:
+    extra_assets: ["man/figures/"]
+
+home:
+  title: alphagraph
+  description: Graphical Multiple Comparison Tool
+  links:
+  - text: alphagraph PoC
+    href: https://rpact-alphagraph-poc.share.connect.posit.cloud/
+  - text: RPACT Cloud Demo
+    href: https://rpact.cloud
+  - text: RPACT Connect
+    href: https://connect.rpact.com
+    
