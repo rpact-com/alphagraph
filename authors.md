@@ -3,11 +3,12 @@
 ## Authors
 
 - **Friedrich Pahlke**. Author, maintainer.
+  [](https://orcid.org/0000-0003-2105-2582)
 
 - **Daniel Sabanes Bove**. Contributor.
   [](https://orcid.org/0000-0002-0176-9239)
 
-- **Novartis Pharma AG**. Copyright holder, funder.
+- **Novartis Pharma AG**. Funder.
 
 - **RPACT GmbH**. Copyright holder, funder.
 

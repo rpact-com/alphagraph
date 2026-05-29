@@ -427,12 +427,12 @@ closely resemble the graphical representation and interaction model of
 the original `gMCP` GUI.
 
 ![alphagraph PoC –
-Overview](../reference/figures/articles/alphagraph_poc_overview.png)
+Overview](../reference/figures/alphagraph_poc_overview.png)
 
 `alphagraph` PoC – Overview
 
 ![alphagraph PoC – Overview (dark
-mode)](../reference/figures/articles/alphagraph_poc_overview_2.png)
+mode)](../reference/figures/alphagraph_poc_overview_2.png)
 
 `alphagraph` PoC – Overview (dark mode)
 
