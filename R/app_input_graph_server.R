@@ -7,7 +7,7 @@ moduleGraphServer <- function(id, ..., args = list()) {
             logDebug("///--- moduleGraphServer id = ", id, " (", session$ns("xxx"), ")")
 
             output$graph <- visNetwork::renderVisNetwork({
-                getDemoGraph()
+                getDemoGraph(ns)
             })
 
             #    shiny::observeEvent(input$node_right_click, {
@@ -26,7 +26,7 @@ moduleGraphServer <- function(id, ..., args = list()) {
             #    })
 
             shiny::observeEvent(input$add_node, {
-                visNetwork::visNetworkProxy("graph") |>
+                visNetwork::visNetworkProxy(ns("graph")) |>
                     visNetwork::visUpdateNodes(
                         data.frame(
                             id = paste0("H_new_", sample(10000, 1)),
@@ -47,7 +47,7 @@ moduleGraphServer <- function(id, ..., args = list()) {
             })
 
             shiny::observeEvent(input$add_edge, {
-                #        visNetwork::visNetworkProxy("graph") |>
+                #        visNetwork::visNetworkProxy(ns("graph")) |>
                 #            visNetwork::visConfigure(enabled = TRUE) |>
                 #            visNetwork::visOptions(manipulation = list(
                 #                enabled = TRUE,
@@ -59,7 +59,7 @@ moduleGraphServer <- function(id, ..., args = list()) {
             })
 
             shiny::observeEvent(input$edit_node, {
-                #        visNetwork::visNetworkProxy("graph") |>
+                #        visNetwork::visNetworkProxy(ns("graph")) |>
                 #            visNetwork::visOptions(manipulation = list(
                 #                enabled = TRUE,
                 #                editNode = TRUE,
@@ -69,7 +69,7 @@ moduleGraphServer <- function(id, ..., args = list()) {
             })
 
             shiny::observeEvent(input$delete, {
-                #        visNetwork::visNetworkProxy("graph") |>
+                #        visNetwork::visNetworkProxy(ns("graph")) |>
                 #            visNetwork::visOptions(manipulation = list(
                 #                enabled = TRUE,
                 #                deleteNode = TRUE,
@@ -78,25 +78,25 @@ moduleGraphServer <- function(id, ..., args = list()) {
             })
 
             shiny::observeEvent(input$reset_view, {
-                #        visNetwork::visNetworkProxy("graph") |>
+                #        visNetwork::visNetworkProxy(ns("graph")) |>
                 #            visNetwork::visFit()
             })
 
             shiny::observeEvent(input$zoom_in, {
-                # visNetwork::visNetworkProxy("graph") |> visNetwork::visZoom(1.2)
+                # visNetwork::visNetworkProxy(ns("graph")) |> visNetwork::visZoom(1.2)
             })
 
             shiny::observeEvent(input$zoom_out, {
-                # visNetwork::visNetworkProxy("graph") |> visNetwork::visZoom(0.8)
+                # visNetwork::visNetworkProxy(ns("graph")) |> visNetwork::visZoom(0.8)
             })
 
             shiny::observeEvent(input$lock_pos, {
-                #        visNetwork::visNetworkProxy("graph") |>
+                #        visNetwork::visNetworkProxy(ns("graph")) |>
                 #            visNetwork::visPhysics(enabled = FALSE)
             })
 
             shiny::observeEvent(input$unlock_pos, {
-                #        visNetwork::visNetworkProxy("graph") |>
+                #        visNetwork::visNetworkProxy(ns("graph")) |>
                 #            visNetwork::visPhysics(enabled = TRUE)
             })
 
@@ -112,7 +112,7 @@ moduleGraphServer <- function(id, ..., args = list()) {
                 shiny::req(rv$ctx_open)
                 shiny::tags$div(
                     id = "ctx-overlay",
-                    onclick = "Shiny.setInputValue('ctx_close', Math.random(), {priority: 'event'});"
+                    onclick = paste0("Shiny.setInputValue('", ns("ctx_close"), "', Math.random(), {priority: 'event'});")
                 )
             })
 
@@ -139,23 +139,23 @@ moduleGraphServer <- function(id, ..., args = list()) {
                         shiny::tags$div(class = "dropdown-header", paste("Node", rv$ctx_node_id)),
                         shiny::tags$a(
                             class = "dropdown-item", href = "#",
-                            onclick = "Shiny.setInputValue('ctx_action', {action:'edit', nonce:Math.random()}, {priority:'event'});",
+                            onclick = paste0("Shiny.setInputValue('", ns("ctx_action"), "', {action:'edit', nonce:Math.random()}, {priority:'event'});"),
                             shiny::icon("edit"), "Edit properties"
                         ),
                         shiny::tags$a(
                             class = "dropdown-item", href = "#",
-                            onclick = "Shiny.setInputValue('ctx_action', {action:'green', nonce:Math.random()}, {priority:'event'});",
+                            onclick = paste0("Shiny.setInputValue('", ns("ctx_action"), "', {action:'green', nonce:Math.random()}, {priority:'event'});"),
                             shiny::icon("paint-brush"), "Set color: green"
                         ),
                         shiny::tags$a(
                             class = "dropdown-item", href = "#",
-                            onclick = "Shiny.setInputValue('ctx_action', {action:'white', nonce:Math.random()}, {priority:'event'});",
+                            onclick = paste0("Shiny.setInputValue('", ns("ctx_action"), "', {action:'white', nonce:Math.random()}, {priority:'event'});"),
                             shiny::icon("eraser"), "Set color: white"
                         ),
                         shiny::tags$div(class = "dropdown-divider"),
                         shiny::tags$a(
                             class = "dropdown-item text-danger", href = "#",
-                            onclick = "Shiny.setInputValue('ctx_action', {action:'delete', nonce:Math.random()}, {priority:'event'});",
+                            onclick = paste0("Shiny.setInputValue('", ns("ctx_action"), "', {action:'delete', nonce:Math.random()}, {priority:'event'});"),
                             shiny::icon("trash"), "Delete node"
                         )
                     )
@@ -169,13 +169,13 @@ moduleGraphServer <- function(id, ..., args = list()) {
                 id <- rv$ctx_node_id
 
                 if (act == "green") {
-                    visNetwork::visNetworkProxy("graph") |>
+                    visNetwork::visNetworkProxy(ns("graph")) |>
                         visNetwork::visUpdateNodes(data.frame(id = id, color.background = "#7CFF7C"))
                 } else if (act == "white") {
-                    visNetwork::visNetworkProxy("graph") |>
+                    visNetwork::visNetworkProxy(ns("graph")) |>
                         visNetwork::visUpdateNodes(data.frame(id = id, color.background = "white"))
                 } else if (act == "delete") {
-                    visNetwork::visNetworkProxy("graph") |>
+                    visNetwork::visNetworkProxy(ns("graph")) |>
                         visNetwork::visRemoveNodes(id = id)
                 } else if (act == "edit") {
                     # Example: show a bs4Dash/Shiny modal for editing
@@ -209,7 +209,7 @@ moduleGraphServer <- function(id, ..., args = list()) {
 
             shiny::observeEvent(input$save_node_label, {
                 shiny::req(rv$ctx_node_id)
-                visNetwork::visNetworkProxy("graph") |>
+                visNetwork::visNetworkProxy(ns("graph")) |>
                     visNetwork::visUpdateNodes(data.frame(id = rv$ctx_node_id, label = input$node_label))
                 shiny::removeModal()
             })

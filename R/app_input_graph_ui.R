@@ -7,6 +7,10 @@ moduleGraphUI <- function(id) {
         solidHeader = TRUE,
         title = "Graph",
         # maximizable = TRUE,
+        
+        shiny::uiOutput(ns("ctx_overlay")),
+        shiny::uiOutput(ns("ctx_menu")),
+        
         shiny::fluidRow(
             bs4Dash::column(
                 12,
