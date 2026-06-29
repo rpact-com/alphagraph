@@ -29,6 +29,17 @@ createUI <- function(request) {
         body = bs4Dash::dashboardBody(
             shiny::includeCSS(getSystemFile("www/context-menu.css")),
             shiny::includeCSS(getSystemFile("www/vis-network.css")),
+            shiny::tags$script(shiny::HTML("
+                Shiny.addCustomMessageHandler('toggleButtonClass', function(message) {
+                    // Remove active classes from inactive button
+                    $('#' + message.inactiveId).removeClass('btn-primary');
+                    $('#' + message.inactiveId).addClass('btn-outline-secondary');
+                    
+                    // Add active classes to active button
+                    $('#' + message.activeId).removeClass('btn-outline-secondary');
+                    $('#' + message.activeId).addClass('btn-primary');
+                });
+            ")),
             bs4Dash::tabItems(
                 bs4Dash::tabItem(
                     tabName = "graph",
@@ -45,7 +56,25 @@ createUI <- function(request) {
                                 width = 12,
                                 shiny::tabPanel(
                                     "Description",
-                                    shiny::uiOutput("desc")
+                                    shiny::fluidRow(
+                                        shiny::column(
+                                            12,
+                                            shiny::div(
+                                                style = "margin-bottom: 10px; border-bottom: 1px solid #dee2e6; padding-bottom: 10px;",
+                                                shiny::actionButton(
+                                                    "descModePreview",
+                                                    "Preview",
+                                                    class = "btn-sm btn-primary"
+                                                ),
+                                                shiny::actionButton(
+                                                    "descModeEdit",
+                                                    "Edit",
+                                                    class = "btn-sm btn-outline-secondary"
+                                                )
+                                            ),
+                                            shiny::uiOutput("descContent")
+                                        )
+                                    )
                                 ),
                                 shiny::tabPanel(
                                     "Analysis",
@@ -65,7 +94,7 @@ createUI <- function(request) {
                 bs4Dash::tabItem(
                     tabName = "settings",
                     shiny::tags$h2("Settings"),
-                    shiny::tags$p("Here you can add app settings…")
+                    shiny::tags$p("alphagraph settings will be implemented here in the future.")
                 )
             )
         )
