@@ -29,24 +29,10 @@ createUI <- function(request) {
         body = bs4Dash::dashboardBody(
             shiny::includeCSS(getSystemFile("www/context-menu.css")),
             shiny::includeCSS(getSystemFile("www/vis-network.css")),
-            shiny::tags$script(shiny::HTML("
-                Shiny.addCustomMessageHandler('toggleButtonClass', function(message) {
-                    // Remove active classes from inactive button
-                    $('#' + message.inactiveId).removeClass('btn-primary');
-                    $('#' + message.inactiveId).addClass('btn-outline-secondary');
-                    
-                    // Add active classes to active button
-                    $('#' + message.activeId).removeClass('btn-outline-secondary');
-                    $('#' + message.activeId).addClass('btn-primary');
-                });
-            ")),
+            includeJavaScript("www/js/toggle-button.js"),
             bs4Dash::tabItems(
                 bs4Dash::tabItem(
                     tabName = "graph",
-                    
-                    # These are rendered dynamically when menu is open
-#                    shiny::uiOutput("ctx_overlay"),
-#                    shiny::uiOutput("ctx_menu"),
                     
                     shiny::fluidRow(
                         bs4Dash::column(
@@ -60,7 +46,7 @@ createUI <- function(request) {
                                 ),
                                 shiny::tabPanel(
                                     "Analysis",
-                                    shiny::verbatimTextOutput("analysis")
+                                    moduleAnalysisUI("analysisPanel")
                                 )
                             )
                         ),

@@ -43,3 +43,8 @@ getSystemFile <- function(path) {
 .getClassName <- function(x) {
     return(as.character(class(x))[1])
 }
+
+includeJavaScript <- function(path) {
+    # shiny::includeScript(path = getSystemFile(path))
+    tags$script(src = path, defer = NA)
+}

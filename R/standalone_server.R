@@ -22,9 +22,6 @@ createServer <- function(input, output, session) {
     moduleTransitionMatrixServer("transitionMatrix")
     moduleHypothesisServer("hypothesisPanel")
     moduleDescriptionServer("descriptionPanel")
-
-    output$analysis <- shiny::renderText({
-        "Hypotheses, weights, and p-values go here."
-    })
-
+    moduleAnalysisServer("analysisPanel")
+    
 }
