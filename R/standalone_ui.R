@@ -56,25 +56,7 @@ createUI <- function(request) {
                                 width = 12,
                                 shiny::tabPanel(
                                     "Description",
-                                    shiny::fluidRow(
-                                        shiny::column(
-                                            12,
-                                            shiny::div(
-                                                style = "margin-bottom: 10px; border-bottom: 1px solid #dee2e6; padding-bottom: 10px;",
-                                                shiny::actionButton(
-                                                    "descModePreview",
-                                                    "Preview",
-                                                    class = "btn-sm btn-primary"
-                                                ),
-                                                shiny::actionButton(
-                                                    "descModeEdit",
-                                                    "Edit",
-                                                    class = "btn-sm btn-outline-secondary"
-                                                )
-                                            ),
-                                            shiny::uiOutput("descContent")
-                                        )
-                                    )
+                                    moduleDescriptionUI("descriptionPanel")
                                 ),
                                 shiny::tabPanel(
                                     "Analysis",
