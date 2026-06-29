@@ -47,6 +47,7 @@ Imports:
     DT,
     R6,
     bs4Dash,
+	knitr (>= 1.19),
     fontawesome, 
     here,
     config,
@@ -59,4 +60,4 @@ Roxygen: list(markdown = TRUE)
 VignetteBuilder: knitr
 Config/testthat/edition: 3
 Config/testthat/parallel: false
-RoxygenNote: 7.3.3
+Config/roxygen2/version: 7.3.3.9000
