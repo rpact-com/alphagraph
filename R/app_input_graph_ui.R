@@ -1,3 +1,15 @@
+ #' @title Graph editor UI module
+ #'
+ #' @description
+ #' Shiny UI definition for the graph editor panel. This creates the box
+ #' containing action buttons and the visNetwork output used by the
+ #' corresponding server module.
+ #'
+ #' @param id Module id (namespace) used for UI namespacing.
+ #'
+ #' @return UI elements describing the module.
+ #'
+ #' @noRd
 moduleGraphUI <- function(id) {
     ns <- shiny::NS(id)
     

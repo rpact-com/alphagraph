@@ -1,3 +1,16 @@
+ #' @title Check whether current system belongs to a local developer
+ #'
+ #' @description
+ #' Return TRUE when the current user account matches one of the known local
+ #' developer accounts. This is used to enable developer-only logging and
+ #' diagnostics. The check is resilient and returns FALSE on error.
+ #'
+ #' @param developers Character vector of developer user names to accept.
+ #'
+ #' @return Logical scalar: TRUE if running on a local developer system,
+ #' FALSE otherwise.
+ #'
+ #' @noRd
 isLocalDeveloperSystem <- function(developers = c("fried")) {
     tryCatch(
         {
@@ -13,6 +26,18 @@ isLocalDeveloperSystem <- function(developers = c("fried")) {
     )
 }
 
+ #' @title Detect whether the app is running as an installed package
+ #'
+ #' @description
+ #' Attempt to determine whether the app code is running from a package
+ #' installation or from a source (project) directory. This helps to adapt
+ #' behavior (e.g. resource lookup) depending on packaging mode.
+ #'
+ #' @param loggingEnabled Logical; if TRUE, logging is enabled for error messages.
+ #'
+ #' @return Logical scalar indicating whether the app is running as a package.
+ #'
+ #' @noRd
 isAppRunningAsAPackage <- function(loggingEnabled = TRUE) {
     tryCatch({
             appDir <- here::here()
@@ -32,6 +57,18 @@ isAppRunningAsAPackage <- function(loggingEnabled = TRUE) {
     return(!isFALSE(as.logical(getOption("rpact.cloud.package.mode", TRUE))))
 }
 
+ #' @title Resolve a path to a system resource file
+ #'
+ #' @description
+ #' Return the correct file path for resources bundled with the package when
+ #' the app is installed, or the corresponding 'inst/' path when running from
+ #' the project source tree.
+ #'
+ #' @param path Relative path inside the package resources (e.g. "www/foo.css").
+ #'
+ #' @return A string with the absolute file path to the requested resource.
+ #'
+ #' @noRd
 getSystemFile <- function(path) {
     if (isAppRunningAsAPackage() && "alphagraph" %in% rownames(utils::installed.packages())) {
         return(system.file(path, package = "alphagraph"))
@@ -44,7 +81,19 @@ getSystemFile <- function(path) {
     return(as.character(class(x))[1])
 }
 
+ #' @title Include JavaScript in Shiny UI
+ #'
+ #' @description
+ #' Helper that creates a script tag for including a JavaScript file in the
+ #' Shiny UI. The path is passed through to the tag; when packaging the app
+ #' callers typically use getSystemFile() to resolve resource paths.
+ #'
+ #' @param path Path or URL to the JavaScript file to include.
+ #'
+ #' @return A Shiny tag containing a script include.
+ #'
+ #' @noRd
 includeJavaScript <- function(path) {
     # shiny::includeScript(path = getSystemFile(path))
-    tags$script(src = path, defer = NA)
+    shiny::tags$script(src = path, defer = NA)
 }

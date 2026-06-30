@@ -17,11 +17,9 @@
 #' @export
 #' 
 createServer <- function(input, output, session) {
-
     moduleGraphServer("graphIO")
     moduleTransitionMatrixServer("transitionMatrix")
     moduleHypothesisServer("hypothesisPanel")
     moduleDescriptionServer("descriptionPanel")
     moduleAnalysisServer("analysisPanel")
-    
 }
