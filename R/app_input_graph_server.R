@@ -1,16 +1,18 @@
- #' @title Graph editor server module
- #'
- #' @description
- #' Server-side logic for the graph editor module. Handles rendering the
- #' demonstration graph, managing node/edge actions and context menu events.
- #'
- #' @param id Module id (namespace) for this server module.
- #' @param ... Additional parameters (reserved for future use).
- #' @param args Named list of optional parameters passed to the module.
- #'
- #' @return Invisibly NULL; the function registers server observers and outputs.
- #'
- #' @noRd
+#' 
+#' @title Graph editor server module
+#'
+#' @description
+#' Server-side logic for the graph editor module. Handles rendering the
+#' demonstration graph, managing node/edge actions and context menu events.
+#'
+#' @param id Module id (namespace) for this server module.
+#' @param ... Additional parameters (reserved for future use).
+#' @param args Named list of optional parameters passed to the module.
+#'
+#' @return Invisibly NULL; the function registers server observers and outputs.
+#'
+#' @keywords internal
+#' 
 moduleGraphServer <- function(id, ..., args = list()) {
     shiny::moduleServer(
         id,

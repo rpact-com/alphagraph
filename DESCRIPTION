@@ -48,7 +48,6 @@ Imports:
     R6,
     bs4Dash,
 	knitr (>= 1.19),
-    fontawesome, 
     here,
     config,
     glue

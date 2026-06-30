@@ -1,7 +1,7 @@
 ##
-## RPACT Cloud
+## alphagraph
 ##
-## This file is part of the R package rpact.cloud
+## This file is part of the R package alphagraph
 ##
 ## Author: Friedrich Pahlke, PhD
 ## Copyright (c) 2026 by RPACT
@@ -9,18 +9,18 @@
 ##
 ## RPACT company website: https://www.rpact.com
 ##
-## Learn more about RPACT Cloud at www.rpact.com/products/rpact-cloud/
-##
 
- #' @title Get a short session identifier for logging
- #'
- #' @description
- #' Return a short string identifying the current Shiny session for use in
- #' log messages. On non-developer systems an empty string is returned.
- #'
- #' @return A short string with session information (possibly empty).
- #'
- #' @noRd
+#' 
+#' @title Get a short session identifier for logging
+#'
+#' @description
+#' Return a short string identifying the current Shiny session for use in
+#' log messages. On non-developer systems an empty string is returned.
+#'
+#' @return A short string with session information (possibly empty).
+#'
+#' @keywords internal
+#' 
 getSessionInfo <- function() {
     if (!isLocalDeveloperSystem()) {
         return("")
@@ -93,94 +93,106 @@ getSessionInfo <- function() {
     return(invisible())
 }
 
- #' @title Log an informational message
- #'
- #' @description
- #' Convenience wrapper to create an INFO level log entry. Accepts the same
- #' arguments as the internal logging helper.
- #'
- #' @param ... Arguments passed to the logger; these are concatenated.
- #'
- #' @return Invisibly returns NULL.
- #'
- #' @noRd
+#' 
+#' @title Log an informational message
+#'
+#' @description
+#' Convenience wrapper to create an INFO level log entry. Accepts the same
+#' arguments as the internal logging helper.
+#'
+#' @param ... Arguments passed to the logger; these are concatenated.
+#'
+#' @return Invisibly returns NULL.
+#'
+#' @keywords internal
+#' 
 logInfo <- function(...) {
     .log(logType = "INFO", ...)
 }
 
- #' @title Log a warning message
- #'
- #' @description
- #' Convenience wrapper to create a WARNING level log entry.
- #'
- #' @param ... Arguments passed to the logger.
- #'
- #' @return Invisibly returns NULL.
- #'
- #' @noRd
+#' 
+#' @title Log a warning message
+#'
+#' @description
+#' Convenience wrapper to create a WARNING level log entry.
+#'
+#' @param ... Arguments passed to the logger.
+#'
+#' @return Invisibly returns NULL.
+#'
+#' @keywords internal
+#' 
 logWarning <- function(...) {
     .log(logType = "WARNING", ...)
 }
 
- #' @title Log a debug message
- #'
- #' @description
- #' Convenience wrapper to create a DEBUG level log entry. Useful for
- #' developer diagnostics and verbose tracing.
- #'
- #' @param ... Arguments passed to the logger.
- #'
- #' @return Invisibly returns NULL.
- #'
- #' @noRd
+#' 
+#' @title Log a debug message
+#'
+#' @description
+#' Convenience wrapper to create a DEBUG level log entry. Useful for
+#' developer diagnostics and verbose tracing.
+#'
+#' @param ... Arguments passed to the logger.
+#'
+#' @return Invisibly returns NULL.
+#'
+#' @keywords internal
+#' 
 logDebug <- function(...) {
     .log(logType = "DEBUG", ...)
 }
 
- #' @title Log a trace message
- #'
- #' @description
- #' Convenience wrapper to create a TRACE level log entry. TRACE is the most
- #' verbose level and intended for fine-grained diagnostics.
- #'
- #' @param ... Arguments passed to the logger.
- #'
- #' @return Invisibly returns NULL.
- #'
- #' @noRd
+#' 
+#' @title Log a trace message
+#'
+#' @description
+#' Convenience wrapper to create a TRACE level log entry. TRACE is the most
+#' verbose level and intended for fine-grained diagnostics.
+#'
+#' @param ... Arguments passed to the logger.
+#'
+#' @return Invisibly returns NULL.
+#'
+#' @keywords internal
+#' 
 logTrace <- function(...) {
     .log(logType = "TRACE", ...)
 }
 
- #' @title Log an error message
- #'
- #' @description
- #' Convenience wrapper to create an ERROR level log entry.
- #'
- #' @param ... Arguments passed to the logger.
- #'
- #' @return Invisibly returns NULL.
- #'
- #' @noRd
+#' 
+#' @title Log an error message
+#'
+#' @description
+#' Convenience wrapper to create an ERROR level log entry.
+#'
+#' @param ... Arguments passed to the logger.
+#'
+#' @return Invisibly returns NULL.
+#'
+#' @keywords internal
+#' 
 logError <- function(...) {
     .log(logType = "ERROR", ...)
 }
 
- #' @title Format multiple runtimes as strings
- #'
- #' @description
- #' Given vectors of start (and optionally end) times, return a character
- #' vector with human-friendly runtime descriptions.
- #'
- #' @param startTimes Vector of start times (POSIXct/POSIXlt or character).
- #' @param ... Additional arguments passed to getRuntimeString.
- #' @param endTimes Vector of end times; recycled to match startTimes if needed.
- #' @param runtimeUnits Character, either "secs" or "auto"; passed to formatter.
- #' @param addBrackets Logical; if TRUE the returned strings are wrapped in brackets.
- #'
- #' @return Character vector with formatted runtime strings.
- #'
- #' @noRd
+#' 
+#' @title Format multiple runtimes as strings
+#'
+#' @description
+#' Given vectors of start (and optionally end) times, return a character
+#' vector with human-friendly runtime descriptions.
+#'
+#' @param startTimes Vector of start times (POSIXct/POSIXlt or character).
+#' @param ... Additional arguments passed to getRuntimeString.
+#' @param endTimes Vector of end times; recycled to match startTimes if needed.
+#' @param runtimeUnits Character, either "secs" or "auto"; passed to formatter.
+#' @param addBrackets Logical; if TRUE the returned strings are wrapped in brackets.
+#'
+#' @return Character vector with formatted runtime strings.
+#'
+#' @keywords internal
+#' 
 getRuntimeStrings <- function(startTimes, ..., endTimes = rep(Sys.time(), length(startTimes)),
         runtimeUnits = c("secs", "auto"), addBrackets = FALSE) {
     s <- character(0)
@@ -195,13 +207,15 @@ getRuntimeStrings <- function(startTimes, ..., endTimes = rep(Sys.time(), length
     return(s)
 }
 
- #' @title Tried time formats for parsing
- #'
- #' @description
- #' A small vector of time format strings that are used as candidates when
- #' attempting to coerce character time values into POSIXlt values.
- #'
- #' @noRd
+#' 
+#' @title Tried time formats for parsing
+#'
+#' @description
+#' A small vector of time format strings that are used as candidates when
+#' attempting to coerce character time values into POSIXlt values.
+#'
+#' @keywords internal
+#' 
 C_TRY_TIME_FORMATS <- c(
     "%Y-%m-%d %H:%M:%S",
     "%Y-%m-%d %H:%M:%OS",
@@ -214,17 +228,19 @@ C_TRY_TIME_FORMATS <- c(
     "%Y/%m/%d"
 )
 
- #' @title Coerce a string to POSIXlt time
- #'
- #' @description
- #' Attempt to parse a variety of commonly used time/date string formats into
- #' a POSIXlt object. On failure NA is returned and an error is logged.
- #'
- #' @param s Character scalar with the time representation.
- #'
- #' @return POSIXlt object on success or NA on failure.
- #'
- #' @noRd
+#' 
+#' @title Coerce a string to POSIXlt time
+#'
+#' @description
+#' Attempt to parse a variety of commonly used time/date string formats into
+#' a POSIXlt object. On failure NA is returned and an error is logged.
+#'
+#' @param s Character scalar with the time representation.
+#'
+#' @return POSIXlt object on success or NA on failure.
+#'
+#' @keywords internal
+#' 
 stringToTime <- function(s) {
     if (nchar(trimws(s)) == 0) {
         return(NA)
@@ -259,17 +275,19 @@ stringToTime <- function(s) {
     return(NA)
 }
 
- #' @title Format a duration in seconds as a human readable string
- #'
- #' @description
- #' Convert a numeric duration given in seconds into a short readable string
- #' using seconds, minutes or hours depending on magnitude.
- #'
- #' @param timeSeconds Numeric number of seconds (or NA).
- #'
- #' @return Character scalar with formatted duration or NA_character_.
- #'
- #' @noRd
+#' 
+#' @title Format a duration in seconds as a human readable string
+#'
+#' @description
+#' Convert a numeric duration given in seconds into a short readable string
+#' using seconds, minutes or hours depending on magnitude.
+#'
+#' @param timeSeconds Numeric number of seconds (or NA).
+#'
+#' @return Character scalar with formatted duration or NA_character_.
+#'
+#' @keywords internal
+#' 
 formatDurationAsString <- function(timeSeconds) {
     if (is.na(timeSeconds)) {
         return(NA_character_)
@@ -302,21 +320,23 @@ formatDurationAsString <- function(timeSeconds) {
     return(timeStr)
 }
 
- #' @title Format runtime between two times
- #'
- #' @description
- #' Compute and format the elapsed time between start and end times. Inputs
- #' can be POSIX objects or character strings parsable by stringToTime().
- #'
- #' @param startTime Start time (POSIXct/POSIXlt or character).
- #' @param ... Additional arguments (currently unused).
- #' @param endTime End time (defaults to now).
- #' @param runtimeUnits Character option: "secs" or "auto".
- #' @param addBrackets Logical; if TRUE result is wrapped in brackets.
- #'
- #' @return Formatted runtime string or NA_character_.
- #'
- #' @noRd
+#' 
+#' @title Format runtime between two times
+#'
+#' @description
+#' Compute and format the elapsed time between start and end times. Inputs
+#' can be POSIX objects or character strings parsable by stringToTime().
+#'
+#' @param startTime Start time (POSIXct/POSIXlt or character).
+#' @param ... Additional arguments (currently unused).
+#' @param endTime End time (defaults to now).
+#' @param runtimeUnits Character option: "secs" or "auto".
+#' @param addBrackets Logical; if TRUE result is wrapped in brackets.
+#'
+#' @return Formatted runtime string or NA_character_.
+#'
+#' @keywords internal
+#' 
 getRuntimeString <- function(startTime,
         ...,
         endTime = Sys.time(),
@@ -367,21 +387,23 @@ getRuntimeString <- function(startTime,
     return(timeStr)
 }
 
- #' @title Log a timed message with elapsed time
- #'
- #' @description
- #' Log a message and append the elapsed time computed between startTime and
- #' endTime. The elapsed time is formatted and appended to the message.
- #'
- #' @param s Message text to log (character).
- #' @param ... Additional values concatenated to the message.
- #' @param startTime Start time for timing (POSIX or character).
- #' @param endTime End time (defaults to Sys.time()).
- #' @param runtimeUnits Units formatting preference passed to getRuntimeString.
- #'
- #' @return Invisibly NULL.
- #'
- #' @noRd
+#' 
+#' @title Log a timed message with elapsed time
+#'
+#' @description
+#' Log a message and append the elapsed time computed between startTime and
+#' endTime. The elapsed time is formatted and appended to the message.
+#'
+#' @param s Message text to log (character).
+#' @param ... Additional values concatenated to the message.
+#' @param startTime Start time for timing (POSIX or character).
+#' @param endTime End time (defaults to Sys.time()).
+#' @param runtimeUnits Units formatting preference passed to getRuntimeString.
+#'
+#' @return Invisibly NULL.
+#'
+#' @keywords internal
+#' 
 logTime <- function(s,
         ...,
         startTime,
@@ -397,18 +419,20 @@ logTime <- function(s,
     .log(logType = "TIME", s, ..., " ", timeStr)
 }
 
- #' @title Produce lines describing the current session environment
- #'
- #' @description
- #' Collect session information (R version, attached packages, loaded
- #' namespaces, environment variables etc.) and return it as a character
- #' vector suitable for saving or display.
- #'
- #' @param logInstalledPackages Logical; if TRUE also list all installed packages.
- #'
- #' @return Character vector with lines describing the session information.
- #'
- #' @noRd
+#' 
+#' @title Produce lines describing the current session environment
+#'
+#' @description
+#' Collect session information (R version, attached packages, loaded
+#' namespaces, environment variables etc.) and return it as a character
+#' vector suitable for saving or display.
+#'
+#' @param logInstalledPackages Logical; if TRUE also list all installed packages.
+#'
+#' @return Character vector with lines describing the session information.
+#'
+#' @keywords internal
+#' 
 getSessionInfoLogLines <- function(logInstalledPackages = FALSE) {
     tryCatch(
         {
@@ -512,17 +536,19 @@ getSessionInfoLogLines <- function(logInstalledPackages = FALSE) {
     )
 }
 
- #' @title Print session information unless silenced
- #'
- #' @description
- #' Wrapper that prints the output of getSessionInfoLogLines() unless the
- #' 'silent' argument is TRUE. By default silent is TRUE on developer systems.
- #'
- #' @param silent Logical; when TRUE nothing is printed.
- #'
- #' @return Invisibly NULL.
- #'
- #' @noRd
+#' 
+#' @title Print session information unless silenced
+#'
+#' @description
+#' Wrapper that prints the output of getSessionInfoLogLines() unless the
+#' 'silent' argument is TRUE. By default silent is TRUE on developer systems.
+#'
+#' @param silent Logical; when TRUE nothing is printed.
+#'
+#' @return Invisibly NULL.
+#'
+#' @keywords internal
+#' 
 logSessionInfo <- function(silent = isLocalDeveloperSystem()) {
     if (isTRUE(silent)) {
         return(invisible())
@@ -531,18 +557,20 @@ logSessionInfo <- function(silent = isLocalDeveloperSystem()) {
     cat(paste(getSessionInfoLogLines(), collapse = ""))
 }
 
- #' @title Set the application log level
- #'
- #' @description
- #' Set the minimum log level for the application by modifying the
- #' RPACT_CLOUD_LOG_LEVEL environment variable. Accepted levels are
- #' "trace", "debug", "info", "warn", "error", and "disabled".
- #'
- #' @param logLevel Character string specifying the minimum log level.
- #'
- #' @return Invisibly NULL.
- #'
- #' @noRd
+#' 
+#' @title Set the application log level
+#'
+#' @description
+#' Set the minimum log level for the application by modifying the
+#' RPACT_CLOUD_LOG_LEVEL environment variable. Accepted levels are
+#' "trace", "debug", "info", "warn", "error", and "disabled".
+#'
+#' @param logLevel Character string specifying the minimum log level.
+#'
+#' @return Invisibly NULL.
+#'
+#' @keywords internal
+#' 
 setAppLogLevel <- function(logLevel) {
     if (is.null(logLevel) || length(logLevel) != 1 || is.na(logLevel) ||
             !is.character(logLevel) || nchar(trimws(logLevel)) == 0) {
@@ -561,7 +589,7 @@ setAppLogLevel <- function(logLevel) {
 #' isLoggingEnabled("info")
 #' isLoggingEnabled("error")
 #'
-#' @noRd
+#' @keywords internal
 #'
 isLoggingEnabled <- function(logLevel) {
     logLevel <- tolower(logLevel)
