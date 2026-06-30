@@ -583,14 +583,32 @@ setAppLogLevel <- function(logLevel) {
     Sys.setenv("RPACT_CLOUD_LOG_LEVEL" = logLevel)
 }
 
+#' 
+#' @title Check whether a log level is enabled
+#'
+#' @description
+#' Determine whether messages with the specified log level should be emitted
+#' based on the current application minimum log level stored in the
+#' RPACT_CLOUD_LOG_LEVEL environment variable. The comparison is performed
+#' case-insensitively. The special level "disabled" always returns FALSE and
+#' the alias "time" is treated as "info".
+#'
+#' @param logLevel Character scalar indicating the log level to test. Supported
+#' values include "trace", "debug", "info", "warning", "error",
+#' "time" and "disabled".
+#'
+#' @return Logical scalar: TRUE if messages at the given level should be
+#' logged, FALSE otherwise.
 #'
 #' @examples
+#' \dontrun{
 #' setAppLogLevel("warn")
 #' isLoggingEnabled("info")
 #' isLoggingEnabled("error")
-#'
+#' }
+#' 
 #' @keywords internal
-#'
+#' 
 isLoggingEnabled <- function(logLevel) {
     logLevel <- tolower(logLevel)
     if (identical(logLevel, "disabled")) {

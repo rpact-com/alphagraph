@@ -55,8 +55,8 @@ moduleDescriptionServer <- function(id, ..., args = list()) {
                 session$sendCustomMessage(
                     type = "toggleButtonClass",
                     message = list(
-                        activeId = "descModeEdit",
-                        inactiveId = "descModePreview"
+                        activeId = ns("descModeEdit"),
+                        inactiveId = ns("descModePreview")
                     )
                 )
             })
@@ -72,8 +72,8 @@ moduleDescriptionServer <- function(id, ..., args = list()) {
                 session$sendCustomMessage(
                     type = "toggleButtonClass",
                     message = list(
-                        activeId = "descModePreview",
-                        inactiveId = "descModeEdit"
+                        activeId = ns("descModePreview"),
+                        inactiveId = ns("descModeEdit")
                     )
                 )
             })
