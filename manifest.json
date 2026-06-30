@@ -527,31 +527,31 @@
       "description": {
         "Package": "fs",
         "Title": "Cross-Platform File System Operations Based on 'libuv'",
-        "Version": "1.6.6",
-        "Authors@R": "c(\n    person(\"Jim\", \"Hester\", role = \"aut\"),\n    person(\"Hadley\", \"Wickham\", , \"hadley@posit.co\", role = \"aut\"),\n    person(\"Gábor\", \"Csárdi\", , \"csardi.gabor@gmail.com\", role = c(\"aut\", \"cre\")),\n    person(\"libuv project contributors\", role = \"cph\",\n           comment = \"libuv library\"),\n    person(\"Joyent, Inc. and other Node contributors\", role = \"cph\",\n           comment = \"libuv library\"),\n    person(\"Posit Software, PBC\", role = c(\"cph\", \"fnd\"))\n  )",
+        "Version": "2.1.0",
+        "Authors@R": "c(\n    person(\"Jim\", \"Hester\", role = \"aut\"),\n    person(\"Hadley\", \"Wickham\", role = \"aut\"),\n    person(\"Gábor\", \"Csárdi\", role = \"aut\"),\n    person(\"Jeroen\", \"Ooms\", , \"jeroenooms@gmail.com\", role = \"cre\"),\n    person(\"libuv project contributors\", role = \"cph\",\n           comment = \"libuv library\"),\n    person(\"Joyent, Inc. and other Node contributors\", role = \"cph\",\n           comment = \"libuv library\"),\n    person(\"Posit Software, PBC\", role = c(\"cph\", \"fnd\"),\n           comment = c(ROR = \"03wc8by49\"))\n  )",
         "Description": "A cross-platform interface to file system operations, built\n    on top of the 'libuv' C library.",
         "License": "MIT + file LICENSE",
         "URL": "https://fs.r-lib.org, https://github.com/r-lib/fs",
         "BugReports": "https://github.com/r-lib/fs/issues",
-        "Depends": "R (>= 3.6)",
+        "Depends": "R (>= 4.1)",
         "Imports": "methods",
         "Suggests": "covr, crayon, knitr, pillar (>= 1.0.0), rmarkdown, spelling,\ntestthat (>= 3.0.0), tibble (>= 1.1.0), vctrs (>= 0.3.0), withr",
         "VignetteBuilder": "knitr",
-        "ByteCompile": "true",
+        "SystemRequirements": "libuv: libuv-devel (rpm) or libuv1-dev (deb).\nAlternatively to build the vendored libuv 'cmake' is required.\nGNU make.",
         "Config/Needs/website": "tidyverse/tidytemplate",
         "Config/testthat/edition": "3",
+        "Config/usethis/last-upkeep": "2025-04-23",
         "Copyright": "file COPYRIGHTS",
         "Encoding": "UTF-8",
         "Language": "en-US",
-        "RoxygenNote": "7.2.3",
-        "SystemRequirements": "GNU make",
+        "RoxygenNote": "7.3.3",
         "NeedsCompilation": "yes",
-        "Packaged": "2025-04-12 09:39:13 UTC; gaborcsardi",
-        "Author": "Jim Hester [aut],\n  Hadley Wickham [aut],\n  Gábor Csárdi [aut, cre],\n  libuv project contributors [cph] (libuv library),\n  Joyent, Inc. and other Node contributors [cph] (libuv library),\n  Posit Software, PBC [cph, fnd]",
-        "Maintainer": "Gábor Csárdi <csardi.gabor@gmail.com>",
+        "Packaged": "2026-04-18 13:56:26 UTC; jeroen",
+        "Author": "Jim Hester [aut],\n  Hadley Wickham [aut],\n  Gábor Csárdi [aut],\n  Jeroen Ooms [cre],\n  libuv project contributors [cph] (libuv library),\n  Joyent, Inc. and other Node contributors [cph] (libuv library),\n  Posit Software, PBC [cph, fnd] (ROR: <https://ror.org/03wc8by49>)",
+        "Maintainer": "Jeroen Ooms <jeroenooms@gmail.com>",
         "Repository": "CRAN",
-        "Date/Publication": "2025-04-12 10:40:02 UTC",
-        "Built": "R 4.5.2; x86_64-w64-mingw32; 2025-11-01 00:31:03 UTC; windows",
+        "Date/Publication": "2026-04-18 15:10:02 UTC",
+        "Built": "R 4.5.3; x86_64-w64-mingw32; 2026-06-18 14:16:28 UTC; windows",
         "Archs": "x64"
       }
     },
@@ -561,28 +561,29 @@
       "description": {
         "Package": "glue",
         "Title": "Interpreted String Literals",
-        "Version": "1.8.0",
-        "Authors@R": "c(\n    person(\"Jim\", \"Hester\", role = \"aut\",\n           comment = c(ORCID = \"0000-0002-2739-7082\")),\n    person(\"Jennifer\", \"Bryan\", , \"jenny@posit.co\", role = c(\"aut\", \"cre\"),\n           comment = c(ORCID = \"0000-0002-6983-2759\")),\n    person(\"Posit Software, PBC\", role = c(\"cph\", \"fnd\"))\n  )",
+        "Version": "1.8.1",
+        "Authors@R": "c(\n    person(\"Jim\", \"Hester\", role = \"aut\",\n           comment = c(ORCID = \"0000-0002-2739-7082\")),\n    person(\"Jennifer\", \"Bryan\", , \"jenny@posit.co\", role = c(\"aut\", \"cre\"),\n           comment = c(ORCID = \"0000-0002-6983-2759\")),\n    person(\"Posit Software, PBC\", role = c(\"cph\", \"fnd\"),\n           comment = c(ROR = \"03wc8by49\"))\n  )",
         "Description": "An implementation of interpreted string literals, inspired by\n    Python's Literal String Interpolation\n    <https://www.python.org/dev/peps/pep-0498/> and Docstrings\n    <https://www.python.org/dev/peps/pep-0257/> and Julia's Triple-Quoted\n    String Literals\n    <https://docs.julialang.org/en/v1.3/manual/strings/#Triple-Quoted-String-Literals-1>.",
         "License": "MIT + file LICENSE",
         "URL": "https://glue.tidyverse.org/, https://github.com/tidyverse/glue",
         "BugReports": "https://github.com/tidyverse/glue/issues",
-        "Depends": "R (>= 3.6)",
+        "Depends": "R (>= 4.1)",
         "Imports": "methods",
-        "Suggests": "crayon, DBI (>= 1.2.0), dplyr, knitr, magrittr, rlang,\nrmarkdown, RSQLite, testthat (>= 3.2.0), vctrs (>= 0.3.0),\nwaldo (>= 0.5.3), withr",
+        "Suggests": "crayon, DBI (>= 1.2.0), dplyr, knitr, rlang, rmarkdown,\nRSQLite, testthat (>= 3.2.0), vctrs (>= 0.3.0), waldo (>=\n0.5.3), withr",
         "VignetteBuilder": "knitr",
         "ByteCompile": "true",
         "Config/Needs/website": "bench, forcats, ggbeeswarm, ggplot2, R.utils,\nrprintf, tidyr, tidyverse/tidytemplate",
         "Config/testthat/edition": "3",
+        "Config/usethis/last-upkeep": "2026-04-16",
         "Encoding": "UTF-8",
-        "RoxygenNote": "7.3.2",
+        "RoxygenNote": "7.3.3",
         "NeedsCompilation": "yes",
-        "Packaged": "2024-09-27 16:00:45 UTC; jenny",
-        "Author": "Jim Hester [aut] (<https://orcid.org/0000-0002-2739-7082>),\n  Jennifer Bryan [aut, cre] (<https://orcid.org/0000-0002-6983-2759>),\n  Posit Software, PBC [cph, fnd]",
+        "Packaged": "2026-04-16 22:53:02 UTC; jenny",
+        "Author": "Jim Hester [aut] (ORCID: <https://orcid.org/0000-0002-2739-7082>),\n  Jennifer Bryan [aut, cre] (ORCID:\n    <https://orcid.org/0000-0002-6983-2759>),\n  Posit Software, PBC [cph, fnd] (ROR: <https://ror.org/03wc8by49>)",
         "Maintainer": "Jennifer Bryan <jenny@posit.co>",
         "Repository": "CRAN",
-        "Date/Publication": "2024-09-30 22:30:01 UTC",
-        "Built": "R 4.5.2; x86_64-w64-mingw32; 2025-11-01 00:30:56 UTC; windows",
+        "Date/Publication": "2026-04-17 05:11:01 UTC",
+        "Built": "R 4.5.3; x86_64-w64-mingw32; 2026-06-18 14:16:30 UTC; windows",
         "Archs": "x64"
       }
     },
@@ -966,7 +967,7 @@
         "Type": "Package",
         "Package": "magrittr",
         "Title": "A Forward-Pipe Operator for R",
-        "Version": "2.0.4",
+        "Version": "2.0.5",
         "Authors@R": "c(\n    person(\"Stefan Milton\", \"Bache\", , \"stefan@stefanbache.dk\", role = c(\"aut\", \"cph\"),\n           comment = \"Original author and creator of magrittr\"),\n    person(\"Hadley\", \"Wickham\", , \"hadley@posit.co\", role = \"aut\"),\n    person(\"Lionel\", \"Henry\", , \"lionel@posit.co\", role = \"cre\"),\n    person(\"Posit Software, PBC\", role = c(\"cph\", \"fnd\"),\n            comment = c(ROR = \"03wc8by49\"))\n  )",
         "Description": "Provides a mechanism for chaining commands with a new\n    forward-pipe operator, %>%. This operator will forward a value, or the\n    result of an expression, into the next function call/expression.\n    There is flexible support for the type of right-hand side expressions.\n    For more information, see package vignette.  To quote Rene Magritte,\n    \"Ceci n'est pas un pipe.\"",
         "License": "MIT + file LICENSE",
@@ -980,12 +981,12 @@
         "Encoding": "UTF-8",
         "RoxygenNote": "7.3.3",
         "NeedsCompilation": "yes",
-        "Packaged": "2025-09-11 16:45:15 UTC; lionel",
+        "Packaged": "2026-04-03 08:09:48 UTC; lionel",
         "Author": "Stefan Milton Bache [aut, cph] (Original author and creator of\n    magrittr),\n  Hadley Wickham [aut],\n  Lionel Henry [cre],\n  Posit Software, PBC [cph, fnd] (ROR: <https://ror.org/03wc8by49>)",
         "Maintainer": "Lionel Henry <lionel@posit.co>",
         "Repository": "CRAN",
-        "Date/Publication": "2025-09-12 07:20:14 UTC",
-        "Built": "R 4.5.1; x86_64-w64-mingw32; 2025-10-29 01:42:45 UTC; windows",
+        "Date/Publication": "2026-04-04 08:00:02 UTC",
+        "Built": "R 4.5.3; x86_64-w64-mingw32; 2026-06-18 14:16:27 UTC; windows",
         "Archs": "x64"
       }
     },
@@ -1288,22 +1289,22 @@
         "Package": "rstudioapi",
         "Title": "Safely Access the RStudio API",
         "Description": "Access the RStudio API (if available) and provide informative error\n    messages when it's not.",
-        "Version": "0.18.0",
+        "Version": "0.19.0",
         "Authors@R": "c(\n    person(\"Kevin\", \"Ushey\", role = c(\"aut\", \"cre\"), email = \"kevin@rstudio.com\"),\n    person(\"JJ\", \"Allaire\", role = c(\"aut\"), email = \"jj@posit.co\"),\n    person(\"Hadley\", \"Wickham\", role = c(\"aut\"), email = \"hadley@posit.co\"),\n    person(\"Gary\", \"Ritchie\", role = c(\"aut\"), email = \"gary@posit.co\"),\n    person(family = \"RStudio\", role = \"cph\")\n    )",
         "Maintainer": "Kevin Ushey <kevin@rstudio.com>",
         "License": "MIT + file LICENSE",
         "URL": "https://rstudio.github.io/rstudioapi/,\nhttps://github.com/rstudio/rstudioapi",
         "BugReports": "https://github.com/rstudio/rstudioapi/issues",
-        "RoxygenNote": "7.3.3",
-        "Suggests": "testthat, knitr, rmarkdown, clipr, covr, curl, jsonlite,\nwithr",
+        "Suggests": "testthat, knitr, rmarkdown, clipr, covr, curl, jsonlite, R6,\nwithr",
         "VignetteBuilder": "knitr",
         "Encoding": "UTF-8",
+        "Config/roxygen2/version": "8.0.0",
         "NeedsCompilation": "no",
-        "Packaged": "2026-01-15 18:05:24 UTC; kevin",
+        "Packaged": "2026-06-11 21:44:33 UTC; kevin",
         "Author": "Kevin Ushey [aut, cre],\n  JJ Allaire [aut],\n  Hadley Wickham [aut],\n  Gary Ritchie [aut],\n  RStudio [cph]",
         "Repository": "CRAN",
-        "Date/Publication": "2026-01-16 09:10:02 UTC",
-        "Built": "R 4.5.2; ; 2026-02-25 01:54:10 UTC; windows"
+        "Date/Publication": "2026-06-11 23:10:02 UTC",
+        "Built": "R 4.5.3; ; 2026-06-18 14:17:13 UTC; windows"
       }
     },
     "sass": {
@@ -1628,10 +1629,31 @@
       "checksum": "8000f750b18391d04cfd2cb1d7d06bc1"
     },
     "DESCRIPTION": {
-      "checksum": "730b13a2fc4a4017f7eccaf4f33e8f37"
+      "checksum": "633cf274c3d257b5ca831216f801d0dd"
     },
     "inst/www/context-menu.css": {
       "checksum": "0bf2cf00a35c9326d2e8e2a83a4260d3"
+    },
+    "inst/www/js/toggle-button.js": {
+      "checksum": "1e9c270231901d1c19226df8f6f90d08"
+    },
+    "inst/www/vis-network.css": {
+      "checksum": "725775abdf17bc1afb0115a0f15bc8c8"
+    },
+    "man/createServer.Rd": {
+      "checksum": "7b3aaa1fa46964663108f529ed8f5eca"
+    },
+    "man/createUI.Rd": {
+      "checksum": "f586b678a601772d36e455e6895aded3"
+    },
+    "man/figures/alphagraph_poc_overview.png": {
+      "checksum": "4a10c086565955239860ca5b47eb61bc"
+    },
+    "man/figures/alphagraph_poc_overview_2.png": {
+      "checksum": "53328472ffbd2e7a4b20c70188ac94f8"
+    },
+    "man/figures/favicon.ico": {
+      "checksum": "a7f831b836f97431fec674451bf9caf6"
     },
     "man/figures/logo.png": {
       "checksum": "580682e9d0c6dfd8fdebd6eeb42072c1"
@@ -1639,47 +1661,65 @@
     "NAMESPACE": {
       "checksum": "df390c53434517b304ac5db487184641"
     },
+    "NEWS.md": {
+      "checksum": "d38fb19f6bc3cdfaec055bd092a0bfc7"
+    },
+    "R/app_input_analysis_server.R": {
+      "checksum": "38a171f186e7ad01ff5da732d3db27b8"
+    },
+    "R/app_input_analysis_ui.R": {
+      "checksum": "1fcc57163f374e2198da64bfa501ea37"
+    },
+    "R/app_input_description_server.R": {
+      "checksum": "7c2fc40a95175b443adc39b778271905"
+    },
+    "R/app_input_description_ui.R": {
+      "checksum": "8be086f370dac8a031de61a8f1ba15e2"
+    },
     "R/app_input_graph_server.R": {
-      "checksum": "81e986efcb8c7fb94c40bdbd1bea2a72"
+      "checksum": "0ba4f6655c3e55a1a16eef769bd75a1b"
     },
     "R/app_input_graph_ui.R": {
-      "checksum": "7799016069bc76526ed756418df4a945"
+      "checksum": "9f72d24e8ddccbe292e29db803513d6e"
     },
     "R/app_input_hypthesis_server.R": {
-      "checksum": "4498313891d71be03bfd5b2c02817411"
+      "checksum": "8215bcaf06aefc043a6034cf98accbfc"
     },
     "R/app_input_hypthesis_ui.R": {
-      "checksum": "dec4090437cb2bc4f3b88cb673c6ddf7"
+      "checksum": "8062dff4ff99f4385dc19818d47de5c4"
     },
     "R/app_input_transition_matrix_server.R": {
-      "checksum": "bc389da81ad10150d90cc7232853a287"
+      "checksum": "05d1e65ea8005989d638e755bc3eb6f9"
     },
     "R/app_input_transition_matrix_ui.R": {
-      "checksum": "59b4d9f1ed3d35c46cb0527a19f22555"
+      "checksum": "f2fa5677fb054de1c467bf37a27a7021"
     },
     "R/f_graph_builder.R": {
-      "checksum": "7f415821b02dd8a7187262f1b076a7c4"
+      "checksum": "59b2d1a51dc02170b1a646d5049c7801"
     },
     "R/f_transition_matrix.R": {
       "checksum": "4135915641c5e8dcdc28f92487c176ac"
     },
     "R/standalone_logger.R": {
-      "checksum": "10143af53590efd6d8b2bcdf0abeb11e"
+      "checksum": "430882a1aeb3ffae92d94085ddd9ec40"
     },
     "R/standalone_server.R": {
-      "checksum": "71cde029bd4b2f317c31498841c65a56"
+      "checksum": "2d2a02b1d97a6825186fbb6a5aeec2c9"
     },
     "R/standalone_ui.R": {
-      "checksum": "ed1c93ee8fcb7d6049308d6183b1f67a"
+      "checksum": "54e4b8632801773c6f0f3740a06ad65c"
     },
     "R/standalone_utilities.R": {
-      "checksum": "5bf2bf14edee58926fab687317361d9d"
+      "checksum": "a1be506af7ef6946eff0ae5be0bd583c"
     },
     "README.md": {
       "checksum": "27a5175365d5dae85aa691c4c86a735d"
     },
+    "vignettes/design_doc_alphagraph_shiny_app.html": {
+      "checksum": "d1a2b620e907b84708e03541dd90047a"
+    },
     "vignettes/design_doc_alphagraph_shiny_app.Rmd": {
-      "checksum": "381d35ad0301da136c2d3d8bb0ab04ce"
+      "checksum": "ef80f72132cb545430ae37621760a4cc"
     }
   },
   "users": null

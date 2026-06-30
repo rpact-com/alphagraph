@@ -1,7 +1,7 @@
 Package: alphagraph
 Type: Package
-Version: 0.1.0.9005
-Date: 2026-05-29
+Version: 0.1.0.9006
+Date: 2026-06-30
 Title: alphagraph: Graphical Multiple Comparison Tool
 Authors@R: c(
     person(
@@ -47,10 +47,8 @@ Imports:
     DT,
     R6,
     bs4Dash,
-    fontawesome, 
-    here,
-    config,
-    glue
+	knitr (>= 1.19),
+    here
 Suggests: 
 	testthat (>= 3.0.0),
     devtools,
@@ -59,4 +57,4 @@ Roxygen: list(markdown = TRUE)
 VignetteBuilder: knitr
 Config/testthat/edition: 3
 Config/testthat/parallel: false
-RoxygenNote: 7.3.3
+Config/roxygen2/version: 7.3.3.9000

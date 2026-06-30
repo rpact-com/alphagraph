@@ -1,3 +1,14 @@
+##
+## alphagraph
+##
+## This file is part of the R package alphagraph
+##
+## Author: Friedrich Pahlke, PhD
+## Licensed under "GNU Lesser General Public License" version 3
+## License text can be found here: https://www.r-project.org/Licenses/LGPL-3
+##
+## RPACT company website: https://www.rpact.com
+##
 
 #' 
 #' Create the UI for the standalone Shiny app
@@ -29,13 +40,10 @@ createUI <- function(request) {
         body = bs4Dash::dashboardBody(
             shiny::includeCSS(getSystemFile("www/context-menu.css")),
             shiny::includeCSS(getSystemFile("www/vis-network.css")),
+            includeJavaScript("www/js/toggle-button.js"),
             bs4Dash::tabItems(
                 bs4Dash::tabItem(
                     tabName = "graph",
-                    
-                    # These are rendered dynamically when menu is open
-#                    shiny::uiOutput("ctx_overlay"),
-#                    shiny::uiOutput("ctx_menu"),
                     
                     shiny::fluidRow(
                         bs4Dash::column(
@@ -45,11 +53,11 @@ createUI <- function(request) {
                                 width = 12,
                                 shiny::tabPanel(
                                     "Description",
-                                    shiny::uiOutput("desc")
+                                    moduleDescriptionUI("descriptionPanel")
                                 ),
                                 shiny::tabPanel(
                                     "Analysis",
-                                    shiny::verbatimTextOutput("analysis")
+                                    moduleAnalysisUI("analysisPanel")
                                 )
                             )
                         ),
@@ -65,7 +73,7 @@ createUI <- function(request) {
                 bs4Dash::tabItem(
                     tabName = "settings",
                     shiny::tags$h2("Settings"),
-                    shiny::tags$p("Here you can add app settings…")
+                    shiny::tags$p("alphagraph settings will be implemented here in the future.")
                 )
             )
         )

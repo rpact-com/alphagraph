@@ -1,3 +1,15 @@
+##
+## alphagraph
+##
+## This file is part of the R package alphagraph
+##
+## Author: Friedrich Pahlke, PhD
+## Licensed under "GNU Lesser General Public License" version 3
+## License text can be found here: https://www.r-project.org/Licenses/LGPL-3
+##
+## RPACT company website: https://www.rpact.com
+##
+
 #' 
 #' @title 
 #' Standalone Shiny server for the alphagraph app.
@@ -17,18 +29,9 @@
 #' @export
 #' 
 createServer <- function(input, output, session) {
-
     moduleGraphServer("graphIO")
     moduleTransitionMatrixServer("transitionMatrix")
     moduleHypothesisServer("hypothesisPanel")
-
-    # Mock description + analysis texts
-    output$desc <- shiny::renderUI({
-        # "Graph representing the procedure from Hung and Wang (2010)."
-        shiny::includeMarkdown(getGraphDescriptionFile())
-    })
-    output$analysis <- shiny::renderText({
-        "Hypotheses, weights, and p-values go here."
-    })
-
+    moduleDescriptionServer("descriptionPanel")
+    moduleAnalysisServer("analysisPanel")
 }

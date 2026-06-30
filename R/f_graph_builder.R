@@ -1,3 +1,31 @@
+##
+## alphagraph
+##
+## This file is part of the R package alphagraph
+##
+## Author: Friedrich Pahlke, PhD
+## Licensed under "GNU Lesser General Public License" version 3
+## License text can be found here: https://www.r-project.org/Licenses/LGPL-3
+##
+## RPACT company website: https://www.rpact.com
+##
+
+#' 
+#' @title Create a formatted hypothesis label
+#'
+#' @description
+#' Generate a unicode-formatted label for hypotheses used in the graph
+#' visualization. The function converts simple tokens (e.g. "n", "s", digits)
+#' into appropriate unicode subscripts and returns a string suitable for node labels.
+#'
+#' @param number Integer indicating hypothesis index (0/1/2 etc.).
+#' @param x Character short code describing the hypothesis (e.g. "ni", "s").
+#' @param i Optional additional index or annotation appended on a new line.
+#'
+#' @return Character scalar with the formatted hypothesis label.
+#'
+#' @keywords internal
+#' 
 getHypothesisLabel <- function(number, x, i = NULL) {
     subscript <- "\u208"
     x <- sub("0", "\u2080", x)
@@ -18,6 +46,20 @@ getHypothesisLabel <- function(number, x, i = NULL) {
     return(label)
 }
 
+#' 
+#' @title Create a demo visNetwork graph for the UI
+#'
+#' @description
+#' Build and return a visNetwork object illustrating a small example
+#' transition graph. The function is intended for use in the UI module
+#' as a demonstration / initial view.
+#'
+#' @param ns Shiny namespace function (usually obtained via session$ns).
+#'
+#' @return A visNetwork object ready to be rendered.
+#'
+#' @keywords internal
+#' 
 getDemoGraph <- function(ns) {
     # ---- NODES ----
     nodes <- data.frame(
@@ -173,6 +215,18 @@ getDemoGraph <- function(ns) {
 #        )
 }
 
+#' 
+#' @title Return a Markdown description of the graph
+#'
+#' @description
+#' Provide the textual description (in Markdown) that accompanies the graph
+#' visualization. The returned text can be rendered in a preview pane or
+#' written to a temporary file.
+#'
+#' @return Character scalar containing Markdown text describing the graph.
+#'
+#' @keywords internal
+#' 
 getGraphDescription <- function() {
     mdText <- 
 "### Graph representing the procedure from Hung and Wang (2010)
@@ -189,6 +243,18 @@ Hung H.M.J., Wang S.-J. (2010). *Challenges to multiple testing in clinical tria
     return(mdText)
 }
 
+#' 
+#' @title Write the graph description to a temporary markdown file
+#'
+#' @description
+#' Create a temporary file containing the Markdown returned by
+#' getGraphDescription() and return the file path. This is convenient for
+#' passing the description to components that expect a file path.
+#'
+#' @return Path to a temporary markdown file containing the graph description.
+#'
+#' @keywords internal
+#' 
 getGraphDescriptionFile <- function() {
     mdFile <- tempfile(fileext = ".md")
     writeLines(text = getGraphDescription(), con = mdFile)
