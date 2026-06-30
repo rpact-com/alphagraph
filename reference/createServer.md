@@ -13,3 +13,21 @@ with dynamic content in the future.
 ``` r
 createServer(input, output, session)
 ```
+
+## Arguments
+
+- input:
+
+  The input object from the Shiny server function, containing all
+  reactive inputs from the UI.
+
+- output:
+
+  The output object from the Shiny server function, used to render
+  outputs back to the UI.
+
+- session:
+
+  The session object from the Shiny server function, providing
+  information about the current user session and allowing for
+  session-specific operations.

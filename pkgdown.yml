@@ -3,7 +3,7 @@ pkgdown: 2.2.0
 pkgdown_sha: ~
 articles:
   design_doc_alphagraph_shiny_app: design_doc_alphagraph_shiny_app.html
-last_built: 2026-05-29T10:03Z
+last_built: 2026-06-30T07:23Z
 urls:
   reference: https://docs.alphagraph.org/reference
   article: https://docs.alphagraph.org/articles

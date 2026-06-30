@@ -18,13 +18,13 @@ Source:
 [`DESCRIPTION`](https://github.com/rpact-com/alphagraph/blob/main/DESCRIPTION)
 
 Pahlke F (2026). *alphagraph: alphagraph: Graphical Multiple Comparison
-Tool*. R package version 0.1.0.9005,
+Tool*. R package version 0.1.0.9006,
 <https://rpact-com.github.io/alphagraph/>.
 
     @Manual{,
       title = {alphagraph: alphagraph: Graphical Multiple Comparison Tool},
       author = {Friedrich Pahlke},
       year = {2026},
-      note = {R package version 0.1.0.9005},
+      note = {R package version 0.1.0.9006},
       url = {https://rpact-com.github.io/alphagraph/},
     }
