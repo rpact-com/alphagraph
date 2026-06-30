@@ -1,3 +1,29 @@
+##
+## alphagraph
+##
+## This file is part of the R package alphagraph
+##
+## Author: Friedrich Pahlke, PhD
+## Licensed under "GNU Lesser General Public License" version 3
+## License text can be found here: https://www.r-project.org/Licenses/LGPL-3
+##
+## RPACT company website: https://www.rpact.com
+##
+
+ #' @title Description panel server module
+ #'
+ #' @description
+ #' Server-side logic for the description editor and preview panel. Manages
+ #' the reactive state of the Markdown content and toggling between edit and
+ #' preview modes.
+ #'
+ #' @param id Module id (namespace) for this server module.
+ #' @param ... Additional parameters (reserved for future use).
+ #' @param args Named list of optional parameters passed to the module.
+ #'
+ #' @return Invisibly NULL; registers server observers and outputs.
+ #'
+ #' @keywords internal
 moduleDescriptionServer <- function(id, ..., args = list()) {
     shiny::moduleServer(
         id,

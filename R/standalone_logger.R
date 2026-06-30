@@ -4,8 +4,8 @@
 ## This file is part of the R package alphagraph
 ##
 ## Author: Friedrich Pahlke, PhD
-## Copyright (c) 2026 by RPACT
-## All rights reserved.
+## Licensed under "GNU Lesser General Public License" version 3
+## License text can be found here: https://www.r-project.org/Licenses/LGPL-3
 ##
 ## RPACT company website: https://www.rpact.com
 ##
