@@ -84,7 +84,8 @@ moduleDescriptionServer <- function(id, ..., args = list()) {
                     # Render markdown preview
                     shiny::div(
                         style = "padding: 10px; min-height: 300px;",
-                        shiny::HTML(markdown::markdownToHTML(text = descRv$markdownContent, fragment.only = TRUE))
+                        #shiny::HTML(markdown::markdownToHTML(text = descRv$markdownContent, fragment.only = TRUE))
+                        shiny::HTML(markdown::markdownToHTML(text = htmltools::htmlEscape(descRv$markdownContent), fragment.only = TRUE))
                     )
                 } else {
                     # Render markdown editor
