@@ -4,10 +4,13 @@
 \alias{moduleGraphServer}
 \title{Graph editor server module}
 \usage{
-moduleGraphServer(id, ..., args = list())
+moduleGraphServer(id, graphStore = NULL, ..., args = list())
 }
 \arguments{
 \item{id}{Module id (namespace) for this server module.}
+
+\item{graphStore}{Shared \code{AlphaGraphStore}. A private store is created
+when omitted, which keeps the module usable in isolation.}
 
 \item{...}{Additional parameters (reserved for future use).}
 

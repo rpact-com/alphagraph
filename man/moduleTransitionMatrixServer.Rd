@@ -4,10 +4,13 @@
 \alias{moduleTransitionMatrixServer}
 \title{Transition matrix server module}
 \usage{
-moduleTransitionMatrixServer(id, ..., args = list())
+moduleTransitionMatrixServer(id, graphStore = NULL, ..., args = list())
 }
 \arguments{
 \item{id}{Module id (namespace) for this server module.}
+
+\item{graphStore}{Shared \code{AlphaGraphStore}. A private store is created
+when omitted.}
 
 \item{...}{Additional parameters (reserved for future use).}
 
@@ -17,8 +20,7 @@ moduleTransitionMatrixServer(id, ..., args = list())
 Invisibly NULL; registers server outputs and observers.
 }
 \description{
-Server-side logic for rendering the transition matrix datatable. The
-module obtains the example matrix from getTransitionMatrix() and renders
-it using DT.
+Server-side logic for an editable transition matrix backed by the shared
+canonical graph store.
 }
 \keyword{internal}

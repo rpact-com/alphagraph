@@ -27,6 +27,10 @@ moduleTransitionMatrixUI <- function(id) {
         width = 12,
         solidHeader = TRUE,
         title = "Transition Matrix",
+        shiny::tags$p(
+            class = "text-muted small",
+            "Cells are editable. Use numeric values or parameter expressions."
+        ),
         DT::DTOutput(ns("transitionMatrix"))
     )
 }

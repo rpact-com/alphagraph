@@ -18,6 +18,8 @@
 #' demonstration graph, managing node/edge actions and context menu events.
 #'
 #' @param id Module id (namespace) for this server module.
+#' @param graphStore Shared `AlphaGraphStore`. A private store is created when
+#'   omitted, which keeps the module usable in isolation.
 #' @param ... Additional parameters (reserved for future use).
 #' @param args Named list of optional parameters passed to the module.
 #'
@@ -25,16 +27,21 @@
 #'
 #' @keywords internal
 #' 
-moduleGraphServer <- function(id, ..., args = list()) {
+moduleGraphServer <- function(id, graphStore = NULL, ..., args = list()) {
     shiny::moduleServer(
         id,
         function(input, output, session) {
             ns <- session$ns
 
+            if (is.null(graphStore)) {
+                graphStore <- createAlphaGraphStore(createDemoAlphaGraph())
+            }
+
             logDebug("///--- moduleGraphServer id = ", id, " (", session$ns("xxx"), ")")
 
             output$graph <- visNetwork::renderVisNetwork({
-                getDemoGraph(ns)
+                graphStore$revision()
+                getDemoGraph(ns, graphStore$graph())
             })
 
             #    shiny::observeEvent(input$node_right_click, {
@@ -53,55 +60,112 @@ moduleGraphServer <- function(id, ..., args = list()) {
             #    })
 
             shiny::observeEvent(input$add_node, {
-                visNetwork::visNetworkProxy(ns("graph")) |>
-                    visNetwork::visUpdateNodes(
-                        data.frame(
-                            id = paste0("H_new_", sample(10000, 1)),
-                            label = getHypothesisLabel(0, "n", 0),
-                            x = "-40px",
-                            y = "-5px",
-                            color.background = "white",
-                            color.border = "black",
-                            shape = "circle",
-                            borderWidth = 2,
-                            value = 1,
-                            font = list(size = 20, align = "top"),
-                            font.size = 20,
-                            font.align = "top",
-                            title = "New Node"
-                        )
+                graph <- graphStore$snapshot()
+                ids <- vapply(graph$toList()$nodes, function(node) node$id, character(1L))
+                number <- 1L
+                while (paste0("H_new_", number) %in% ids) {
+                    number <- number + 1L
+                }
+                id <- paste0("H_new_", number)
+                graphStore$transact("graph:add-node", function(candidate) {
+                    candidate$addNode(
+                        id = id,
+                        label = id,
+                        weight = 0,
+                        x = 14,
+                        y = -5,
+                        vis = list(title = "New Node")
                     )
+                })
             })
 
             shiny::observeEvent(input$add_edge, {
-                #        visNetwork::visNetworkProxy(ns("graph")) |>
-                #            visNetwork::visConfigure(enabled = TRUE) |>
-                #            visNetwork::visOptions(manipulation = list(
-                #                enabled = TRUE,
-                #                addEdge = TRUE,
-                #                editEdge = FALSE,
-                #                addNode = FALSE,
-                #                deleteNode = FALSE
-                #            ))
+                nodes <- graphStore$snapshot()$toList()$nodes
+                if (length(nodes) < 2L) {
+                    shiny::showNotification(
+                        "At least two nodes are required to add a transition.",
+                        type = "warning"
+                    )
+                    return()
+                }
+                choices <- stats::setNames(
+                    vapply(nodes, function(node) node$id, character(1L)),
+                    vapply(nodes, function(node) node$label, character(1L))
+                )
+                shiny::showModal(shiny::modalDialog(
+                    title = "Add transition",
+                    shiny::selectInput(ns("edge_from"), "From", choices = choices),
+                    shiny::selectInput(ns("edge_to"), "To", choices = choices,
+                                       selected = choices[min(2L, length(choices))]),
+                    shiny::textInput(ns("edge_transition"), "Transition", value = "0"),
+                    footer = shiny::tagList(
+                        shiny::modalButton("Cancel"),
+                        shiny::actionButton(ns("save_edge"), "Add")
+                    )
+                ))
+            })
+
+            shiny::observeEvent(input$save_edge, {
+                tryCatch({
+                    shiny::req(input$edge_from, input$edge_to, input$edge_transition)
+                    graphStore$transact("graph:add-edge", function(candidate) {
+                        candidate$addEdge(
+                            from = input$edge_from,
+                            to = input$edge_to,
+                            transition = input$edge_transition
+                        )
+                    })
+                    shiny::removeModal()
+                }, error = function(error) {
+                    shiny::showNotification(conditionMessage(error), type = "error")
+                })
             })
 
             shiny::observeEvent(input$edit_node, {
-                #        visNetwork::visNetworkProxy(ns("graph")) |>
-                #            visNetwork::visOptions(manipulation = list(
-                #                enabled = TRUE,
-                #                editNode = TRUE,
-                #                addNode = FALSE,
-                #                addEdge = FALSE
-                #            ))
+                shiny::req(length(rv$selected_nodes) == 1L)
+                rv$ctx_node_id <- rv$selected_nodes[[1L]]
+                showNodeEditor(rv$ctx_node_id)
+            })
+
+            shiny::observeEvent(input$edit_edge, {
+                shiny::req(length(rv$selected_edges) == 1L)
+                edgeId <- rv$selected_edges[[1L]]
+                edges <- graphStore$snapshot()$toList()$edges
+                edge <- Filter(function(x) identical(x$id, edgeId), edges)
+                shiny::req(length(edge) == 1L)
+                rv$ctx_edge_id <- edgeId
+                shiny::showModal(shiny::modalDialog(
+                    title = paste("Edit transition", edge[[1L]]$from, "->", edge[[1L]]$to),
+                    shiny::textInput(
+                        ns("edited_edge_transition"),
+                        "Transition",
+                        value = edge[[1L]]$transition$display
+                    ),
+                    footer = shiny::tagList(
+                        shiny::modalButton("Cancel"),
+                        shiny::actionButton(ns("save_edge_transition"), "Save")
+                    )
+                ))
             })
 
             shiny::observeEvent(input$delete, {
-                #        visNetwork::visNetworkProxy(ns("graph")) |>
-                #            visNetwork::visOptions(manipulation = list(
-                #                enabled = TRUE,
-                #                deleteNode = TRUE,
-                #                deleteEdge = TRUE
-                #            ))
+                nodes <- rv$selected_nodes
+                edges <- rv$selected_edges
+                shiny::req(length(nodes) + length(edges) > 0L)
+                graphStore$transact("graph:delete-selection", function(candidate) {
+                    for (edge in edges) {
+                        if (edge %in% vapply(candidate$toList()$edges,
+                                            function(x) x$id, character(1L))) {
+                            candidate$removeEdge(edge = edge)
+                        }
+                    }
+                    for (node in nodes) {
+                        if (node %in% vapply(candidate$toList()$nodes,
+                                            function(x) x$id, character(1L))) {
+                            candidate$removeNode(node)
+                        }
+                    }
+                })
             })
 
             shiny::observeEvent(input$reset_view, {
@@ -130,9 +194,38 @@ moduleGraphServer <- function(id, ..., args = list()) {
             rv <- shiny::reactiveValues(
                 ctx_open = FALSE,
                 ctx_node_id = NULL,
+                ctx_edge_id = NULL,
                 ctx_x = 0,
-                ctx_y = 0
+                ctx_y = 0,
+                selected_nodes = character(),
+                selected_edges = character()
             )
+
+            showNodeEditor <- function(id) {
+                nodes <- graphStore$snapshot()$toList()$nodes
+                node <- Filter(function(x) identical(x$id, id), nodes)
+                shiny::req(length(node) == 1L)
+                shiny::showModal(shiny::modalDialog(
+                    title = paste("Edit Node", id),
+                    shiny::textInput(
+                        ns("node_label"),
+                        "Label",
+                        value = node[[1L]]$label
+                    ),
+                    footer = shiny::tagList(
+                        shiny::modalButton("Cancel"),
+                        shiny::actionButton(ns("save_node_label"), "Save")
+                    ),
+                    easyClose = TRUE
+                ))
+            }
+
+            shiny::observeEvent(input$selection, {
+                rv$selected_nodes <- unlist(input$selection$nodes %||% list(),
+                                            use.names = FALSE)
+                rv$selected_edges <- unlist(input$selection$edges %||% list(),
+                                            use.names = FALSE)
+            }, ignoreInit = TRUE)
 
             # Overlay to capture click-away
             output$ctx_overlay <- shiny::renderUI({
@@ -196,25 +289,19 @@ moduleGraphServer <- function(id, ..., args = list()) {
                 id <- rv$ctx_node_id
 
                 if (act == "green") {
-                    visNetwork::visNetworkProxy(ns("graph")) |>
-                        visNetwork::visUpdateNodes(data.frame(id = id, color.background = "#7CFF7C"))
+                    graphStore$transact("graph:node-color", function(candidate) {
+                        candidate$setNodeColor(id, background = "#7CFF7C")
+                    })
                 } else if (act == "white") {
-                    visNetwork::visNetworkProxy(ns("graph")) |>
-                        visNetwork::visUpdateNodes(data.frame(id = id, color.background = "white"))
+                    graphStore$transact("graph:node-color", function(candidate) {
+                        candidate$setNodeColor(id, background = "white")
+                    })
                 } else if (act == "delete") {
-                    visNetwork::visNetworkProxy(ns("graph")) |>
-                        visNetwork::visRemoveNodes(id = id)
+                    graphStore$transact("graph:delete-node", function(candidate) {
+                        candidate$removeNode(id)
+                    })
                 } else if (act == "edit") {
-                    # Example: show a bs4Dash/Shiny modal for editing
-                    shiny::showModal(shiny::modalDialog(
-                        title = paste("Edit Node", id),
-                        shiny::textInput("node_label", "Label", value = paste0("Node ", id)),
-                        footer = shiny::tagList(
-                            shiny::modalButton("Cancel"),
-                            shiny::actionButton("save_node_label", "Save")
-                        ),
-                        easyClose = TRUE
-                    ))
+                    showNodeEditor(id)
                 }
 
                 # Close menu after action
@@ -236,10 +323,54 @@ moduleGraphServer <- function(id, ..., args = list()) {
 
             shiny::observeEvent(input$save_node_label, {
                 shiny::req(rv$ctx_node_id)
-                visNetwork::visNetworkProxy(ns("graph")) |>
-                    visNetwork::visUpdateNodes(data.frame(id = rv$ctx_node_id, label = input$node_label))
+                graphStore$transact("graph:node-label", function(candidate) {
+                    candidate$setNodeLabel(rv$ctx_node_id, input$node_label)
+                })
                 shiny::removeModal()
             })
+
+            shiny::observeEvent(input$save_edge_transition, {
+                shiny::req(rv$ctx_edge_id, input$edited_edge_transition)
+                tryCatch({
+                    graphStore$transact("graph:edge-transition", function(candidate) {
+                        candidate$setEdgeTransition(
+                            edge = rv$ctx_edge_id,
+                            transition = input$edited_edge_transition
+                        )
+                    })
+                    shiny::removeModal()
+                }, error = function(error) {
+                    shiny::showNotification(conditionMessage(error), type = "error")
+                })
+            })
+
+            nodePositions <- shiny::debounce(
+                shiny::reactive(input$node_positions),
+                millis = args$positionDebounceMillis %||% 150L
+            )
+
+            shiny::observeEvent(nodePositions(), {
+                positions <- nodePositions()$nodes
+                if (is.null(positions) || length(positions) == 0L) {
+                    return()
+                }
+                if (is.data.frame(positions)) {
+                    positions <- lapply(seq_len(nrow(positions)), function(i) {
+                        as.list(positions[i, , drop = FALSE])
+                    })
+                }
+                graphStore$transact("graph:node-position", function(candidate) {
+                    for (position in positions) {
+                        candidate$setNodeXY(
+                            id = as.character(position$id),
+                            x = as.numeric(position$x),
+                            y = as.numeric(position$y)
+                        )
+                    }
+                })
+            }, ignoreInit = TRUE)
+
+            invisible(graphStore)
         }
     )
 }

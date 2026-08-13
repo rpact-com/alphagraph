@@ -48,16 +48,17 @@ getHypothesisLabel <- function(number, x, i = NULL) {
 #' as a demonstration / initial view.
 #'
 #' @param ns Shiny namespace function (usually obtained via session$ns).
+#' @param graph Canonical `AlphaGraph` to render.
 #'
 #' @return A visNetwork object ready to be rendered.
 #'
 #' @keywords internal
 #' 
-getDemoGraph <- function(ns) {
+getDemoGraph <- function(ns, graph = createDemoAlphaGraph()) {
     grid_size <- 40
     ox <- 14
     oy <- -5
-    createDemoAlphaGraph()$toVisNetwork(height = "400px") |>
+    graph$toVisNetwork(height = "400px") |>
         visNetwork::visEvents(
             afterDrawing = sprintf("
                 function(ctx) {
@@ -99,15 +100,52 @@ getDemoGraph <- function(ns) {
                     var ox = %d;
                     var oy = %d;
                     
-                    var nodeId = params.nodes[0];
-                    var node = this.body.nodes[nodeId];
-                    
-                    var x = Math.round((node.x - ox) / grid) * grid + ox;
-                    var y = Math.round((node.y - oy) / grid) * grid + oy;
-                    
-                    this.body.data.nodes.update({ id: nodeId, x: x, y: y });
+                    var updates = [];
+                    for (var i = 0; i < params.nodes.length; i++) {
+                        var nodeId = params.nodes[i];
+                        var node = this.body.nodes[nodeId];
+                        if (!node) continue;
+                        var x = Math.round((node.x - ox) / grid) * grid + ox;
+                        var y = Math.round((node.y - oy) / grid) * grid + oy;
+                        updates.push({ id: nodeId, x: x, y: y });
+                    }
+                    this.body.data.nodes.update(updates);
+                    Shiny.setInputValue('%s', {
+                        nodes: updates,
+                        nonce: Math.random()
+                    }, {priority: 'event'});
                 }
-                ", grid_size, ox, oy)
+                ", grid_size, ox, oy, ns("node_positions"))
+        ) |>
+        visNetwork::visEvents(
+            selectNode = paste0("
+                function(params) {
+                    Shiny.setInputValue('", ns("selection"), "', {
+                        nodes: params.nodes || [], edges: [], nonce: Math.random()
+                    }, {priority: 'event'});
+                }
+            "),
+            selectEdge = paste0("
+                function(params) {
+                    Shiny.setInputValue('", ns("selection"), "', {
+                        nodes: params.nodes || [], edges: params.edges || [], nonce: Math.random()
+                    }, {priority: 'event'});
+                }
+            "),
+            deselectNode = paste0("
+                function(params) {
+                    Shiny.setInputValue('", ns("selection"), "', {
+                        nodes: params.nodes || [], edges: params.edges || [], nonce: Math.random()
+                    }, {priority: 'event'});
+                }
+            "),
+            deselectEdge = paste0("
+                function(params) {
+                    Shiny.setInputValue('", ns("selection"), "', {
+                        nodes: params.nodes || [], edges: params.edges || [], nonce: Math.random()
+                    }, {priority: 'event'});
+                }
+            ")
         ) |>
         visNetwork::visEvents(
             # Right click / context menu
