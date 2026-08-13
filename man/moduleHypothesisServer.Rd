@@ -4,10 +4,13 @@
 \alias{moduleHypothesisServer}
 \title{Hypotheses server module}
 \usage{
-moduleHypothesisServer(id, ..., args = list())
+moduleHypothesisServer(id, graphStore = NULL, ..., args = list())
 }
 \arguments{
 \item{id}{Module id (namespace) for this server module.}
+
+\item{graphStore}{Shared \code{AlphaGraphStore}. A private store is created
+when omitted.}
 
 \item{...}{Additional parameters (reserved for future use).}
 
@@ -17,8 +20,8 @@ moduleHypothesisServer(id, ..., args = list())
 Invisibly NULL; registers server outputs and observers.
 }
 \description{
-Server-side logic for the hypotheses editor. Renders a dynamic list of
-inputs for hypothesis labels, weights and p-values which can be extended
-later to perform validation and matrix creation.
+Server-side logic for the hypotheses editor. Hypothesis labels and weights are
+read from and written to the shared canonical graph store. P-values remain
+local analysis inputs.
 }
 \keyword{internal}
