@@ -39,8 +39,11 @@ AlphaGraph <- R6::R6Class(
                 parameters = list(),
                 nodes = list(),
                 edges = list(),
-                settings = private$mergeLists(private$defaultSettings(), settings),
-                metadata = metadata %||% list()
+                settings = private$asObjectList(
+                    private$mergeLists(private$defaultSettings(), settings),
+                    "settings"
+                ),
+                metadata = private$asObjectList(metadata %||% list(), "metadata")
             )
             invisible(self)
         },
@@ -111,7 +114,7 @@ AlphaGraph <- R6::R6Class(
                 id = as.character(id),
                 label = nodeLabel,
                 weight = weightSpec,
-                vis = private$mergeLists(
+                vis = private$asObjectList(private$mergeLists(
                     list(
                         label = visLabel %||% private$nodeVisLabel(nodeLabel, weightSpec),
                         x = private$asNullableNumber(x),
@@ -125,8 +128,8 @@ AlphaGraph <- R6::R6Class(
                         font = list(size = private$asNullableNumber(fontSize))
                     ),
                     vis %||% list()
-                ),
-                metadata = metadata %||% list()
+                ), "node vis"),
+                metadata = private$asObjectList(metadata %||% list(), "node metadata")
             )
 
             if (is.na(index)) {
@@ -189,7 +192,7 @@ AlphaGraph <- R6::R6Class(
                 from = as.character(from),
                 to = as.character(to),
                 transition = transitionSpec,
-                vis = private$mergeLists(
+                vis = private$asObjectList(private$mergeLists(
                     list(
                         label = transitionSpec$display,
                         arrows = arrows,
@@ -201,8 +204,8 @@ AlphaGraph <- R6::R6Class(
                         )
                     ),
                     vis %||% list()
-                ),
-                metadata = metadata %||% list()
+                ), "edge vis"),
+                metadata = private$asObjectList(metadata %||% list(), "edge metadata")
             )
 
             if (is.na(index)) {
@@ -378,7 +381,187 @@ AlphaGraph <- R6::R6Class(
             if (!is.list(x)) {
                 stop("x must be a list.", call. = FALSE)
             }
-            private$data <- private$mergeLists(private$emptyData(), x)
+            private$data <- private$normalizeJsonNumbers(
+                private$mergeLists(private$emptyData(), x)
+            )
+            private$data$version <- as.integer(private$data$version)
+            private$data$settings <- private$asObjectList(
+                private$data$settings,
+                "settings"
+            )
+            private$data$metadata <- private$asObjectList(
+                private$data$metadata,
+                "metadata"
+            )
+            private$data$nodes <- lapply(private$data$nodes, function(node) {
+                node$vis <- private$asObjectList(node$vis %||% list(), "node vis")
+                node$metadata <- private$asObjectList(
+                    node$metadata %||% list(),
+                    "node metadata"
+                )
+                node
+            })
+            private$data$edges <- lapply(private$data$edges, function(edge) {
+                edge$vis <- private$asObjectList(edge$vis %||% list(), "edge vis")
+                edge$metadata <- private$asObjectList(
+                    edge$metadata %||% list(),
+                    "edge metadata"
+                )
+                edge
+            })
+            if (isTRUE(validate)) {
+                self$validate(requireNumeric = FALSE)
+            }
+            invisible(self)
+        },
+
+        updateFromTransitionMatrix = function(
+                transitions,
+                type = c("expression", "display", "value"),
+                nodeKeys = c("id", "label"),
+                removeZero = TRUE,
+                validate = TRUE) {
+            type <- match.arg(type)
+            nodeKeys <- match.arg(nodeKeys)
+            mat <- private$normalizeTransitionMatrix(transitions, nodeKeys)
+            nodeIds <- vapply(private$data$nodes, function(node) node$id, character(1L))
+
+            for (i in seq_len(nrow(mat))) {
+                for (j in seq_len(ncol(mat))) {
+                    value <- mat[i, j]
+                    isZero <- private$isZeroTransition(value)
+                    if (i == j) {
+                        if (!isZero) {
+                            stop("The transition matrix diagonal must be 0.", call. = FALSE)
+                        }
+                        next
+                    }
+
+                    from <- nodeIds[i]
+                    to <- nodeIds[j]
+                    index <- private$edgeIndex(from = from, to = to)
+                    if (isZero) {
+                        if (isTRUE(removeZero) && !is.na(index)) {
+                            private$data$edges <- private$data$edges[-index]
+                        }
+                        next
+                    }
+
+                    if (is.na(index)) {
+                        args <- private$transitionArguments(value, type)
+                        do.call(
+                            self$addEdge,
+                            c(list(from = from, to = to), args)
+                        )
+                    } else if (identical(type, "display")) {
+                        self$setEdgeLabel(edge = private$data$edges[[index]]$id,
+                                          label = as.character(value))
+                    } else {
+                        args <- private$transitionArguments(value, type)
+                        do.call(
+                            self$setEdgeTransition,
+                            c(list(edge = private$data$edges[[index]]$id), args)
+                        )
+                    }
+                }
+            }
+
+            if (isTRUE(validate)) {
+                self$validate(requireNumeric = identical(type, "value"))
+            }
+            invisible(self)
+        },
+
+        updateFromVisNetworkData = function(
+                nodes,
+                edges,
+                removeMissing = TRUE,
+                updateCanonicalLabels = FALSE,
+                validate = TRUE) {
+            nodeRecords <- private$dataFrameToRecords(nodes, "nodes")
+            edgeRecords <- private$dataFrameToRecords(edges, "edges")
+            nodeIds <- vapply(nodeRecords, function(node) as.character(node$id), character(1L))
+            if (anyDuplicated(nodeIds)) {
+                stop("visNetwork node ids must be unique.", call. = FALSE)
+            }
+
+            if (isTRUE(removeMissing)) {
+                currentIds <- vapply(private$data$nodes, function(node) node$id, character(1L))
+                for (id in setdiff(currentIds, nodeIds)) {
+                    self$removeNode(id)
+                }
+            }
+
+            for (record in nodeRecords) {
+                id <- as.character(record$id)
+                vis <- private$unflattenVisRecord(record, reserved = "id")
+                index <- private$nodeIndex(id)
+                if (is.na(index)) {
+                    self$addNode(
+                        id = id,
+                        label = as.character(record$label %||% id),
+                        weight = 0,
+                        vis = vis
+                    )
+                } else {
+                    private$data$nodes[[index]]$vis <- private$mergeLists(
+                        private$data$nodes[[index]]$vis %||% list(),
+                        vis
+                    )
+                    if (isTRUE(updateCanonicalLabels) && !is.null(record$label)) {
+                        private$data$nodes[[index]]$label <- as.character(record$label)
+                    }
+                }
+            }
+
+            edgePairs <- vapply(
+                edgeRecords,
+                function(edge) paste(edge$from, edge$to, sep = "\r"),
+                character(1L)
+            )
+            if (anyDuplicated(edgePairs)) {
+                stop("Only one visNetwork edge per ordered node pair is supported.",
+                     call. = FALSE)
+            }
+            if (isTRUE(removeMissing)) {
+                currentPairs <- vapply(
+                    private$data$edges,
+                    function(edge) paste(edge$from, edge$to, sep = "\r"),
+                    character(1L)
+                )
+                remove <- which(!currentPairs %in% edgePairs)
+                if (length(remove) > 0L) {
+                    private$data$edges <- private$data$edges[-remove]
+                }
+            }
+
+            for (record in edgeRecords) {
+                from <- as.character(record$from)
+                to <- as.character(record$to)
+                private$requireNodeIndex(from)
+                private$requireNodeIndex(to)
+                vis <- private$unflattenVisRecord(
+                    record,
+                    reserved = c("id", "from", "to")
+                )
+                index <- private$edgeIndex(from = from, to = to)
+                if (is.na(index)) {
+                    transition <- record$label %||% 0
+                    self$addEdge(
+                        from = from,
+                        to = to,
+                        transition = transition,
+                        id = as.character(record$id %||% private$edgeId(from, to)),
+                        vis = vis
+                    )
+                } else {
+                    private$data$edges[[index]]$vis <- private$mergeLists(
+                        private$data$edges[[index]]$vis %||% list(),
+                        vis
+                    )
+                }
+            }
+
             if (isTRUE(validate)) {
                 self$validate(requireNumeric = FALSE)
             }
@@ -487,6 +670,10 @@ AlphaGraph <- R6::R6Class(
                 validate = FALSE
             )
             names <- vapply(private$data$nodes, function(node) node[[hypNames]], character(1L))
+            if (anyDuplicated(names)) {
+                stop("Hypothesis names passed to graphicalMCP must be unique.",
+                     call. = FALSE)
+            }
             names(hypotheses) <- names
             rownames(transitions) <- names
             colnames(transitions) <- names
@@ -514,8 +701,8 @@ AlphaGraph <- R6::R6Class(
                 hypNames = hypNames
             )
             graphicalMCP::graph_create(
-                hypotheses = input$hypotheses,
-                transitions = input$transitions,
+                hypotheses = unname(input$hypotheses),
+                transitions = unname(input$transitions),
                 hyp_names = input$hyp_names
             )
         },
@@ -564,6 +751,20 @@ AlphaGraph <- R6::R6Class(
 
         validate = function(requireNumeric = FALSE, parameters = list(),
                             tolerance = sqrt(.Machine$double.eps)) {
+            if (!identical(private$data$format, "alphagraph.graph")) {
+                stop("Unsupported graph format.", call. = FALSE)
+            }
+            if (!identical(as.integer(private$data$version), 1L)) {
+                stop("Unsupported alphagraph graph version.", call. = FALSE)
+            }
+            parameterIds <- vapply(
+                private$data$parameters,
+                function(parameter) parameter$id,
+                character(1L)
+            )
+            if (any(!nzchar(parameterIds)) || anyDuplicated(parameterIds)) {
+                stop("Parameter ids must be unique and non-empty.", call. = FALSE)
+            }
             nodeIds <- vapply(private$data$nodes, function(node) node$id, character(1L))
             if (any(!nzchar(nodeIds))) {
                 stop("All nodes must have non-empty ids.", call. = FALSE)
@@ -643,7 +844,7 @@ AlphaGraph <- R6::R6Class(
                 nodes = list(),
                 edges = list(),
                 settings = private$defaultSettings(),
-                metadata = list()
+                metadata = setNames(list(), character())
             )
         },
 
@@ -751,6 +952,8 @@ AlphaGraph <- R6::R6Class(
                              defaultDisplay = NULL) {
             spec <- current %||% list(display = NULL, expression = NULL, value = NULL)
 
+            oldExpression <- spec$expression
+
             if (!is.null(input)) {
                 if (is.numeric(input) || is.logical(input)) {
                     value <- input
@@ -783,9 +986,11 @@ AlphaGraph <- R6::R6Class(
             }
 
             if (!is.null(value)) {
-                spec$value <- private$asNullableNumber(value)
+                spec["value"] <- list(private$asNullableNumber(value))
+            } else if (!identical(oldExpression, spec$expression)) {
+                spec["value"] <- list(private$tryParseNumber(spec$expression))
             } else if (is.null(spec$value)) {
-                spec$value <- private$tryParseNumber(spec$expression)
+                spec["value"] <- list(private$tryParseNumber(spec$expression))
             }
 
             spec
@@ -825,8 +1030,18 @@ AlphaGraph <- R6::R6Class(
                 }
             }
 
+            parsed <- tryCatch(
+                parse(text = expression),
+                error = function(e) NA_real_
+            )
+            if (!is.expression(parsed) || length(parsed) != 1L) {
+                stop("Expression '", expression, "' is not a single valid expression.",
+                     call. = FALSE)
+            }
+            allowedNames <- ls(env, all.names = TRUE)
+            private$assertSafeExpression(parsed[[1L]], allowedNames)
             value <- tryCatch(
-                eval(parse(text = expression), envir = env),
+                eval(parsed[[1L]], envir = env),
                 error = function(e) NA_real_
             )
             if (!is.numeric(value) || length(value) != 1L || is.na(value)) {
@@ -834,6 +1049,44 @@ AlphaGraph <- R6::R6Class(
                      call. = FALSE)
             }
             as.numeric(value)
+        },
+
+        assertSafeExpression = function(node, allowedNames) {
+            if (is.numeric(node)) {
+                return(invisible(TRUE))
+            }
+            if (is.name(node)) {
+                name <- as.character(node)
+                if (!name %in% allowedNames) {
+                    stop("Unknown parameter '", name, "' in graph expression.",
+                         call. = FALSE)
+                }
+                return(invisible(TRUE))
+            }
+            if (!is.call(node)) {
+                stop("Graph expressions may contain only numbers, parameters, and arithmetic.",
+                     call. = FALSE)
+            }
+            operator <- as.character(node[[1L]])
+            if (!operator %in% c("+", "-", "*", "/", "^", "(")) {
+                stop("Operator or function '", operator,
+                     "' is not allowed in graph expressions.", call. = FALSE)
+            }
+            arguments <- as.list(node)[-1L]
+            if (operator == "(" && length(arguments) != 1L) {
+                stop("Invalid parentheses in graph expression.", call. = FALSE)
+            }
+            if (operator %in% c("*", "/", "^") && length(arguments) != 2L) {
+                stop("Operator '", operator, "' requires two operands.", call. = FALSE)
+            }
+            if (operator %in% c("+", "-") && !length(arguments) %in% c(1L, 2L)) {
+                stop("Operator '", operator, "' requires one or two operands.",
+                     call. = FALSE)
+            }
+            for (argument in arguments) {
+                private$assertSafeExpression(argument, allowedNames)
+            }
+            invisible(TRUE)
         },
 
         nodeVisLabel = function(label, weightSpec) {
@@ -852,22 +1105,63 @@ AlphaGraph <- R6::R6Class(
             ))
         },
 
-        flattenVisRecord = function(record) {
+        flattenVisRecord = function(record, prefix = NULL) {
             out <- list()
             for (name in names(record)) {
                 value <- record[[name]]
                 if (is.null(value)) {
                     next
                 }
-                if (is.list(value) && name %in% c("color", "font")) {
-                    for (childName in names(value)) {
-                        out[[paste0(name, ".", childName)]] <- value[[childName]]
-                    }
+                key <- if (is.null(prefix)) name else paste(prefix, name, sep = ".")
+                if (is.list(value) && !is.data.frame(value) && !is.null(names(value))) {
+                    out <- c(out, private$flattenVisRecord(value, prefix = key))
                 } else {
-                    out[[name]] <- value
+                    out[[key]] <- value
                 }
             }
             out
+        },
+
+        unflattenVisRecord = function(record, reserved = character()) {
+            out <- list()
+            for (name in setdiff(names(record), reserved)) {
+                value <- record[[name]]
+                if (length(value) == 0L || (length(value) == 1L && is.na(value))) {
+                    next
+                }
+                path <- strsplit(name, ".", fixed = TRUE)[[1L]]
+                out <- private$setNestedValue(out, path, value)
+            }
+            out
+        },
+
+        setNestedValue = function(x, path, value) {
+            name <- path[[1L]]
+            if (length(path) == 1L) {
+                x[[name]] <- value
+                return(x)
+            }
+            child <- x[[name]] %||% list()
+            x[[name]] <- private$setNestedValue(child, path[-1L], value)
+            x
+        },
+
+        dataFrameToRecords = function(x, name) {
+            if (!is.data.frame(x)) {
+                stop(name, " must be a data.frame.", call. = FALSE)
+            }
+            required <- if (identical(name, "nodes")) "id" else c("from", "to")
+            missing <- setdiff(required, names(x))
+            if (length(missing) > 0L) {
+                stop(name, " must contain columns: ", paste(required, collapse = ", "),
+                     ".", call. = FALSE)
+            }
+            lapply(seq_len(nrow(x)), function(i) {
+                lapply(x, function(column) {
+                    value <- column[[i]]
+                    if (is.factor(value)) as.character(value) else value
+                })
+            })
         },
 
         recordsToDataFrame = function(records) {
@@ -898,15 +1192,95 @@ AlphaGraph <- R6::R6Class(
             if (is.null(x) || length(x) == 0L) {
                 return(y)
             }
+            if (is.null(names(y))) {
+                return(y)
+            }
             for (name in names(y)) {
                 if (!is.null(x[[name]]) && is.list(x[[name]]) && is.list(y[[name]]) &&
                     !is.data.frame(x[[name]]) && !is.data.frame(y[[name]])) {
                     x[[name]] <- private$mergeLists(x[[name]], y[[name]])
                 } else {
-                    x[[name]] <- y[[name]]
+                    x[name] <- list(y[[name]])
                 }
             }
             x
+        },
+
+        normalizeJsonNumbers = function(x) {
+            if (is.integer(x)) {
+                return(as.numeric(x))
+            }
+            if (is.list(x)) {
+                return(lapply(x, private$normalizeJsonNumbers))
+            }
+            x
+        },
+
+        asObjectList = function(x, name) {
+            if (!is.list(x)) {
+                stop(name, " must be a list.", call. = FALSE)
+            }
+            if (length(x) == 0L) {
+                return(setNames(list(), character()))
+            }
+            if (is.null(names(x)) || any(!nzchar(names(x)))) {
+                stop(name, " must be a named list.", call. = FALSE)
+            }
+            x
+        },
+
+        normalizeTransitionMatrix = function(transitions, nodeKeys) {
+            if (is.data.frame(transitions)) {
+                transitions <- as.matrix(transitions)
+            }
+            if (!is.matrix(transitions) || nrow(transitions) != ncol(transitions)) {
+                stop("transitions must be a square matrix or data.frame.", call. = FALSE)
+            }
+            keys <- vapply(
+                private$data$nodes,
+                function(node) as.character(node[[nodeKeys]]),
+                character(1L)
+            )
+            if (nrow(transitions) != length(keys)) {
+                stop("Transition matrix dimensions must match the number of nodes.",
+                     call. = FALSE)
+            }
+            rn <- rownames(transitions)
+            cn <- colnames(transitions)
+            if (!is.null(rn) || !is.null(cn)) {
+                if (is.null(rn) || is.null(cn) || !setequal(rn, keys) || !setequal(cn, keys)) {
+                    stop("Transition matrix row and column names must match node ",
+                         nodeKeys, "s.", call. = FALSE)
+                }
+                transitions <- transitions[keys, keys, drop = FALSE]
+            }
+            transitions
+        },
+
+        isZeroTransition = function(x) {
+            if (length(x) == 0L || is.na(x)) {
+                return(TRUE)
+            }
+            if (is.numeric(x) || is.logical(x)) {
+                return(as.numeric(x) == 0)
+            }
+            text <- trimws(as.character(x))
+            if (!nzchar(text)) {
+                return(TRUE)
+            }
+            number <- suppressWarnings(as.numeric(text))
+            !is.na(number) && number == 0
+        },
+
+        transitionArguments = function(value, type) {
+            if (identical(type, "value")) {
+                return(list(transition = as.numeric(value)))
+            }
+            if (identical(type, "expression")) {
+                text <- as.character(value)
+                return(list(transition = text, label = text, expression = text))
+            }
+            list(transition = as.character(value), label = as.character(value))
         },
 
         assertScalarCharacter = function(x, name) {
@@ -953,6 +1327,191 @@ AlphaGraph <- R6::R6Class(
         }
     )
 )
+
+#' @title Create an AlphaGraph from its canonical list representation
+#'
+#' @param x A JSON-compatible alphagraph list.
+#' @param validate Whether to validate the imported model.
+#'
+#' @return An `AlphaGraph` object.
+#'
+#' @keywords internal
+alphaGraphFromList <- function(x, validate = TRUE) {
+    graph <- AlphaGraph$new()
+    graph$loadList(x, validate = validate)
+    graph
+}
+
+#' @title Create an AlphaGraph from JSON
+#'
+#' @param json JSON text, a connection, or a file path accepted by
+#'   `jsonlite::fromJSON()`.
+#' @param validate Whether to validate the imported model.
+#'
+#' @return An `AlphaGraph` object.
+#'
+#' @keywords internal
+alphaGraphFromJson <- function(json, validate = TRUE) {
+    graph <- AlphaGraph$new()
+    graph$fromJson(json, validate = validate)
+    graph
+}
+
+#' @title Create an AlphaGraph from a transition matrix
+#'
+#' @param transitions Square transition matrix or data frame.
+#' @param hypotheses Optional hypothesis weights, in matrix order.
+#' @param type Interpretation of non-zero transition cells.
+#' @param nodeIds Stable node identifiers. Defaults to matrix row names.
+#' @param nodeLabels Display labels. Defaults to `nodeIds`.
+#' @param id,label,description,metadata,settings Graph-level properties.
+#' @param validate Whether to validate the resulting graph.
+#'
+#' @return An `AlphaGraph` object.
+#'
+#' @keywords internal
+alphaGraphFromTransitionMatrix <- function(
+        transitions,
+        hypotheses = NULL,
+        type = c("value", "expression", "display"),
+        nodeIds = NULL,
+        nodeLabels = NULL,
+        id = "graph",
+        label = id,
+        description = NULL,
+        metadata = list(),
+        settings = list(),
+        validate = TRUE) {
+    type <- match.arg(type)
+    mat <- if (is.data.frame(transitions)) as.matrix(transitions) else transitions
+    if (!is.matrix(mat) || nrow(mat) != ncol(mat)) {
+        stop("transitions must be a square matrix or data.frame.", call. = FALSE)
+    }
+    n <- nrow(mat)
+    if (is.null(nodeIds)) {
+        nodeIds <- rownames(mat) %||% paste0("H", seq_len(n))
+    }
+    nodeIds <- as.character(nodeIds)
+    if (length(nodeIds) != n || any(!nzchar(nodeIds)) || anyDuplicated(nodeIds)) {
+        stop("nodeIds must contain one unique, non-empty id per matrix row.",
+             call. = FALSE)
+    }
+    if (!is.null(rownames(mat)) && !is.null(colnames(mat))) {
+        if (!setequal(rownames(mat), colnames(mat))) {
+            stop("Transition matrix row and column names must contain the same nodes.",
+                 call. = FALSE)
+        }
+        mat <- mat[nodeIds, nodeIds, drop = FALSE]
+    }
+    nodeLabels <- as.character(nodeLabels %||% nodeIds)
+    if (length(nodeLabels) != n) {
+        stop("nodeLabels must contain one label per matrix row.", call. = FALSE)
+    }
+    hypotheses <- hypotheses %||% rep(0, n)
+    if (!is.null(names(hypotheses))) {
+        if (!setequal(names(hypotheses), nodeIds)) {
+            stop("Named hypotheses must match nodeIds.", call. = FALSE)
+        }
+        hypotheses <- hypotheses[nodeIds]
+    }
+    if (length(hypotheses) != n) {
+        stop("hypotheses must contain one weight per matrix row.", call. = FALSE)
+    }
+
+    graph <- AlphaGraph$new(
+        id = id,
+        label = label,
+        description = description,
+        metadata = metadata,
+        settings = settings
+    )
+    for (i in seq_len(n)) {
+        graph$addNode(nodeIds[i], label = nodeLabels[i], weight = hypotheses[i])
+    }
+    dimnames(mat) <- list(nodeIds, nodeIds)
+    graph$updateFromTransitionMatrix(
+        mat,
+        type = type,
+        nodeKeys = "id",
+        validate = validate
+    )
+    graph
+}
+
+#' @title Create an AlphaGraph from a graphicalMCP graph
+#'
+#' @param graph An `initial_graph` object returned by
+#'   `graphicalMCP::graph_create()` or an equivalent list with `hypotheses` and
+#'   `transitions`.
+#' @param id,label,description,metadata,settings Graph-level properties.
+#' @param validate Whether to validate the resulting graph.
+#'
+#' @return An `AlphaGraph` object.
+#'
+#' @keywords internal
+alphaGraphFromGraphicalMCP <- function(
+        graph,
+        id = "graph",
+        label = id,
+        description = NULL,
+        metadata = list(),
+        settings = list(),
+        validate = TRUE) {
+    if (!is.list(graph) || is.null(graph$hypotheses) || is.null(graph$transitions)) {
+        stop("graph must contain hypotheses and transitions.", call. = FALSE)
+    }
+    hypotheses <- graph$hypotheses
+    transitions <- graph$transitions
+    names <- names(hypotheses) %||% rownames(transitions)
+    alphaGraphFromTransitionMatrix(
+        transitions = transitions,
+        hypotheses = hypotheses,
+        type = "value",
+        nodeIds = names,
+        nodeLabels = names,
+        id = id,
+        label = label,
+        description = description,
+        metadata = metadata,
+        settings = settings,
+        validate = validate
+    )
+}
+
+#' @title Create an AlphaGraph from visNetwork data
+#'
+#' @param nodes,edges Data frames accepted by `visNetwork::visNetwork()`.
+#' @param id,label,description,metadata,settings Graph-level properties.
+#' @param validate Whether to validate the resulting graph.
+#'
+#' @return An `AlphaGraph` object.
+#'
+#' @keywords internal
+alphaGraphFromVisNetworkData <- function(
+        nodes,
+        edges,
+        id = "graph",
+        label = id,
+        description = NULL,
+        metadata = list(),
+        settings = list(),
+        validate = TRUE) {
+    graph <- AlphaGraph$new(
+        id = id,
+        label = label,
+        description = description,
+        metadata = metadata,
+        settings = settings
+    )
+    graph$updateFromVisNetworkData(
+        nodes = nodes,
+        edges = edges,
+        removeMissing = TRUE,
+        updateCanonicalLabels = TRUE,
+        validate = validate
+    )
+    graph
+}
 
 #' @title Create the current Hung and Wang demo graph as an AlphaGraph
 #'

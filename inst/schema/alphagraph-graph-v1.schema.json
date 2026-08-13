@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rpact-com.github.io/alphagraph/schema/alphagraph-graph-v1.schema.json",
+  "title": "alphagraph graph definition",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format",
+    "version",
+    "id",
+    "label",
+    "parameters",
+    "nodes",
+    "edges",
+    "settings",
+    "metadata"
+  ],
+  "properties": {
+    "format": { "const": "alphagraph.graph" },
+    "version": { "const": 1 },
+    "id": { "$ref": "#/$defs/nonEmptyString" },
+    "label": { "type": "string" },
+    "description": { "type": ["string", "null"] },
+    "parameters": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/parameter" }
+    },
+    "nodes": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/node" }
+    },
+    "edges": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/edge" }
+    },
+    "settings": { "type": "object" },
+    "metadata": { "type": "object" }
+  },
+  "$defs": {
+    "nonEmptyString": {
+      "type": "string",
+      "minLength": 1
+    },
+    "valueSpec": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["display", "expression", "value"],
+      "properties": {
+        "display": { "type": ["string", "null"] },
+        "expression": { "type": ["string", "null"] },
+        "value": { "type": ["number", "null"] }
+      }
+    },
+    "parameter": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "label", "value", "description"],
+      "properties": {
+        "id": { "$ref": "#/$defs/nonEmptyString" },
+        "label": { "type": "string" },
+        "value": { "type": ["number", "null"] },
+        "description": { "type": ["string", "null"] }
+      }
+    },
+    "node": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "label", "weight", "vis", "metadata"],
+      "properties": {
+        "id": { "$ref": "#/$defs/nonEmptyString" },
+        "label": { "type": "string" },
+        "weight": { "$ref": "#/$defs/valueSpec" },
+        "vis": { "type": "object" },
+        "metadata": { "type": "object" }
+      }
+    },
+    "edge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "from", "to", "transition", "vis", "metadata"],
+      "properties": {
+        "id": { "$ref": "#/$defs/nonEmptyString" },
+        "from": { "$ref": "#/$defs/nonEmptyString" },
+        "to": { "$ref": "#/$defs/nonEmptyString" },
+        "transition": { "$ref": "#/$defs/valueSpec" },
+        "vis": { "type": "object" },
+        "metadata": { "type": "object" }
+      }
+    }
+  }
+}
