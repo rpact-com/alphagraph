@@ -97,7 +97,7 @@ moduleGraphServer <- function(id, graphStore = NULL, ..., args = list()) {
                     shiny::selectInput(ns("edge_from"), "From", choices = choices),
                     shiny::selectInput(ns("edge_to"), "To", choices = choices,
                                        selected = choices[min(2L, length(choices))]),
-                    shiny::textInput(ns("edge_transition"), "Transition", value = "0"),
+                    shiny::textInput(ns("edge_transition"), "Weight for Edge", value = "1/2"),
                     footer = shiny::tagList(
                         shiny::modalButton("Cancel"),
                         shiny::actionButton(ns("save_edge"), "Add")
@@ -109,12 +109,12 @@ moduleGraphServer <- function(id, graphStore = NULL, ..., args = list()) {
                 tryCatch({
                     shiny::req(input$edge_from, input$edge_to, input$edge_transition)
                     graphStore$transact("graph:add-edge", function(candidate) {
-                        candidate$addEdge(
+                        candidate$setTransitionWeight(
                             from = input$edge_from,
                             to = input$edge_to,
-                            transition = input$edge_transition
+                            weight = input$edge_transition
                         )
-                    })
+                    }, requireNumeric = TRUE)
                     shiny::removeModal()
                 }, error = function(error) {
                     shiny::showNotification(conditionMessage(error), type = "error")
@@ -135,10 +135,10 @@ moduleGraphServer <- function(id, graphStore = NULL, ..., args = list()) {
                 shiny::req(length(edge) == 1L)
                 rv$ctx_edge_id <- edgeId
                 shiny::showModal(shiny::modalDialog(
-                    title = paste("Edit transition", edge[[1L]]$from, "->", edge[[1L]]$to),
+                    title = paste("Edit edge weight", edge[[1L]]$from, "->", edge[[1L]]$to),
                     shiny::textInput(
                         ns("edited_edge_transition"),
-                        "Transition",
+                        "Weight for Edge",
                         value = edge[[1L]]$transition$display
                     ),
                     footer = shiny::tagList(
@@ -333,11 +333,17 @@ moduleGraphServer <- function(id, graphStore = NULL, ..., args = list()) {
                 shiny::req(rv$ctx_edge_id, input$edited_edge_transition)
                 tryCatch({
                     graphStore$transact("graph:edge-transition", function(candidate) {
-                        candidate$setEdgeTransition(
-                            edge = rv$ctx_edge_id,
-                            transition = input$edited_edge_transition
+                        edges <- candidate$toList()$edges
+                        edge <- Filter(
+                            function(item) identical(item$id, rv$ctx_edge_id),
+                            edges
+                        )[[1L]]
+                        candidate$setTransitionWeight(
+                            from = edge$from,
+                            to = edge$to,
+                            weight = input$edited_edge_transition
                         )
-                    })
+                    }, requireNumeric = TRUE)
                     shiny::removeModal()
                 }, error = function(error) {
                     shiny::showNotification(conditionMessage(error), type = "error")

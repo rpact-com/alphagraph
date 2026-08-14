@@ -4,7 +4,7 @@ test_that("canonical graph JSON round-trips without loss", {
 
     expect_identical(restored$toList(), graph$toList())
     expect_match(graph$toJson(), '"metadata": \\{\\}', perl = TRUE)
-    expect_match(graph$toJson(), '"value": null', fixed = TRUE)
+    expect_match(graph$toJson(), '"maxDenominator": 16', fixed = TRUE)
     expect_true(restored$validate(requireNumeric = FALSE))
 })
 
@@ -13,23 +13,24 @@ test_that("demo graph and transition matrix use the same canonical edges", {
     matrix <- getTransitionMatrix()
     vis <- graph$toVisNetworkData()
 
-    expect_equal(matrix[getHypothesisLabel(1, "s"), getHypothesisLabel(2, "ni")], "t")
-    expect_equal(matrix[getHypothesisLabel(2, "ni"), getHypothesisLabel(1, "s")], "ω")
+    expect_equal(matrix[getHypothesisLabel(1, "s"), getHypothesisLabel(2, "ni")], "1/2")
+    expect_equal(matrix[getHypothesisLabel(2, "ni"), getHypothesisLabel(1, "s")], "1/2")
     expect_equal(nrow(vis$edges), sum(matrix != "0"))
+    expect_true(all(vis$edges$label == "1/2"))
 })
 
 test_that("matrix updates preserve styles and synchronize edges", {
     graph <- createDemoAlphaGraph()
     matrix <- graph$toTransitionMatrix(
-        type = "expression",
+        type = "value",
         asDataFrame = FALSE,
         rowNames = "id"
     )
-    matrix["H1_S", "H2_NI"] <- "0.25"
-    matrix["H2_NI", "H1_S"] <- "0"
-    matrix["H2_S", "H1_NI"] <- "0.5"
+    matrix["H1_S", "H2_NI"] <- 0.25
+    matrix["H2_NI", "H1_S"] <- 0
+    matrix["H2_S", "H1_NI"] <- 0.5
 
-    graph$updateFromTransitionMatrix(matrix, type = "expression")
+    graph$updateFromTransitionMatrix(matrix, type = "value")
     data <- graph$toList()
     edge <- Filter(function(x) x$from == "H1_S" && x$to == "H2_NI", data$edges)[[1L]]
 
@@ -39,22 +40,56 @@ test_that("matrix updates preserve styles and synchronize edges", {
     expect_length(Filter(function(x) x$from == "H2_S" && x$to == "H1_NI", data$edges), 1L)
 })
 
-test_that("graphicalMCP inputs resolve symbolic values", {
+test_that("graphicalMCP inputs use the canonical numeric values", {
     graph <- createDemoAlphaGraph()
-    input <- graph$toGraphicalMCPInput(
-        parameters = list(nu = 0.3, omega = 0.4, t = 0.2),
-        hypNames = "id"
-    )
+    input <- graph$toGraphicalMCPInput(hypNames = "id")
 
     expect_equal(input$hypotheses, c(H1_NI = 1, H1_S = 0, H2_NI = 0, H2_S = 0))
-    expect_equal(input$transitions["H1_NI", "H2_NI"], 0.7)
-    expect_equal(input$transitions["H2_NI", "H1_S"], 0.4)
+    expect_equal(input$transitions["H1_NI", "H2_NI"], 0.5)
+    expect_equal(input$transitions["H2_NI", "H1_S"], 0.5)
     expect_equal(unname(rowSums(input$transitions)), c(1, 1, 1, 0))
 
     restored <- alphaGraphFromGraphicalMCP(input)
     expect_equal(
         restored$toGraphicalMCPInput(hypNames = "id")$transitions,
         input$transitions
+    )
+})
+
+test_that("fractions are presentation only and their complexity is configurable", {
+    graph <- createDemoAlphaGraph()
+
+    expect_equal(graph$parseNumber("1/2"), 0.5)
+    expect_equal(graph$formatNumber(0.5), "1/2")
+    expect_equal(graph$formatNumber(1 / 17), "0.05882353")
+
+    graph$setNumberFormat(maxDenominator = 20L)
+    expect_equal(graph$formatNumber(1 / 17), "1/17")
+    graph$setTransitionWeight("H2_S", "H1_NI", "1/17")
+
+    edge <- Filter(
+        function(item) item$from == "H2_S" && item$to == "H1_NI",
+        graph$toList()$edges
+    )[[1L]]
+    expect_equal(edge$transition$value, 1 / 17)
+    expect_equal(edge$vis$label, "1/17")
+    expect_error(graph$parseNumber("1/0"), "denominator")
+    expect_error(graph$parseNumber("nu"), "number or a fraction")
+})
+
+test_that("zero edge weights remove edges and non-zero weights create them", {
+    graph <- createDemoAlphaGraph()
+
+    graph$setTransitionWeight("H1_NI", "H1_S", 0)
+    expect_false("H1_NI__H1_S" %in% graph$toVisNetworkData()$edges$id)
+
+    graph$setTransitionWeight("H1_NI", "H1_S", "1/3")
+    vis <- graph$toVisNetworkData()$edges
+    expect_equal(vis$label[vis$id == "H1_NI__H1_S"], "1/3")
+    expect_equal(
+        graph$toTransitionMatrix(type = "value", asDataFrame = FALSE,
+                                 rowNames = "id")["H1_NI", "H1_S"],
+        1 / 3
     )
 })
 

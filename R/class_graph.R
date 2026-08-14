@@ -373,6 +373,33 @@ AlphaGraph <- R6::R6Class(
             private$data$edges[[index]]$vis$label <- private$data$edges[[index]]$transition$display
             invisible(self)
         },
+        setTransitionWeight = function(from, to, weight) {
+            private$requireNodeIndex(from)
+            private$requireNodeIndex(to)
+            value <- self$parseNumber(weight, "Edge weight")
+            if (value < 0 || value > 1) {
+                stop("Edge weight must be between 0 and 1.", call. = FALSE)
+            }
+            if (identical(from, to)) {
+                if (value != 0) {
+                    stop("The transition matrix diagonal must be 0.", call. = FALSE)
+                }
+                return(invisible(self))
+            }
+
+            index <- private$edgeIndex(from = from, to = to)
+            if (value == 0) {
+                if (!is.na(index)) {
+                    private$data$edges <- private$data$edges[-index]
+                }
+            } else if (is.na(index)) {
+                self$addEdge(from = from, to = to, transition = value)
+            } else {
+                self$setEdgeTransition(edge = private$data$edges[[index]]$id,
+                                       transition = value)
+            }
+            invisible(self)
+        },
         setEdgeColor = function(edge = NULL, color = NULL, from = NULL, to = NULL) {
             index <- private$requireEdgeIndex(edge = edge, from = from, to = to)
             private$data$edges[[index]]$vis$color <- color
@@ -405,6 +432,37 @@ AlphaGraph <- R6::R6Class(
             )
             invisible(self)
         },
+        numberFormat = function() {
+            private$data$settings$numbers %||% private$defaultSettings()$numbers
+        },
+        setNumberFormat = function(
+                fractions = NULL,
+                maxDenominator = NULL,
+                tolerance = NULL,
+                digits = NULL) {
+            settings <- self$numberFormat()
+            if (!is.null(fractions)) {
+                settings$enabled <- isTRUE(fractions)
+            }
+            if (!is.null(maxDenominator)) {
+                settings$maxDenominator <- max(1L, as.integer(maxDenominator))
+            }
+            if (!is.null(tolerance)) {
+                settings$tolerance <- max(0, as.numeric(tolerance))
+            }
+            if (!is.null(digits)) {
+                settings$digits <- max(1L, as.integer(digits))
+            }
+            private$data$settings$numbers <- settings
+            private$refreshNumericLabels()
+            invisible(self)
+        },
+        parseNumber = function(x, name = "value") {
+            alphaGraphParseNumber(x, name = name)
+        },
+        formatNumber = function(x) {
+            private$renderNumber(x)
+        },
         loadList = function(x, validate = TRUE) {
             if (!is.list(x)) {
                 stop("x must be a list.", call. = FALSE)
@@ -417,6 +475,15 @@ AlphaGraph <- R6::R6Class(
                 private$data$settings,
                 "settings"
             )
+            numberSettings <- private$mergeLists(
+                private$defaultSettings()$numbers,
+                private$data$settings$numbers %||% list()
+            )
+            numberSettings$maxDenominator <- as.integer(numberSettings$maxDenominator)
+            numberSettings$digits <- as.integer(numberSettings$digits)
+            numberSettings$tolerance <- as.numeric(numberSettings$tolerance)
+            numberSettings$enabled <- isTRUE(numberSettings$enabled)
+            private$data$settings$numbers <- numberSettings
             private$data$metadata <- private$asObjectList(
                 private$data$metadata,
                 "metadata"
@@ -885,6 +952,12 @@ AlphaGraph <- R6::R6Class(
         },
         defaultSettings = function() {
             list(
+                numbers = list(
+                    enabled = TRUE,
+                    maxDenominator = 16L,
+                    tolerance = 1e-8,
+                    digits = 8L
+                ),
                 vis = list(
                     width = "100%",
                     height = "400px",
@@ -989,17 +1062,28 @@ AlphaGraph <- R6::R6Class(
                 if (is.numeric(input) || is.logical(input)) {
                     value <- input
                     if (is.null(display)) {
-                        display <- private$formatNumber(input)
+                        display <- private$renderNumber(input)
                     }
                     if (is.null(expression)) {
-                        expression <- private$formatNumber(input)
+                        expression <- private$renderNumber(input)
                     }
                 } else {
-                    if (is.null(display)) {
-                        display <- as.character(input)
-                    }
-                    if (is.null(expression)) {
-                        expression <- as.character(input)
+                    parsed <- alphaGraphTryParseNumber(input)
+                    if (!is.null(parsed)) {
+                        value <- parsed
+                        if (is.null(display)) {
+                            display <- private$renderNumber(parsed)
+                        }
+                        if (is.null(expression)) {
+                            expression <- private$renderNumber(parsed)
+                        }
+                    } else {
+                        if (is.null(display)) {
+                            display <- as.character(input)
+                        }
+                        if (is.null(expression)) {
+                            expression <- as.character(input)
+                        }
                     }
                 }
             }
@@ -1124,8 +1208,34 @@ AlphaGraph <- R6::R6Class(
             invisible(TRUE)
         },
         nodeVisLabel = function(label, weightSpec) {
-            weightLabel <- weightSpec$display %||% private$formatNumber(weightSpec$value) %||% "0"
+            weightLabel <- weightSpec$display %||% private$renderNumber(weightSpec$value) %||% "0"
             paste0(label, "\n", weightLabel)
+        },
+        refreshNumericLabels = function() {
+            for (i in seq_along(private$data$nodes)) {
+                spec <- private$data$nodes[[i]]$weight
+                if (!is.null(spec$value)) {
+                    formatted <- private$renderNumber(spec$value)
+                    spec$display <- formatted
+                    spec$expression <- formatted
+                    private$data$nodes[[i]]$weight <- spec
+                    private$data$nodes[[i]]$vis$label <- private$nodeVisLabel(
+                        private$data$nodes[[i]]$label,
+                        spec
+                    )
+                }
+            }
+            for (i in seq_along(private$data$edges)) {
+                spec <- private$data$edges[[i]]$transition
+                if (!is.null(spec$value)) {
+                    formatted <- private$renderNumber(spec$value)
+                    spec$display <- formatted
+                    spec$expression <- formatted
+                    private$data$edges[[i]]$transition <- spec
+                    private$data$edges[[i]]$vis$label <- formatted
+                }
+            }
+            invisible(NULL)
         },
         nodeToVisRecord = function(node) {
             private$flattenVisRecord(c(list(id = node$id), node$vis %||% list()))
@@ -1331,20 +1441,18 @@ AlphaGraph <- R6::R6Class(
             as.numeric(x)
         },
         tryParseNumber = function(x) {
-            if (is.null(x)) {
-                return(NULL)
-            }
-            value <- suppressWarnings(as.numeric(x))
-            if (length(value) == 1L && !is.na(value)) {
-                return(value)
-            }
-            NULL
+            alphaGraphTryParseNumber(x)
         },
-        formatNumber = function(x) {
-            if (is.null(x) || length(x) != 1L || is.na(x)) {
-                return(NULL)
-            }
-            format(x, trim = TRUE, scientific = FALSE)
+        renderNumber = function(x) {
+            settings <- private$data$settings$numbers %||%
+                private$defaultSettings()$numbers
+            alphaGraphFormatNumber(
+                x,
+                fractions = settings$enabled,
+                maxDenominator = settings$maxDenominator,
+                tolerance = settings$tolerance,
+                digits = settings$digits
+            )
         }
     )
 )
@@ -1551,9 +1659,6 @@ createDemoAlphaGraph <- function() {
         label = "Hung and Wang (2010)"
     )
 
-    graph$addParameter("nu", label = "\u03BD")
-    graph$addParameter("omega", label = "\u03C9")
-    graph$addParameter("t", label = "t")
     graph$addNode("H1_NI",
         label = getHypothesisLabel(1, "ni"), weight = 1,
         x = 14, y = -5, colorBackground = "#7CFF7C"
@@ -1570,18 +1675,18 @@ createDemoAlphaGraph <- function() {
         label = getHypothesisLabel(2, "s"), weight = 0,
         x = 294, y = 195
     )
-    graph$addEdge("H1_NI", "H1_S", label = "\u03BD", expression = "nu")
-    graph$addEdge("H1_NI", "H2_NI", label = "1-\u03BD", expression = "1 - nu")
+    graph$addEdge("H1_NI", "H1_S", transition = 0.5)
+    graph$addEdge("H1_NI", "H2_NI", transition = 0.5)
     graph$addEdge("H2_NI", "H1_S",
-        label = "\u03C9", expression = "omega",
+        transition = 0.5,
         smooth = TRUE
     )
     graph$addEdge("H1_S", "H2_NI",
-        label = "t", expression = "t",
+        transition = 0.5,
         smooth = TRUE
     )
-    graph$addEdge("H2_NI", "H2_S", label = "1-\u03C9", expression = "1 - omega")
-    graph$addEdge("H1_S", "H2_S", label = "1-t", expression = "1 - t")
+    graph$addEdge("H2_NI", "H2_S", transition = 0.5)
+    graph$addEdge("H1_S", "H2_S", transition = 0.5)
 
     graph
 }

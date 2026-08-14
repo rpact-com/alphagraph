@@ -13,7 +13,7 @@
  #' @title Transition matrix UI module
  #'
  #' @description
- #' UI for displaying the transition matrix in a datatable. The module
+ #' UI for displaying the transition matrix in an editable spreadsheet. The module
  #' provides a boxed panel containing the rendered matrix output.
  #'
  #' @param id Module id (namespace) used for UI namespacing.
@@ -29,8 +29,8 @@ moduleTransitionMatrixUI <- function(id) {
         title = "Transition Matrix",
         shiny::tags$p(
             class = "text-muted small",
-            "Cells are editable. Use numeric values or parameter expressions."
+            "Cells are editable. Enter decimals or fractions such as 1/2; the diagonal is always 0."
         ),
-        DT::DTOutput(ns("transitionMatrix"))
+        rhandsontable::rHandsontableOutput(ns("transitionMatrix"))
     )
 }

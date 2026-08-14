@@ -44,7 +44,7 @@ Depends:
 	shiny (>= 1.6.0)
 Imports:
     visNetwork,
-    DT,
+    rhandsontable,
     R6,
     bs4Dash,
     jsonlite,

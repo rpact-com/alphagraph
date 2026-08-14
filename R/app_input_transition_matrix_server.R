@@ -37,76 +37,82 @@ moduleTransitionMatrixServer <- function(id, graphStore = NULL, ..., args = list
 
             logDebug("///--- moduleTransitionMatrixServer id = ", id, " (", session$ns("xxx"), ")")
 
-            output$transitionMatrix <- DT::renderDT({
+            tableRefresh <- shiny::reactiveVal(0L)
+
+            output$transitionMatrix <- rhandsontable::renderRHandsontable({
                 graphStore$revision()
+                tableRefresh()
                 graph <- graphStore$graph()
                 mat <- graph$toTransitionMatrix(
-                    type = "expression",
-                    asDataFrame = TRUE,
+                    type = "value",
+                    asDataFrame = FALSE,
                     rowNames = "id"
                 )
+                display <- alphaGraphFormatMatrix(mat, graph$numberFormat())
                 nodeLabels <- vapply(
                     graph$toList()$nodes,
                     function(node) node$label,
                     character(1L)
                 )
-                DT::datatable(
-                    mat,
-                    editable = list(
-                        target = "cell",
-                        disable = list(columns = 0L)
-                    ),
-                    options = list(
-                        dom = "t",
-                        ordering = FALSE,
-                        paging = FALSE
-                    ),
-                    class = "compact cell-border",
-                    rownames = nodeLabels,
-                    colnames = nodeLabels
+                widget <- rhandsontable::rhandsontable(
+                    as.data.frame(display, check.names = FALSE,
+                                  stringsAsFactors = FALSE),
+                    rowHeaders = nodeLabels,
+                    colHeaders = nodeLabels,
+                    useTypes = FALSE,
+                    stretchH = "all"
                 )
+                for (i in seq_len(nrow(display))) {
+                    widget <- rhandsontable::hot_cell(
+                        widget,
+                        row = i,
+                        col = i,
+                        readOnly = TRUE
+                    )
+                }
+                widget
             })
 
-            shiny::observeEvent(input$transitionMatrix_cell_edit, {
-                info <- input$transitionMatrix_cell_edit
+            shiny::observeEvent(input$transitionMatrix, {
                 tryCatch({
-                    graph <- graphStore$snapshot()
-                    matrixData <- graph$toTransitionMatrix(
-                        type = "expression",
-                        asDataFrame = TRUE,
-                        rowNames = "id"
-                    )
-                    edited <- DT::editData(
-                        matrixData,
-                        info,
-                        rownames = TRUE
-                    )
-                    graphStore$transact("matrix:cell-edit", function(candidate) {
-                        candidate$updateFromTransitionMatrix(
-                            edited,
-                            type = "expression",
-                            nodeKeys = "id",
-                            validate = TRUE
-                        )
-                    })
+                    edited <- rhandsontable::hot_to_r(input$transitionMatrix)
+                    .updateGraphFromTransitionTable(graphStore, edited)
                 }, error = function(error) {
                     shiny::showNotification(conditionMessage(error), type = "error")
-                    graphStore$revision()
-                    proxy <- DT::dataTableProxy("transitionMatrix", session = session)
-                    DT::replaceData(
-                        proxy,
-                        graphStore$snapshot()$toTransitionMatrix(
-                            type = "expression",
-                            asDataFrame = TRUE,
-                            rowNames = "id"
-                        ),
-                        rownames = TRUE,
-                        resetPaging = FALSE
-                    )
+                    tableRefresh(shiny::isolate(tableRefresh()) + 1L)
                 })
             }, ignoreInit = TRUE)
 
             invisible(graphStore)
         }
     )
+}
+
+.updateGraphFromTransitionTable <- function(
+        graphStore,
+        table,
+        source = "matrix:table-edit") {
+    graph <- graphStore$snapshot()
+    edited <- alphaGraphParseMatrix(table)
+    current <- graph$toTransitionMatrix(
+        type = "value",
+        asDataFrame = FALSE,
+        rowNames = "id"
+    )
+    if (!identical(dim(edited), dim(current))) {
+        stop("Transition matrix dimensions changed unexpectedly.", call. = FALSE)
+    }
+    dimnames(edited) <- dimnames(current)
+    if (isTRUE(all.equal(edited, current, tolerance = 1e-12,
+                         check.attributes = TRUE))) {
+        return(invisible(FALSE))
+    }
+    graphStore$transact(source, function(candidate) {
+        candidate$updateFromTransitionMatrix(
+            edited,
+            type = "value",
+            nodeKeys = "id",
+            validate = TRUE
+        )
+    }, requireNumeric = TRUE)
 }

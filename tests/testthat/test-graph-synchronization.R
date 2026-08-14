@@ -40,30 +40,29 @@ test_that("matrix and graph modules share one canonical graph", {
         session$flushReact()
         start <- store$revision()
 
-        session$setInputs(
-            `matrix-transitionMatrix_cell_edit` = list(
-                row = 1,
-                col = 2,
-                value = "0.25"
-            )
+        matrix <- store$snapshot()$toTransitionMatrix(
+            type = "value", asDataFrame = FALSE, rowNames = "id"
         )
+        matrix["H1_NI", "H1_S"] <- 1 / 4
+        display <- alphaGraphFormatMatrix(matrix, store$snapshot()$numberFormat())
+        .updateGraphFromTransitionTable(store, display)
         session$flushReact()
 
         expect_equal(store$revision(), start + 1L)
-        expect_equal(store$source(), "matrix:cell-edit")
+        expect_equal(store$source(), "matrix:table-edit")
         expect_equal(
             store$graph()$toTransitionMatrix(
-                type = "expression",
+                type = "value",
                 asDataFrame = FALSE,
                 rowNames = "id"
             )["H1_NI", "H1_S"],
-            "0.25"
+            0.25
         )
         expect_equal(
             store$graph()$toVisNetworkData()$edges$label[
                 store$graph()$toVisNetworkData()$edges$id == "H1_NI__H1_S"
             ],
-            "0.25"
+            "1/4"
         )
 
         session$setInputs(`graph-add_node` = 1)
@@ -89,24 +88,59 @@ test_that("invalid matrix edits do not commit a revision", {
         session$flushReact()
         start <- store$revision()
 
-        session$setInputs(
-            `matrix-transitionMatrix_cell_edit` = list(
-                row = 1,
-                col = 1,
-                value = "0.5"
-            )
+        matrix <- store$snapshot()$toTransitionMatrix(
+            type = "value", asDataFrame = FALSE, rowNames = "id"
+        )
+        matrix[1, 1] <- 0.5
+        expect_error(
+            .updateGraphFromTransitionTable(store, matrix),
+            "diagonal"
         )
         session$flushReact()
 
         expect_equal(store$revision(), start)
         expect_equal(
             store$graph()$toTransitionMatrix(
-                type = "expression",
+                type = "value",
                 asDataFrame = FALSE,
                 rowNames = "id"
             )[1, 1],
-            "0"
+            0
         )
+    })
+})
+
+test_that("matrix zero/non-zero edits create and remove graph edges", {
+    shiny::testServer(function(input, output, session) {
+        store <- createAlphaGraphStore()
+        moduleTransitionMatrixServer("matrix", graphStore = store)
+        moduleGraphServer("graph", graphStore = store)
+        session$userData$store <- store
+    }, {
+        store <- session$userData$store
+        session$flushReact()
+        start <- store$revision()
+
+        matrix <- store$snapshot()$toTransitionMatrix(
+            type = "value", asDataFrame = FALSE, rowNames = "id"
+        )
+        matrix["H2_S", "H1_NI"] <- 1 / 3
+        display <- alphaGraphFormatMatrix(matrix, store$snapshot()$numberFormat())
+        .updateGraphFromTransitionTable(store, display)
+        session$flushReact()
+
+        edges <- store$graph()$toVisNetworkData()$edges
+        expect_equal(store$revision(), start + 1L)
+        expect_true("H2_S__H1_NI" %in% edges$id)
+        expect_equal(edges$label[edges$id == "H2_S__H1_NI"], "1/3")
+
+        matrix["H2_S", "H1_NI"] <- 0
+        display <- alphaGraphFormatMatrix(matrix, store$snapshot()$numberFormat())
+        .updateGraphFromTransitionTable(store, display)
+        session$flushReact()
+
+        expect_equal(store$revision(), start + 2L)
+        expect_false("H2_S__H1_NI" %in% store$graph()$toVisNetworkData()$edges$id)
     })
 })
 
@@ -166,16 +200,16 @@ test_that("hypothesis weights synchronize with node labels and graphicalMCP", {
         h1s <- Filter(function(x) x$id == "H1_S", initial)[[1L]]
         panelHtml <- output[["hypotheses-hypothesisPanel"]]$html
         expect_equal(h1s$weight$value, 0.2)
-        expect_match(h1s$vis$label, "\\n0.2$")
+        expect_match(h1s$vis$label, "\\n1/5$")
         expect_match(panelHtml, 'aria-label="Hypothesis weight H1_S"', fixed = TRUE)
-        expect_match(panelHtml, 'value="0.2"', fixed = TRUE)
+        expect_match(panelHtml, 'value="1/5"', fixed = TRUE)
 
         start <- store$revision()
         session$setInputs(
             `hypotheses-hypothesis_edit` = list(
                 id = "H1_S",
                 field = "weight",
-                value = "0.1"
+                value = "1/10"
             )
         )
         session$flushReact()
@@ -185,16 +219,13 @@ test_that("hypothesis weights synchronize with node labels and graphicalMCP", {
             function(x) x$id == "H1_S",
             updated$toList()$nodes
         )[[1L]]
-        gmcp <- updated$toGraphicalMCPInput(
-            parameters = list(nu = 0.3, omega = 0.4, t = 0.2),
-            hypNames = "id"
-        )
+        gmcp <- updated$toGraphicalMCPInput(hypNames = "id")
 
         expect_equal(store$revision(), start + 1L)
         expect_equal(store$source(), "hypotheses:weight")
         expect_equal(node$weight$value, 0.1)
-        expect_equal(node$weight$display, "0.1")
-        expect_match(node$vis$label, "\\n0.1$")
+        expect_equal(node$weight$display, "1/10")
+        expect_match(node$vis$label, "\\n1/10$")
         expect_equal(unname(gmcp$hypotheses["H1_S"]), 0.1)
     })
 })

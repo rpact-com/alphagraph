@@ -76,10 +76,7 @@ moduleHypothesisServer <- function(id, graphStore = NULL, ..., args = list()) {
                     lapply(seq_along(nodes), function(i) {
                         node <- nodes[[i]]
                         nodeId <- node$id
-                        weight <- node$weight$value
-                        if (is.null(weight)) {
-                            weight <- suppressWarnings(as.numeric(node$weight$expression))
-                        }
+                        weight <- graphStore$graph()$formatNumber(node$weight$value)
                         pValue <- if (nodeId %in% names(pValues$values)) {
                             pValues$values[[nodeId]]
                         } else {
@@ -101,12 +98,9 @@ moduleHypothesisServer <- function(id, graphStore = NULL, ..., args = list()) {
                                 4,
                                 shiny::tags$input(
                                     id = ns(paste0("weight_", i)),
-                                    type = "number",
+                                    type = "text",
                                     class = "form-control",
                                     value = weight,
-                                    min = 0,
-                                    max = 1,
-                                    step = "any",
                                     `aria-label` = paste("Hypothesis weight", nodeId),
                                     onchange = editEvent(nodeId, "weight")
                                 )
@@ -159,9 +153,11 @@ moduleHypothesisServer <- function(id, graphStore = NULL, ..., args = list()) {
                             graph$setNodeLabel(edit$id, label, updateVisLabel = TRUE)
                         })
                     } else if (identical(edit$field, "weight")) {
-                        weight <- suppressWarnings(as.numeric(edit$value))
-                        if (length(weight) != 1L || is.na(weight) ||
-                            weight < 0 || weight > 1) {
+                        weight <- graphStore$snapshot()$parseNumber(
+                            edit$value,
+                            "Hypothesis weight"
+                        )
+                        if (weight < 0 || weight > 1) {
                             stop("Hypothesis weights must be between 0 and 1.",
                                  call. = FALSE)
                         }
