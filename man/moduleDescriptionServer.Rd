@@ -4,14 +4,18 @@
 \alias{moduleDescriptionServer}
 \title{Description panel server module}
 \usage{
-moduleDescriptionServer(id, ..., args = list())
+moduleDescriptionServer(id, graphStore = NULL, ..., args = list())
 }
 \arguments{
 \item{id}{Module id (namespace) for this server module.}
 
+\item{graphStore}{Shared \code{AlphaGraphStore}. If omitted, the module creates
+a private store for backwards compatibility.}
+
 \item{...}{Additional parameters (reserved for future use).}
 
-\item{args}{Named list of optional parameters passed to the module.}
+\item{args}{Named list of optional parameters. \code{catalogPath} can point to
+an alternative graph-description catalog.}
 }
 \value{
 Invisibly NULL; registers server observers and outputs.

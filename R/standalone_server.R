@@ -35,7 +35,7 @@ createServer <- function(input, output, session) {
     moduleGraphServer("graphIO", graphStore = graphStore)
     moduleTransitionMatrixServer("transitionMatrix", graphStore = graphStore)
     moduleHypothesisServer("hypothesisPanel", graphStore = graphStore)
-    moduleDescriptionServer("descriptionPanel")
+    moduleDescriptionServer("descriptionPanel", graphStore = graphStore)
     moduleAnalysisServer("analysisPanel")
 
     invisible(graphStore)

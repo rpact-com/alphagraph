@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "graphs": [
+    {
+      "id": "hung_wang_2010",
+      "summary": "Graph representing the multiple testing procedure discussed by Hung and Wang (2010).",
+      "hypotheses": [
+        {
+          "id": "H1_NI",
+          "meaning": "Non-inferiority of the primary endpoint"
+        },
+        {
+          "id": "H1_S",
+          "meaning": "Superiority of the primary endpoint"
+        },
+        {
+          "id": "H2_NI",
+          "meaning": "Non-inferiority of the secondary endpoint"
+        },
+        {
+          "id": "H2_S",
+          "meaning": "Superiority of the secondary endpoint"
+        }
+      ],
+      "context": [
+        "The graph combines non-inferiority and superiority hypotheses for a primary and a secondary endpoint."
+      ],
+      "interpretation": [
+        "Initial alpha is allocated to the primary non-inferiority hypothesis and is propagated through the graph after rejections according to the transition weights."
+      ],
+      "literature": [
+        {
+          "citation": "Hung H.M.J., Wang S.-J. (2010). Challenges to multiple testing in clinical trials. Biometrical Journal, 52, 747–756.",
+          "url": "https://doi.org/10.1002/bimj.200900206"
+        }
+      ]
+    }
+  ]
+}

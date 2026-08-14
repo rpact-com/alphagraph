@@ -33,7 +33,7 @@ moduleHypothesisUI <- function(id) {
         shiny::fluidRow(
             bs4Dash::column(4, shiny::tags$b("Hypothesis")),
             bs4Dash::column(4, shiny::tags$b("Weight")),
-            bs4Dash::column(4, shiny::tags$b("P-Value"))
+            bs4Dash::column(4, shiny::tags$b("p-Value"))
         ),
         shiny::uiOutput(ns("hypothesisPanel")),
         shiny::tags$br(),

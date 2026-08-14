@@ -38,6 +38,12 @@ moduleDescriptionUI <- function(id) {
                     inputId = ns("descModeEdit"),
                     label = "Edit",
                     class = "btn-sm btn-outline-secondary"
+                ),
+                shiny::actionButton(
+                    inputId = ns("descRegenerate"),
+                    label = "Regenerate template",
+                    class = "btn-sm btn-outline-secondary",
+                    title = "Generate a fresh description from the current graph"
                 )
             ),
             shiny::uiOutput(ns("descContent"))

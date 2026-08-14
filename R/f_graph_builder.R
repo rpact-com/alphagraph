@@ -38,7 +38,6 @@ getHypothesisLabel <- function(number, x, i = NULL) {
     }
     return(label)
 }
-
 #' 
 #' @title Create a demo visNetwork graph for the UI
 #'
@@ -184,50 +183,4 @@ getDemoGraph <- function(ns, graph = createDemoAlphaGraph()) {
 #                }
 #                "
 #        )
-}
-
-#' 
-#' @title Return a Markdown description of the graph
-#'
-#' @description
-#' Provide the textual description (in Markdown) that accompanies the graph
-#' visualization. The returned text can be rendered in a preview pane or
-#' written to a temporary file.
-#'
-#' @return Character scalar containing Markdown text describing the graph.
-#'
-#' @keywords internal
-#' 
-getGraphDescription <- function() {
-    mdText <- 
-"### Graph representing the procedure from Hung and Wang (2010)
-
-**H1,NI**: Non-inferiority of the primary endpoint  
-**H1,S**: Superiority of the primary endpoint  
-**H2,NI**: Non-inferiority of the secondary endpoint  
-**H2,S**: Superiority of the secondary endpoint  
-
-**Literature:**  
-
-Hung H.M.J., Wang S.-J. (2010). *Challenges to multiple testing in clinical trials.*  
-*Biometrical Journal*, 52, 747-756."
-    return(mdText)
-}
-
-#' 
-#' @title Write the graph description to a temporary markdown file
-#'
-#' @description
-#' Create a temporary file containing the Markdown returned by
-#' getGraphDescription() and return the file path. This is convenient for
-#' passing the description to components that expect a file path.
-#'
-#' @return Path to a temporary markdown file containing the graph description.
-#'
-#' @keywords internal
-#' 
-getGraphDescriptionFile <- function() {
-    mdFile <- tempfile(fileext = ".md")
-    writeLines(text = getGraphDescription(), con = mdFile)
-    return(mdFile)
 }
