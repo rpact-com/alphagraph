@@ -108,7 +108,8 @@ AlphaGraph <- R6::R6Class(
                 colorBackground = "white",
                 colorBorder = "black",
                 borderWidth = 2,
-                fontSize = 22,
+                # Change this default to adjust the font size of newly created nodes.
+                fontSize = 14.0,
                 vis = list(),
                 metadata = list(),
                 replace = FALSE) {
@@ -182,7 +183,8 @@ AlphaGraph <- R6::R6Class(
                 id = NULL,
                 arrows = "to",
                 smooth = FALSE,
-                fontSize = 20,
+                # Change this default to adjust the font size of newly created edge labels.
+                fontSize = 15,
                 fontAlign = "top",
                 color = NULL,
                 vis = list(),

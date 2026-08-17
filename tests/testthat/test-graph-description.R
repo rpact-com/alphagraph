@@ -70,6 +70,11 @@ test_that("description module follows the store without overwriting edits", {
             "Hung and Wang (2010)",
             fixed = TRUE
         )
+        expect_false(grepl(
+            "This template was generated",
+            output[["description-descContent"]]$html,
+            fixed = TRUE
+        ))
 
         store$transact("test:label", function(graph) {
             graph$setNodeLabel("H1_NI", "Updated primary NI")
@@ -122,6 +127,23 @@ test_that("description module follows the store without overwriting edits", {
             fixed = TRUE
         )
     })
+})
+
+test_that("preview removes multiline comments without changing Markdown", {
+    markdown <- paste(
+        "# Heading",
+        "<!-- Editor guidance",
+        "continues here. -->",
+        "Visible text",
+        sep = "\n"
+    )
+
+    previewMarkdown <- .descriptionPreviewMarkdown(markdown)
+
+    expect_match(markdown, "Editor guidance", fixed = TRUE)
+    expect_false(grepl("Editor guidance", previewMarkdown, fixed = TRUE))
+    expect_match(previewMarkdown, "# Heading", fixed = TRUE)
+    expect_match(previewMarkdown, "Visible text", fixed = TRUE)
 })
 
 test_that("invalid description catalogs fail with a useful message", {

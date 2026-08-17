@@ -160,7 +160,11 @@ moduleDescriptionServer <- function(
                         shiny::div(
                             style = "padding: 10px; min-height: 300px;",
                             shiny::HTML(markdown::markdownToHTML(
-                                text = htmltools::htmlEscape(descRv$markdownContent),
+                                text = htmltools::htmlEscape(
+                                    .descriptionPreviewMarkdown(
+                                        descRv$markdownContent
+                                    )
+                                ),
                                 fragment.only = TRUE
                             ))
                         )
@@ -181,4 +185,9 @@ moduleDescriptionServer <- function(
             invisible(NULL)
         }
     )
+}
+
+.descriptionPreviewMarkdown <- function(markdown) {
+    # HTML comments remain in the editable Markdown but are omitted from preview.
+    gsub("(?s)<!--.*?-->", "", as.character(markdown), perl = TRUE)
 }
