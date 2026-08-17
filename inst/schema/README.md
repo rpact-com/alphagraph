@@ -14,6 +14,13 @@ Top-level fields:
 - `edges` defines directed transitions and edge presentation.
 - `settings` contains graph-wide visNetwork and editor options.
 
+For hypothesis nodes, `label` stores the editable canonical text. One
+underscore introduces a Unicode subscript when rendered: `H1_ni` renders as
+H1 with subscript ni, while `H1_(ni)` includes subscript parentheses. The
+derived representation is stored in `vis.label`, followed by the displayed
+hypothesis weight on a second line. Only Unicode-supported subscript
+characters are accepted.
+
 Every weight or transition uses a three-part value specification:
 
 - `display`: text shown in the app, for example `1-ν`.

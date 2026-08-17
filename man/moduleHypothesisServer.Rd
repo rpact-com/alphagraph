@@ -20,8 +20,8 @@ when omitted.}
 Invisibly NULL; registers server outputs and observers.
 }
 \description{
-Server-side logic for the hypotheses editor. Hypothesis labels and weights are
-read from and written to the shared canonical graph store. P-values remain
-local analysis inputs.
+Server-side logic for the hypotheses table. Editable labels and weights are
+synchronized with the shared graph store. Rendered labels are read-only
+previews, while p-values remain local analysis inputs.
 }
 \keyword{internal}

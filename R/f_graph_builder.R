@@ -14,29 +14,25 @@
 #' @title Create a formatted hypothesis label
 #'
 #' @description
-#' Generate a unicode-formatted label for hypotheses used in the graph
-#' visualization. The function converts simple tokens (e.g. "n", "s", digits)
-#' into appropriate unicode subscripts and returns a string suitable for node labels.
+#' Generate an editable hypothesis label using alphagraph's underscore syntax.
+#' The canonical value is converted to supported Unicode subscripts only when
+#' rendered by visNetwork.
 #'
 #' @param number Integer indicating hypothesis index (0/1/2 etc.).
 #' @param x Character short code describing the hypothesis (e.g. "ni", "s").
 #' @param i Optional additional index or annotation appended on a new line.
 #'
-#' @return Character scalar with the formatted hypothesis label.
+#' @return Character scalar such as `H1_(ni)`.
 #'
 #' @keywords internal
 #' 
 getHypothesisLabel <- function(number, x, i = NULL) {
-    number <- chartr("0123456789-", "\u2080\u2081\u2082\u2083\u2084\u2085\u2086\u2087\u2088\u2089\u208B", as.character(number))
-    x <- chartr("01-", "\u2080\u2081\u208B", as.character(x))
-    x <- gsub("n", "\u2099", x, fixed = TRUE)
-    x <- gsub("i", "\u1D62", x, fixed = TRUE)
-    x <- gsub("s", "\u209B", x, fixed = TRUE)
-    label <- paste0("H", number, "\u208D", x, "\u208E")
+    label <- paste0("H", as.character(number), "_(", as.character(x), ")")
+    alphaGraphRenderHypothesisLabel(label)
     if (!is.null(i)) {
         label <- paste0(label, "\n", i)
     }
-    return(label)
+    label
 }
 #' 
 #' @title Create a demo visNetwork graph for the UI

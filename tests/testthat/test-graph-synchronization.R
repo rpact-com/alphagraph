@@ -156,12 +156,15 @@ test_that("hypothesis labels synchronize with graph and matrix views", {
         session$flushReact()
         start <- store$revision()
 
-        session$setInputs(
-            `hypotheses-hypothesis_edit` = list(
-                id = "H1_S",
-                field = "label",
-                value = "Primary superiority"
-            )
+        table <- .hypothesisTableData(
+            store$snapshot(),
+            c(H1_NI = 0.012, H1_S = 0.001, H2_NI = 0.030, H2_S = 0.162)
+        )
+        table$Hypothesis[table$ID == "H1_S"] <- "Primary superiority"
+        .updateGraphFromHypothesisTable(
+            store,
+            table,
+            stats::setNames(as.numeric(table[["p-Value"]]), table$ID)
         )
         session$flushReact()
 
@@ -175,7 +178,7 @@ test_that("hypothesis labels synchronize with graph and matrix views", {
         )
 
         expect_equal(store$revision(), start + 1L)
-        expect_equal(store$source(), "hypotheses:label")
+        expect_equal(store$source(), "hypotheses:table-edit")
         expect_equal(node$label, "Primary superiority")
         expect_match(node$vis$label, "Primary superiority", fixed = TRUE)
         expect_true("Primary superiority" %in% rownames(matrix))
@@ -198,19 +201,22 @@ test_that("hypothesis weights synchronize with node labels and graphicalMCP", {
 
         initial <- store$graph()$toList()$nodes
         h1s <- Filter(function(x) x$id == "H1_S", initial)[[1L]]
-        panelHtml <- output[["hypotheses-hypothesisPanel"]]$html
+        table <- .hypothesisTableData(
+            store$snapshot(),
+            c(H1_NI = 0.012, H1_S = 0.001, H2_NI = 0.030, H2_S = 0.162)
+        )
         expect_equal(h1s$weight$value, 0.2)
         expect_match(h1s$vis$label, "\\n1/5$")
-        expect_match(panelHtml, 'aria-label="Hypothesis weight H1_S"', fixed = TRUE)
-        expect_match(panelHtml, 'value="1/5"', fixed = TRUE)
+        expect_equal(table$Weight[table$ID == "H1_S"], "1/5")
+        expect_equal(table[["Rendered label"]][table$ID == "H1_S"],
+                     alphaGraphRenderHypothesisLabel("H1_(s)"))
 
         start <- store$revision()
-        session$setInputs(
-            `hypotheses-hypothesis_edit` = list(
-                id = "H1_S",
-                field = "weight",
-                value = "1/10"
-            )
+        table$Weight[table$ID == "H1_S"] <- "1/10"
+        .updateGraphFromHypothesisTable(
+            store,
+            table,
+            stats::setNames(as.numeric(table[["p-Value"]]), table$ID)
         )
         session$flushReact()
 
@@ -222,7 +228,7 @@ test_that("hypothesis weights synchronize with node labels and graphicalMCP", {
         gmcp <- updated$toGraphicalMCPInput(hypNames = "id")
 
         expect_equal(store$revision(), start + 1L)
-        expect_equal(store$source(), "hypotheses:weight")
+        expect_equal(store$source(), "hypotheses:table-edit")
         expect_equal(node$weight$value, 0.1)
         expect_equal(node$weight$display, "1/10")
         expect_match(node$vis$label, "\\n1/10$")
@@ -240,12 +246,18 @@ test_that("invalid hypothesis edits are not committed", {
         session$flushReact()
         start <- store$revision()
 
-        session$setInputs(
-            `hypotheses-hypothesis_edit` = list(
-                id = "H1_S",
-                field = "weight",
-                value = "0.5"
-            )
+        table <- .hypothesisTableData(
+            store$snapshot(),
+            c(H1_NI = 0.012, H1_S = 0.001, H2_NI = 0.030, H2_S = 0.162)
+        )
+        table$Weight[table$ID == "H1_S"] <- "0.5"
+        expect_error(
+            .updateGraphFromHypothesisTable(
+                store,
+                table,
+                stats::setNames(as.numeric(table[["p-Value"]]), table$ID)
+            ),
+            "sum to at most 1"
         )
         session$flushReact()
 

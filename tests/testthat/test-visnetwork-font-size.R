@@ -6,6 +6,6 @@ test_that("visNetwork uses the reduced default font sizes", {
 
     vis <- graph$toVisNetworkData()
 
-    expect_equal(vis$nodes$font.size, c(16.5, 16.5))
+    expect_equal(vis$nodes$font.size, c(14, 14))
     expect_equal(vis$edges$font.size, 15)
 })

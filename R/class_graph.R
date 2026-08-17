@@ -127,13 +127,14 @@ AlphaGraph <- R6::R6Class(
                 defaultDisplay = "0"
             )
             nodeLabel <- as.character(label %||% id)
+            defaultVisLabel <- private$nodeVisLabel(nodeLabel, weightSpec)
             node <- list(
                 id = as.character(id),
                 label = nodeLabel,
                 weight = weightSpec,
                 vis = private$asObjectList(private$mergeLists(
                     list(
-                        label = visLabel %||% private$nodeVisLabel(nodeLabel, weightSpec),
+                        label = visLabel %||% defaultVisLabel,
                         x = private$asNullableNumber(x),
                         y = private$asNullableNumber(y),
                         shape = shape,
@@ -254,12 +255,14 @@ AlphaGraph <- R6::R6Class(
         },
         setNodeLabel = function(id, label, updateVisLabel = TRUE) {
             index <- private$requireNodeIndex(id)
-            private$data$nodes[[index]]$label <- as.character(label)
+            label <- as.character(label)
+            renderedLabel <- private$nodeVisLabel(
+                label,
+                private$data$nodes[[index]]$weight
+            )
+            private$data$nodes[[index]]$label <- label
             if (isTRUE(updateVisLabel)) {
-                private$data$nodes[[index]]$vis$label <- private$nodeVisLabel(
-                    label,
-                    private$data$nodes[[index]]$weight
-                )
+                private$data$nodes[[index]]$vis$label <- renderedLabel
             }
             invisible(self)
         },
@@ -874,6 +877,12 @@ AlphaGraph <- R6::R6Class(
             if (anyDuplicated(nodeIds)) {
                 stop("Node ids must be unique.", call. = FALSE)
             }
+            nodeLabels <- vapply(
+                private$data$nodes,
+                function(node) node$label,
+                character(1L)
+            )
+            alphaGraphValidateHypothesisLabels(nodeLabels)
 
             edgeIds <- vapply(private$data$edges, function(edge) edge$id, character(1L))
             if (length(edgeIds) > 0L && anyDuplicated(edgeIds)) {
@@ -1211,7 +1220,7 @@ AlphaGraph <- R6::R6Class(
         },
         nodeVisLabel = function(label, weightSpec) {
             weightLabel <- weightSpec$display %||% private$renderNumber(weightSpec$value) %||% "0"
-            paste0(label, "\n", weightLabel)
+            paste0(alphaGraphRenderHypothesisLabel(label), "\n", weightLabel)
         },
         refreshNumericLabels = function() {
             for (i in seq_along(private$data$nodes)) {

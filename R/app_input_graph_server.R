@@ -67,10 +67,19 @@ moduleGraphServer <- function(id, graphStore = NULL, ..., args = list()) {
                     number <- number + 1L
                 }
                 id <- paste0("H_new_", number)
+                labels <- vapply(
+                    graph$toList()$nodes,
+                    function(node) node$label,
+                    character(1L)
+                )
+                labelNumber <- length(labels) + 1L
+                while (paste0("H", labelNumber) %in% labels) {
+                    labelNumber <- labelNumber + 1L
+                }
                 graphStore$transact("graph:add-node", function(candidate) {
                     candidate$addNode(
                         id = id,
-                        label = id,
+                        label = paste0("H", labelNumber),
                         weight = 0,
                         x = 14,
                         y = -5,
@@ -90,7 +99,9 @@ moduleGraphServer <- function(id, graphStore = NULL, ..., args = list()) {
                 }
                 choices <- stats::setNames(
                     vapply(nodes, function(node) node$id, character(1L)),
-                    vapply(nodes, function(node) node$label, character(1L))
+                    vapply(nodes, function(node) {
+                        alphaGraphRenderHypothesisLabel(node$label)
+                    }, character(1L))
                 )
                 shiny::showModal(shiny::modalDialog(
                     title = "Add transition",
@@ -212,6 +223,9 @@ moduleGraphServer <- function(id, graphStore = NULL, ..., args = list()) {
                         "Label",
                         value = node[[1L]]$label
                     ),
+                    shiny::helpText(
+                        "Use H1_ni or H1_(ni) to render a Unicode subscript. Only supported subscript characters are accepted."
+                    ),
                     footer = shiny::tagList(
                         shiny::modalButton("Cancel"),
                         shiny::actionButton(ns("save_node_label"), "Save")
@@ -323,10 +337,20 @@ moduleGraphServer <- function(id, graphStore = NULL, ..., args = list()) {
 
             shiny::observeEvent(input$save_node_label, {
                 shiny::req(rv$ctx_node_id)
-                graphStore$transact("graph:node-label", function(candidate) {
-                    candidate$setNodeLabel(rv$ctx_node_id, input$node_label)
+                tryCatch({
+                    label <- trimws(as.character(input$node_label))
+                    graphStore$transact("graph:node-label", function(candidate) {
+                        nodes <- candidate$toList()$nodes
+                        ids <- vapply(nodes, function(node) node$id, character(1L))
+                        labels <- vapply(nodes, function(node) node$label, character(1L))
+                        labels[match(rv$ctx_node_id, ids)] <- label
+                        alphaGraphValidateHypothesisLabels(labels)
+                        candidate$setNodeLabel(rv$ctx_node_id, label)
+                    })
+                    shiny::removeModal()
+                }, error = function(error) {
+                    shiny::showNotification(conditionMessage(error), type = "error")
                 })
-                shiny::removeModal()
             })
 
             shiny::observeEvent(input$save_edge_transition, {

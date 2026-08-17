@@ -30,7 +30,9 @@ getGraphDescription <- function(
     parameters <- data$parameters %||% list()
     nodeIds <- vapply(nodes, function(node) node$id, character(1L))
     nodeLabels <- stats::setNames(
-        vapply(nodes, function(node) node$label, character(1L)),
+        vapply(nodes, function(node) {
+            alphaGraphRenderHypothesisLabel(node$label)
+        }, character(1L)),
         nodeIds
     )
 

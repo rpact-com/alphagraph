@@ -10,32 +10,30 @@
 ## RPACT company website: https://www.rpact.com
 ##
 
- #' @title Hypotheses UI module
- #'
- #' @description
- #' UI for entering and displaying hypotheses, weights and p-values. The
- #' module creates a panel with inputs and controls for managing hypotheses
- #' and generating the transition matrix.
- #'
- #' @param id Module id (namespace) used for UI namespacing.
- #'
- #' @return UI elements for the hypothesis panel.
- #'
- #' @keywords internal
+#' @title Hypotheses UI module
+#'
+#' @description
+#' UI for editing hypothesis labels, weights and p-values in a spreadsheet.
+#' The table also shows the read-only label rendered by visNetwork.
+#'
+#' @param id Module id (namespace) used for UI namespacing.
+#'
+#' @return UI elements for the hypothesis panel.
+#'
+#' @keywords internal
 moduleHypothesisUI <- function(id) {
     ns <- shiny::NS(id)
-    
+
     bs4Dash::box(
         width = 12,
         height = "850px",
         solidHeader = TRUE,
         title = "Hypotheses",
-        shiny::fluidRow(
-            bs4Dash::column(4, shiny::tags$b("Hypothesis")),
-            bs4Dash::column(4, shiny::tags$b("Weight")),
-            bs4Dash::column(4, shiny::tags$b("p-Value"))
+        shiny::tags$p(
+            class = "text-muted small",
+            "Cells are editable except ID and Rendered label. Use H1_ni or H1_(ni) for subscripts; weights may be decimals or fractions."
         ),
-        shiny::uiOutput(ns("hypothesisPanel")),
+        rhandsontable::rHandsontableOutput(ns("hypothesisTable")),
         shiny::tags$br(),
         shiny::fluidRow(
             bs4Dash::column(

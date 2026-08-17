@@ -13,8 +13,7 @@ moduleHypothesisUI(id)
 UI elements for the hypothesis panel.
 }
 \description{
-UI for entering and displaying hypotheses, weights and p-values. The
-module creates a panel with inputs and controls for managing hypotheses
-and generating the transition matrix.
+UI for editing hypothesis labels, weights and p-values in a spreadsheet.
+The table also shows the read-only label rendered by \pkg{visNetwork}.
 }
 \keyword{internal}

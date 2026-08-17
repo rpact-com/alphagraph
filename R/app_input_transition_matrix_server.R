@@ -51,7 +51,7 @@ moduleTransitionMatrixServer <- function(id, graphStore = NULL, ..., args = list
                 display <- alphaGraphFormatMatrix(mat, graph$numberFormat())
                 nodeLabels <- vapply(
                     graph$toList()$nodes,
-                    function(node) node$label,
+                    function(node) alphaGraphRenderHypothesisLabel(node$label),
                     character(1L)
                 )
                 widget <- rhandsontable::rhandsontable(
