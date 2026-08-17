@@ -1559,7 +1559,7 @@ alphaGraphFromTransitionMatrix <- function(
         settings = settings
     )
     for (i in seq_len(n)) {
-        graph$addNode(nodeIds[i], label = nodeLabels[i], weight = hypotheses[i])
+        graph$addNode(id = nodeIds[i], label = nodeLabels[i], weight = hypotheses[i])
     }
     dimnames(mat) <- list(nodeIds, nodeIds)
     graph$updateFromTransitionMatrix(
@@ -1661,20 +1661,29 @@ createDemoAlphaGraph <- function() {
         label = "Hung and Wang (2010)"
     )
 
-    graph$addNode("H1_NI",
-        label = getHypothesisLabel(1, "ni"), weight = 1,
-        x = 14, y = -5, colorBackground = "#7CFF7C"
+    graph$addNode(
+        id = "H1_NI",
+        label = getHypothesisLabel(1, "ni"), 
+        weight = 1,
+        x = 14, y = -5, 
+        colorBackground = "#7CFF7C"
     )
-    graph$addNode("H1_S",
-        label = getHypothesisLabel(1, "s"), weight = 0,
+    graph$addNode(
+        id = "H1_S",
+        label = getHypothesisLabel(1, "s"), 
+        weight = 0,
         x = 294, y = -5
     )
-    graph$addNode("H2_NI",
-        label = getHypothesisLabel(2, "ni"), weight = 0,
+    graph$addNode(
+        id = "H2_NI",
+        label = getHypothesisLabel(2, "ni"), 
+        weight = 0,
         x = 14, y = 195
     )
-    graph$addNode("H2_S",
-        label = getHypothesisLabel(2, "s"), weight = 0,
+    graph$addNode(
+        id = "H2_S",
+        label = getHypothesisLabel(2, "s"), 
+        weight = 0,
         x = 294, y = 195
     )
     graph$addEdge("H1_NI", "H1_S", transition = 0.5)
