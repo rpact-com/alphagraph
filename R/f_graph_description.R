@@ -72,17 +72,17 @@ getGraphDescription <- function(
         "",
         "<!-- This template was generated from the current AlphaGraph. -->",
         "<!-- Replace italic placeholders and add study-specific details as needed. -->",
+        paste0("<!--  Graph ID: ", .markdownCode(data$id), " -->"),
         "",
         if (length(summaries)) paste(summaries, collapse = "\n\n") else
             "_Please add a concise summary of the purpose of this graph._",
         "",
         "## Graph overview",
         "",
-        paste0("- **Graph ID:** `", .markdownCode(data$id), "`"),
-        paste0("- **Number of hypotheses:** ", length(nodes)),
-        paste0("- **Number of directed transitions:** ", length(edges)),
-        paste0("- **Number of parameters:** ", length(parameters)),
-        paste0("- **Total initial hypothesis weight:** ", totalWeight),
+        paste0("- Number of hypotheses: ", length(nodes)),
+        paste0("- Number of directed transitions: ", length(edges)),
+        paste0("- Number of parameters: ", length(parameters)),
+        paste0("- Total initial hypothesis weight: ", totalWeight),
         "",
         if (length(parameters)) c(
             "## Parameters",
@@ -164,14 +164,14 @@ getGraphDescription <- function(
         if (length(interpretation)) paste0("- ", interpretation) else
             "_Please explain the testing sequence, decision rules, and how weight propagation should be interpreted._",
         "",
+        "## Additional notes",
+        "",
+        "_Add assumptions, limitations, version information, or study-specific decisions here._",
+        "",
         "## Literature",
         "",
         if (length(literature)) paste0("- ", literature) else
-            "_Please add supporting publications, protocol references, or other sources._",
-        "",
-        "## Additional notes",
-        "",
-        "_Add assumptions, limitations, version information, or study-specific decisions here._"
+            "_Please add supporting publications, protocol references, or other sources._"
     )
 
     paste(lines, collapse = "\n")
