@@ -26,7 +26,7 @@ moduleHypothesisUI <- function(id) {
 
     bs4Dash::box(
         width = 12,
-        height = "850px",
+        #height = "850px",
         solidHeader = TRUE,
         title = "Hypotheses",
         shiny::tags$p(

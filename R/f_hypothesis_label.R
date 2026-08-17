@@ -67,7 +67,8 @@ alphaGraphValidateHypothesisLabels <- function(labels) {
     if (underscoreCount != 1L || positions[[1L]] == 1L ||
             positions[[1L]] == nchar(label)) {
         stop(
-            "A hypothesis label may contain one underscore followed by a non-empty subscript, for example H1_ni or H1_(ni).",
+            "A hypothesis label may contain one underscore followed by ",
+            "a non-empty subscript, for example H1_ni or H1_(ni).",
             call. = FALSE
         )
     }
@@ -92,7 +93,8 @@ alphaGraphValidateHypothesisLabels <- function(labels) {
         stop(
             "Unsupported subscript character(s): ",
             paste(unsupported, collapse = ", "),
-            ". Supported characters are: 0-9, +, -, =, parentheses, and the letters a, e, h, i, j, k, l, m, n, o, p, r, s, t, u, v, x (case-insensitive).",
+            ". Supported characters are: 0-9, +, -, =, parentheses, and the letters ",
+            "a, e, h, i, j, k, l, m, n, o, p, r, s, t, u, v, x (case-insensitive).",
             call. = FALSE
         )
     }
