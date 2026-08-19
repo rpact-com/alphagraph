@@ -21,7 +21,9 @@
 #' @param graphStore Shared `AlphaGraphStore`. A private store is created when
 #'   omitted.
 #' @param ... Additional parameters (reserved for future use).
-#' @param args Named list of optional parameters passed to the module.
+#' @param args Named list of optional parameters passed to the module. The
+#'   `maxHypothesisLabelLength` entry overrides the application-wide option
+#'   `alphagraph.maxHypothesisLabelLength` for this module.
 #'
 #' @return Invisibly NULL; registers server outputs and observers.
 #'
@@ -33,6 +35,9 @@ moduleHypothesisServer <- function(id, graphStore = NULL, ..., args = list()) {
             if (is.null(graphStore)) {
                 graphStore <- createAlphaGraphStore(createDemoAlphaGraph())
             }
+
+            maxHypothesisLabelLength <- args$maxHypothesisLabelLength %||%
+                .alphaGraphMaxHypothesisLabelLength()
 
             logDebug("///--- moduleHypothesisServer id = ", id, " (", session$ns("xxx"), ")")
 
@@ -75,7 +80,8 @@ moduleHypothesisServer <- function(id, graphStore = NULL, ..., args = list()) {
                     updatedPValues <- .updateGraphFromHypothesisTable(
                         graphStore = graphStore,
                         table = edited,
-                        pValues = shiny::isolate(pValues$values)
+                        pValues = shiny::isolate(pValues$values),
+                        maxHypothesisLabelLength = maxHypothesisLabelLength
                     )
                     pValues$values <- updatedPValues
                 }, error = function(error) {
@@ -119,6 +125,7 @@ moduleHypothesisServer <- function(id, graphStore = NULL, ..., args = list()) {
         graphStore,
         table,
         pValues,
+        maxHypothesisLabelLength = .alphaGraphMaxHypothesisLabelLength(),
         source = "hypotheses:table-edit") {
     required <- c("ID", "Hypothesis", "Rendered label", "Weight", "p-Value")
     if (!is.data.frame(table) || !all(required %in% names(table))) {
@@ -135,6 +142,10 @@ moduleHypothesisServer <- function(id, graphStore = NULL, ..., args = list()) {
 
     labels <- trimws(as.character(table$Hypothesis))
     alphaGraphValidateHypothesisLabels(labels)
+    alphaGraphValidateHypothesisLabelLengths(
+        labels,
+        maxLength = maxHypothesisLabelLength
+    )
     weights <- vapply(table$Weight, function(value) {
         graph$parseNumber(value, "Hypothesis weight")
     }, numeric(1L))

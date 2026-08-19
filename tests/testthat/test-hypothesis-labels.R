@@ -47,6 +47,28 @@ test_that("labels must also be unique after rendering", {
     )
 })
 
+test_that("effective label length accounts for compact subscripts", {
+    expect_equal(alphaGraphHypothesisLabelLength("H_123456"), 4)
+    expect_equal(alphaGraphHypothesisLabelLength("H123456"), 7)
+    expect_equal(alphaGraphHypothesisLabelLength("H1_123"), 4)
+
+    expect_silent(alphaGraphValidateHypothesisLabelLengths("H123456"))
+    expect_error(
+        alphaGraphValidateHypothesisLabelLengths("H1234567"),
+        "effective length 8; the maximum is 7"
+    )
+})
+
+test_that("maximum effective label length is centrally configurable", {
+    oldOptions <- options(alphagraph.maxHypothesisLabelLength = 4L)
+    on.exit(options(oldOptions), add = TRUE)
+
+    expect_equal(.alphaGraphMaxHypothesisLabelLength(), 4L)
+    expect_silent(alphaGraphValidateHypothesisLabelLengths("H_123456"))
+    expect_error(alphaGraphValidateHypothesisLabelLengths("H12345"),
+                 "maximum is 4")
+})
+
 test_that("graph property editor stores syntax and renders its subscript", {
     shiny::testServer(function(input, output, session) {
         store <- createAlphaGraphStore(createDemoAlphaGraph())

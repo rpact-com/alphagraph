@@ -245,12 +245,14 @@ AlphaGraph <- R6::R6Class(
                     edge
                 )
             }
+            private$refreshReciprocalEdgeSmooth()
 
             invisible(self)
         },
         removeEdge = function(edge = NULL, from = NULL, to = NULL) {
             index <- private$requireEdgeIndex(edge = edge, from = from, to = to)
             private$data$edges <- private$data$edges[-index]
+            private$refreshReciprocalEdgeSmooth()
             invisible(self)
         },
         setNodeLabel = function(id, label, updateVisLabel = TRUE) {
@@ -396,6 +398,7 @@ AlphaGraph <- R6::R6Class(
             if (value == 0) {
                 if (!is.na(index)) {
                     private$data$edges <- private$data$edges[-index]
+                    private$refreshReciprocalEdgeSmooth()
                 }
             } else if (is.na(index)) {
                 self$addEdge(from = from, to = to, transition = value)
@@ -566,6 +569,7 @@ AlphaGraph <- R6::R6Class(
                     }
                 }
             }
+            private$refreshReciprocalEdgeSmooth()
 
             if (isTRUE(validate)) {
                 self$validate(requireNumeric = identical(type, "value"))
@@ -978,15 +982,19 @@ AlphaGraph <- R6::R6Class(
                     ),
                     nodes = list(
                         shape = "circle",
-                        borderWidth = 2,
+                        borderWidth = 1,
                         color = list(background = "white", border = "black"),
+                        # Change this value to adjust the inner space between
+                        # node labels and their border (in pixels).
+                        margin = 6,
+                        font = list(align = "center"),
                         scaling = list(
                             label = list(enabled = TRUE, min = 10, max = 16)
                         )
                     ),
                     interaction = list(
                         dragNodes = TRUE,
-                        dragView = TRUE,
+                        dragView = FALSE,
                         zoomView = FALSE
                     ),
                     physics = list(enabled = FALSE)
@@ -1428,6 +1436,23 @@ AlphaGraph <- R6::R6Class(
                 return(list(transition = text, label = text, expression = text))
             }
             list(transition = as.character(value), label = as.character(value))
+        },
+        refreshReciprocalEdgeSmooth = function() {
+            # A single directed edge is straight; both directions are curved
+            # so reciprocal transitions remain visually distinguishable.
+            for (i in seq_along(private$data$edges)) {
+                edge <- private$data$edges[[i]]
+                hasReverse <- any(vapply(
+                    private$data$edges,
+                    function(candidate) {
+                        identical(candidate$from, edge$to) &&
+                            identical(candidate$to, edge$from)
+                    },
+                    logical(1L)
+                ))
+                private$data$edges[[i]]$vis$smooth <- hasReverse
+            }
+            invisible(NULL)
         },
         assertScalarCharacter = function(x, name) {
             if (!is.character(x) || length(x) != 1L || !nzchar(x)) {

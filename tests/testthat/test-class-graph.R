@@ -8,6 +8,13 @@ test_that("canonical graph JSON round-trips without loss", {
     expect_true(restored$validate(requireNumeric = FALSE))
 })
 
+test_that("graph view is locked by default while nodes remain draggable", {
+    interaction <- createDemoAlphaGraph()$toList()$settings$vis$interaction
+
+    expect_false(interaction$dragView)
+    expect_true(interaction$dragNodes)
+})
+
 test_that("demo graph and transition matrix use the same canonical edges", {
     graph <- createDemoAlphaGraph()
     matrix <- getTransitionMatrix()
@@ -34,10 +41,29 @@ test_that("matrix updates preserve styles and synchronize edges", {
     data <- graph$toList()
     edge <- Filter(function(x) x$from == "H1_S" && x$to == "H2_NI", data$edges)[[1L]]
 
-    expect_true(edge$vis$smooth)
+    expect_false(edge$vis$smooth)
     expect_equal(edge$transition$value, 0.25)
     expect_length(Filter(function(x) x$from == "H2_NI" && x$to == "H1_S", data$edges), 0L)
     expect_length(Filter(function(x) x$from == "H2_S" && x$to == "H1_NI", data$edges), 1L)
+})
+
+test_that("reciprocal edges curve and single edges remain straight", {
+    graph <- AlphaGraph$new()
+    graph$addNode("H1")
+    graph$addNode("H2")
+
+    graph$addEdge("H1", "H2", transition = 0.5)
+    edges <- graph$toList()$edges
+    expect_false(edges[[1L]]$vis$smooth)
+
+    graph$addEdge("H2", "H1", transition = 0.5)
+    edges <- graph$toList()$edges
+    expect_true(all(vapply(edges, function(edge) edge$vis$smooth, logical(1L))))
+
+    graph$removeEdge(from = "H2", to = "H1")
+    edges <- graph$toList()$edges
+    expect_length(edges, 1L)
+    expect_false(edges[[1L]]$vis$smooth)
 })
 
 test_that("graphicalMCP inputs use the canonical numeric values", {

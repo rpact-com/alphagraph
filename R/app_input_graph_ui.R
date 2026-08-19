@@ -33,6 +33,10 @@ moduleGraphUI <- function(id) {
         solidHeader = TRUE,
         title = "Graph",
         # maximizable = TRUE,
+
+        shiny::singleton(
+            shiny::includeScript(getSystemFile("www/js/graph-view-controls.js"))
+        ),
         
         shiny::uiOutput(ns("ctx_overlay")),
         shiny::uiOutput(ns("ctx_menu")),
@@ -47,11 +51,30 @@ moduleGraphUI <- function(id) {
                     shiny::actionButton(ns("edit_node"), label = NULL, icon = shiny::icon("edit")),
                     shiny::actionButton(ns("edit_edge"), label = NULL, icon = shiny::icon("pencil-ruler")),
                     shiny::actionButton(ns("delete"), label = NULL, icon = shiny::icon("trash")),
-                    shiny::actionButton(ns("reset_view"), label = NULL, icon = shiny::icon("crosshairs")),
-                    shiny::actionButton(ns("zoom_in"), label = NULL, icon = shiny::icon("search-plus")),
-                    shiny::actionButton(ns("zoom_out"), label = NULL, icon = shiny::icon("search-minus")),
-                    shiny::actionButton(ns("lock_pos"), label = NULL, icon = shiny::icon("lock")),
-                    shiny::actionButton(ns("unlock_pos"), label = NULL, icon = shiny::icon("unlock"))
+                    shiny::actionButton(
+                        ns("reset_view"),
+                        label = NULL,
+                        icon = shiny::icon("crosshairs"),
+                        title = "Reset graph view"
+                    ),
+                    shiny::actionButton(
+                        ns("zoom_in"),
+                        label = NULL,
+                        icon = shiny::icon("search-plus"),
+                        title = "Zoom in"
+                    ),
+                    shiny::actionButton(
+                        ns("zoom_out"),
+                        label = NULL,
+                        icon = shiny::icon("search-minus"),
+                        title = "Zoom out"
+                    ),
+                    shiny::actionButton(
+                        ns("lock_pos"),
+                        label = NULL,
+                        icon = shiny::icon("lock"),
+                        title = "Toggle graph panning"
+                    )
                 )
             )
         ),

@@ -4,6 +4,88 @@
 ## Conversion between editable hypothesis labels and visNetwork labels.
 ##
 
+# Change this option once during application startup to configure the maximum
+# effective length accepted by the hypotheses table, for example:
+# options(alphagraph.maxHypothesisLabelLength = 10L)
+.alphaGraphMaxHypothesisLabelLength <- function() {
+    value <- getOption("alphagraph.maxHypothesisLabelLength", 7L)
+    if (length(value) != 1L || is.na(value) || !is.numeric(value) ||
+            value < 1 || value != as.integer(value)) {
+        stop(
+            "Option 'alphagraph.maxHypothesisLabelLength' must be a positive integer.",
+            call. = FALSE
+        )
+    }
+    as.integer(value)
+}
+
+#' @title Calculate the effective length of a hypothesis label
+#'
+#' @description
+#' Underscores do not count. Characters following an underscore count at half
+#' length, rounded up, because they are rendered as subscripts.
+#'
+#' @param label Character scalar containing a hypothesis label.
+#'
+#' @return Numeric scalar with the effective label length.
+#'
+#' @rdname alphaGraphHypothesisLabels
+#' @keywords internal
+alphaGraphHypothesisLabelLength <- function(label) {
+    if (!is.character(label) || length(label) != 1L || is.na(label)) {
+        stop("A hypothesis label must be one character scalar.", call. = FALSE)
+    }
+
+    lines <- strsplit(label, "\n", fixed = TRUE)[[1L]]
+    sum(vapply(lines, function(line) {
+        underscore <- regexpr("_", line, fixed = TRUE)[[1L]]
+        if (underscore == -1L) {
+            return(nchar(line, type = "chars"))
+        }
+
+        baseLength <- underscore - 1L
+        subscriptLength <- nchar(line, type = "chars") - underscore
+        baseLength + ceiling(subscriptLength / 2)
+    }, numeric(1L)))
+}
+
+#' @param maxLength Positive integer giving the maximum effective label length.
+#'
+#' @return `alphaGraphValidateHypothesisLabelLengths()` returns the calculated
+#'   effective lengths invisibly.
+#'
+#' @rdname alphaGraphHypothesisLabels
+#' @keywords internal
+alphaGraphValidateHypothesisLabelLengths <- function(
+        labels,
+        maxLength = .alphaGraphMaxHypothesisLabelLength()) {
+    if (!is.character(labels) || anyNA(labels)) {
+        stop("Hypothesis labels must be text.", call. = FALSE)
+    }
+    if (length(maxLength) != 1L || is.na(maxLength) || !is.numeric(maxLength) ||
+            maxLength < 1 || maxLength != as.integer(maxLength)) {
+        stop("maxLength must be a positive integer.", call. = FALSE)
+    }
+
+    lengths <- vapply(
+        labels,
+        alphaGraphHypothesisLabelLength,
+        numeric(1L)
+    )
+    tooLong <- which(lengths > maxLength)
+    if (length(tooLong)) {
+        index <- tooLong[[1L]]
+        stop(
+            "Hypothesis label '", labels[[index]], "' has effective length ",
+            lengths[[index]], "; the maximum is ", as.integer(maxLength), ". ",
+            "The underscore does not count and two subscript characters count as one.",
+            call. = FALSE
+        )
+    }
+
+    invisible(lengths)
+}
+
 #' @title Render the editable hypothesis-label syntax
 #'
 #' @description

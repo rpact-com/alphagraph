@@ -25,6 +25,45 @@ test_that("AlphaGraphStore commits atomic revisions and blocks nested updates", 
     })
 })
 
+test_that("graph toolbar has one view-lock toggle", {
+    html <- as.character(moduleGraphUI("graph"))
+
+    expect_match(html, 'id="graph-lock_pos"', fixed = TRUE)
+    expect_match(html, "fa-lock", fixed = TRUE)
+    expect_false(grepl("unlock_pos", html, fixed = TRUE))
+    expect_match(html, 'id="graph-reset_view"', fixed = TRUE)
+    expect_match(html, 'id="graph-zoom_in"', fixed = TRUE)
+    expect_match(html, 'id="graph-zoom_out"', fixed = TRUE)
+})
+
+test_that("graph view controls accept clicks and validate their zoom factor", {
+    shiny::testServer(function(input, output, session) {
+        moduleGraphServer(
+            "graph",
+            graphStore = createAlphaGraphStore(createDemoAlphaGraph()),
+            args = list(zoomFactor = 1.25)
+        )
+    }, {
+        session$flushReact()
+        session$setInputs(`graph-zoom_in` = 1)
+        session$setInputs(`graph-zoom_out` = 1)
+        session$setInputs(`graph-reset_view` = 1)
+        session$flushReact()
+        succeed()
+    })
+
+    expect_error(
+        shiny::testServer(function(input, output, session) {
+            moduleGraphServer(
+                "graph",
+                graphStore = createAlphaGraphStore(createDemoAlphaGraph()),
+                args = list(zoomFactor = 1)
+            )
+        }),
+        "zoomFactor"
+    )
+})
+
 test_that("matrix and graph modules share one canonical graph", {
     shiny::testServer(function(input, output, session) {
         store <- createAlphaGraphStore()
@@ -144,6 +183,46 @@ test_that("matrix zero/non-zero edits create and remove graph edges", {
     })
 })
 
+test_that("matrix edits curve reciprocal edges and straighten a remaining edge", {
+    graph <- AlphaGraph$new()
+    graph$addNode("H1", weight = 1)
+    graph$addNode("H2", weight = 0)
+
+    shiny::testServer(function(input, output, session) {
+        store <- createAlphaGraphStore(graph)
+        moduleTransitionMatrixServer("matrix", graphStore = store)
+        session$userData$store <- store
+    }, {
+        store <- session$userData$store
+        matrix <- matrix(
+            c(0, 0.5, 0, 0),
+            nrow = 2,
+            byrow = TRUE,
+            dimnames = list(c("H1", "H2"), c("H1", "H2"))
+        )
+
+        .updateGraphFromTransitionTable(store, matrix)
+        edges <- store$snapshot()$toList()$edges
+        expect_length(edges, 1L)
+        expect_false(edges[[1L]]$vis$smooth)
+
+        matrix["H2", "H1"] <- 0.5
+        .updateGraphFromTransitionTable(store, matrix)
+        edges <- store$snapshot()$toList()$edges
+        expect_true(all(vapply(
+            edges,
+            function(edge) edge$vis$smooth,
+            logical(1L)
+        )))
+
+        matrix["H2", "H1"] <- 0
+        .updateGraphFromTransitionTable(store, matrix)
+        edges <- store$snapshot()$toList()$edges
+        expect_length(edges, 1L)
+        expect_false(edges[[1L]]$vis$smooth)
+    })
+})
+
 test_that("hypothesis labels synchronize with graph and matrix views", {
     shiny::testServer(function(input, output, session) {
         store <- createAlphaGraphStore()
@@ -160,7 +239,7 @@ test_that("hypothesis labels synchronize with graph and matrix views", {
             store$snapshot(),
             c(H1_NI = 0.012, H1_S = 0.001, H2_NI = 0.030, H2_S = 0.162)
         )
-        table$Hypothesis[table$ID == "H1_S"] <- "Primary superiority"
+        table$Hypothesis[table$ID == "H1_S"] <- "Primary"
         .updateGraphFromHypothesisTable(
             store,
             table,
@@ -179,10 +258,10 @@ test_that("hypothesis labels synchronize with graph and matrix views", {
 
         expect_equal(store$revision(), start + 1L)
         expect_equal(store$source(), "hypotheses:table-edit")
-        expect_equal(node$label, "Primary superiority")
-        expect_match(node$vis$label, "Primary superiority", fixed = TRUE)
-        expect_true("Primary superiority" %in% rownames(matrix))
-        expect_true("Primary superiority" %in% colnames(matrix))
+        expect_equal(node$label, "Primary")
+        expect_match(node$vis$label, "Primary", fixed = TRUE)
+        expect_true("Primary" %in% rownames(matrix))
+        expect_true("Primary" %in% colnames(matrix))
     })
 })
 
@@ -250,6 +329,22 @@ test_that("invalid hypothesis edits are not committed", {
             store$snapshot(),
             c(H1_NI = 0.012, H1_S = 0.001, H2_NI = 0.030, H2_S = 0.162)
         )
+
+        longLabelTable <- table
+        longLabelTable$Hypothesis[longLabelTable$ID == "H1_S"] <- "H1234567"
+        expect_error(
+            .updateGraphFromHypothesisTable(
+                store,
+                longLabelTable,
+                stats::setNames(
+                    as.numeric(longLabelTable[["p-Value"]]),
+                    longLabelTable$ID
+                )
+            ),
+            "effective length 8; the maximum is 7"
+        )
+        expect_equal(store$revision(), start)
+
         table$Weight[table$ID == "H1_S"] <- "0.5"
         expect_error(
             .updateGraphFromHypothesisTable(

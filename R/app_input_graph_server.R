@@ -21,7 +21,9 @@
 #' @param graphStore Shared `AlphaGraphStore`. A private store is created when
 #'   omitted, which keeps the module usable in isolation.
 #' @param ... Additional parameters (reserved for future use).
-#' @param args Named list of optional parameters passed to the module.
+#' @param args Named list of optional parameters passed to the module. Supported
+#'   entries include `positionDebounceMillis` and `zoomFactor`; the latter must
+#'   be greater than one and defaults to `1.2`.
 #'
 #' @return Invisibly NULL; the function registers server observers and outputs.
 #'
@@ -37,11 +39,27 @@ moduleGraphServer <- function(id, graphStore = NULL, ..., args = list()) {
                 graphStore <- createAlphaGraphStore(createDemoAlphaGraph())
             }
 
+            zoomFactor <- as.numeric(args$zoomFactor %||% 1.2)
+            if (length(zoomFactor) != 1L || !is.finite(zoomFactor) || zoomFactor <= 1) {
+                stop("args$zoomFactor must be one finite number greater than 1.",
+                    call. = FALSE
+                )
+            }
+
             logDebug("///--- moduleGraphServer id = ", id, " (", session$ns("xxx"), ")")
+
+            viewLocked <- shiny::reactiveVal(TRUE)
 
             output$graph <- visNetwork::renderVisNetwork({
                 graphStore$revision()
-                getDemoGraph(ns, graphStore$graph())
+                widget <- getDemoGraph(ns, graphStore$graph())
+
+                # Read the current state without making a button click rebuild the
+                # widget. Graph-data rebuilds still retain the selected view state.
+                visNetwork::visInteraction(
+                    widget,
+                    dragView = !shiny::isolate(viewLocked())
+                )
             })
 
             #    shiny::observeEvent(input$node_right_click, {
@@ -180,26 +198,43 @@ moduleGraphServer <- function(id, graphStore = NULL, ..., args = list()) {
             })
 
             shiny::observeEvent(input$reset_view, {
-                #        visNetwork::visNetworkProxy(ns("graph")) |>
-                #            visNetwork::visFit()
+                visNetwork::visNetworkProxy(ns("graph"), session = session) |>
+                    visNetwork::visFit(
+                        animation = list(
+                            duration = 250,
+                            easingFunction = "easeInOutQuad"
+                        )
+                    )
             })
 
             shiny::observeEvent(input$zoom_in, {
-                # visNetwork::visNetworkProxy(ns("graph")) |> visNetwork::visZoom(1.2)
+                session$sendCustomMessage(
+                    "alphaGraphZoom",
+                    list(id = ns("graph"), factor = zoomFactor)
+                )
             })
 
             shiny::observeEvent(input$zoom_out, {
-                # visNetwork::visNetworkProxy(ns("graph")) |> visNetwork::visZoom(0.8)
+                session$sendCustomMessage(
+                    "alphaGraphZoom",
+                    list(id = ns("graph"), factor = 1 / zoomFactor)
+                )
             })
 
             shiny::observeEvent(input$lock_pos, {
-                #        visNetwork::visNetworkProxy(ns("graph")) |>
-                #            visNetwork::visPhysics(enabled = FALSE)
-            })
+                locked <- !viewLocked()
+                viewLocked(locked)
 
-            shiny::observeEvent(input$unlock_pos, {
-                #        visNetwork::visNetworkProxy(ns("graph")) |>
-                #            visNetwork::visPhysics(enabled = TRUE)
+                shiny::updateActionButton(
+                    session,
+                    "lock_pos",
+                    icon = shiny::icon(if (locked) "lock" else "unlock")
+                )
+
+                # dragView controls panning the canvas. dragNodes deliberately
+                # remains enabled so users can still reposition individual nodes.
+                visNetwork::visNetworkProxy(ns("graph"), session = session) |>
+                    visNetwork::visInteraction(dragView = !locked)
             })
 
             rv <- shiny::reactiveValues(
