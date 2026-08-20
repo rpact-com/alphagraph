@@ -33,28 +33,6 @@ moduleHypothesisUI <- function(id) {
             class = "text-muted small",
             "Cells are editable except ID and Rendered label. Use H1_ni or H1_(ni) for subscripts; weights may be decimals or fractions."
         ),
-        rhandsontable::rHandsontableOutput(ns("hypothesisTable")),
-        shiny::tags$br(),
-        shiny::fluidRow(
-            bs4Dash::column(
-                6,
-                shiny::numericInput("totalAlpha", "Total a:", value = 0.05)
-            ),
-            bs4Dash::column(
-                6,
-                shiny::actionButton("loadPValues", "Load p-values from R")
-            )
-        ),
-        shiny::tags$hr(),
-        shiny::radioButtons("corrInfo", "Correlation Information",
-            choices = c(
-                "No Information" = "none",
-                "Use R correlation matrix" = "r",
-                "Use Simes test" = "simes"
-            )
-        ),
-        shiny::tags$hr(),
-        shiny::actionButton("refresh", "Refresh"),
-        shiny::actionButton("createMatrix", "Create Matrix")
+        rhandsontable::rHandsontableOutput(ns("hypothesisTable"))
     )
 }

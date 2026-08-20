@@ -760,7 +760,7 @@ AlphaGraph <- R6::R6Class(
         toGraphicalMCPInput = function(
                 parameters = list(),
                 validate = TRUE,
-                hypNames = c("label", "id")) {
+                hypNames = c("id", "label")) {
             hypNames <- match.arg(hypNames)
             hypotheses <- self$toHypotheses(
                 type = "value",
@@ -796,7 +796,7 @@ AlphaGraph <- R6::R6Class(
         toGraphicalMCP = function(
                 parameters = list(),
                 validate = TRUE,
-                hypNames = c("label", "id")) {
+                hypNames = c("id", "label")) {
             if (!requireNamespace("graphicalMCP", quietly = TRUE)) {
                 stop("Package 'graphicalMCP' is required to create a graphicalMCP graph.",
                     call. = FALSE
@@ -860,12 +860,46 @@ AlphaGraph <- R6::R6Class(
                 requireNumeric = FALSE,
                 parameters = list(),
                 tolerance = sqrt(.Machine$double.eps)) {
+            if (!is.list(private$data)) {
+                stop("Graph data must be an object.", call. = FALSE)
+            }
             if (!identical(private$data$format, "alphagraph.graph")) {
                 stop("Unsupported graph format.", call. = FALSE)
             }
             if (!identical(as.integer(private$data$version), 1L)) {
                 stop("Unsupported alphagraph graph version.", call. = FALSE)
             }
+            private$assertScalarCharacter(private$data$id, "Graph id")
+            if (!is.character(private$data$label) || length(private$data$label) != 1L) {
+                stop("Graph label must be a character scalar.", call. = FALSE)
+            }
+            if (!is.null(private$data$description) &&
+                    (!is.character(private$data$description) ||
+                        length(private$data$description) != 1L)) {
+                stop("Graph description must be null or a character scalar.", call. = FALSE)
+            }
+            if (!is.list(private$data$parameters) || !is.list(private$data$nodes) ||
+                    !is.list(private$data$edges) || !is.list(private$data$settings) ||
+                    !is.list(private$data$metadata)) {
+                stop("Graph collections, settings, and metadata must be objects or arrays.",
+                    call. = FALSE
+                )
+            }
+
+            for (parameter in private$data$parameters) {
+                private$assertScalarCharacter(parameter$id, "Parameter id")
+                if (!is.character(parameter$label) || length(parameter$label) != 1L) {
+                    stop("Parameter labels must be character scalars.", call. = FALSE)
+                }
+                if (!is.null(parameter$value) &&
+                        (length(parameter$value) != 1L || !is.numeric(parameter$value) ||
+                            !is.finite(parameter$value))) {
+                    stop("Parameter values must be null or finite numeric scalars.",
+                        call. = FALSE
+                    )
+                }
+            }
+
             parameterIds <- vapply(
                 private$data$parameters,
                 function(parameter) parameter$id,
@@ -888,6 +922,13 @@ AlphaGraph <- R6::R6Class(
             )
             alphaGraphValidateHypothesisLabels(nodeLabels)
 
+            for (node in private$data$nodes) {
+                private$validateValueSpec(node$weight, "Node weight")
+                if (!is.list(node$vis) || !is.list(node$metadata)) {
+                    stop("Node vis and metadata fields must be objects.", call. = FALSE)
+                }
+            }
+
             edgeIds <- vapply(private$data$edges, function(edge) edge$id, character(1L))
             if (length(edgeIds) > 0L && anyDuplicated(edgeIds)) {
                 stop("Edge ids must be unique.", call. = FALSE)
@@ -903,6 +944,10 @@ AlphaGraph <- R6::R6Class(
             }
 
             for (edge in private$data$edges) {
+                private$validateValueSpec(edge$transition, "Edge transition")
+                if (!is.list(edge$vis) || !is.list(edge$metadata)) {
+                    stop("Edge vis and metadata fields must be objects.", call. = FALSE)
+                }
                 if (!edge$from %in% nodeIds) {
                     stop("Edge '", edge$id, "' references unknown source node '",
                         edge$from, "'.",
@@ -1460,12 +1505,36 @@ AlphaGraph <- R6::R6Class(
             }
         },
         assertProbabilities = function(x, name, tolerance) {
-            if (any(is.na(x))) {
+            if (any(is.na(x)) || any(!is.finite(x))) {
                 stop(name, " must be fully numeric before validation.", call. = FALSE)
             }
             if (any(x < -tolerance | x > 1 + tolerance)) {
                 stop(name, " must be between 0 and 1.", call. = FALSE)
             }
+        },
+        validateValueSpec = function(spec, name) {
+            if (!is.list(spec) ||
+                    !all(c("display", "expression", "value") %in% names(spec))) {
+                stop(name, " must contain display, expression, and value.",
+                    call. = FALSE
+                )
+            }
+            for (field in c("display", "expression")) {
+                value <- spec[[field]]
+                if (!is.null(value) && (!is.character(value) || length(value) != 1L)) {
+                    stop(name, " ", field, " must be null or a character scalar.",
+                        call. = FALSE
+                    )
+                }
+            }
+            if (!is.null(spec$value) &&
+                    (length(spec$value) != 1L || !is.numeric(spec$value) ||
+                        !is.finite(spec$value))) {
+                stop(name, " value must be null or a finite numeric scalar.",
+                    call. = FALSE
+                )
+            }
+            invisible(TRUE)
         },
         asNullableNumber = function(x) {
             if (is.null(x)) {

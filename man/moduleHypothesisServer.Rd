@@ -4,13 +4,26 @@
 \alias{moduleHypothesisServer}
 \title{Hypotheses server module}
 \usage{
-moduleHypothesisServer(id, graphStore = NULL, ..., args = list())
+moduleHypothesisServer(
+  id,
+  graphStore = NULL,
+  projectStore = NULL,
+  datasetId = "primary",
+  ...,
+  args = list()
+)
 }
 \arguments{
 \item{id}{Module id (namespace) for this server module.}
 
 \item{graphStore}{Shared \code{AlphaGraphStore}. A private store is created
 when omitted.}
+
+\item{projectStore}{Optional shared \code{AlphaProjectStore}. When supplied,
+p-values are read from and written to its selected dataset instead of being
+kept as module-local state.}
+
+\item{datasetId}{Project dataset used for p-values.}
 
 \item{...}{Additional parameters (reserved for future use).}
 
@@ -22,6 +35,7 @@ Invisibly NULL; registers server outputs and observers.
 \description{
 Server-side logic for the hypotheses table. Editable labels and weights are
 synchronized with the shared graph store. Rendered labels are read-only
-previews, while p-values remain local analysis inputs.
+previews. With a project store, p-values are shared project inputs rather than
+graph properties or module-local state.
 }
 \keyword{internal}

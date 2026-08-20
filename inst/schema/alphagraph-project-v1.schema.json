@@ -1,0 +1,201 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rpact-com.github.io/alphagraph/schema/alphagraph-project-v1.schema.json",
+  "title": "alphagraph project",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format",
+    "version",
+    "id",
+    "label",
+    "description",
+    "graph",
+    "datasets",
+    "analyses",
+    "results",
+    "ui",
+    "metadata"
+  ],
+  "properties": {
+    "format": { "const": "alphagraph.project" },
+    "version": { "const": 1 },
+    "id": { "$ref": "#/$defs/nonEmptyString" },
+    "label": { "type": "string" },
+    "description": { "type": ["string", "null"] },
+    "graph": {
+      "$ref": "alphagraph-graph-v1.schema.json"
+    },
+    "datasets": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/dataset" }
+    },
+    "analyses": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/analysis" }
+    },
+    "results": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/result" }
+    },
+    "ui": { "type": "object" },
+    "metadata": { "type": "object" }
+  },
+  "$defs": {
+    "nonEmptyString": {
+      "type": "string",
+      "minLength": 1
+    },
+    "hypothesisValue": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["hypothesisId", "value"],
+      "properties": {
+        "hypothesisId": { "$ref": "#/$defs/nonEmptyString" },
+        "value": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      }
+    },
+    "hypothesisDecision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["hypothesisId", "value"],
+      "properties": {
+        "hypothesisId": { "$ref": "#/$defs/nonEmptyString" },
+        "value": { "type": "boolean" }
+      }
+    },
+    "dataset": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "label", "description", "pValues", "metadata"],
+      "properties": {
+        "id": { "$ref": "#/$defs/nonEmptyString" },
+        "label": { "type": "string" },
+        "description": { "type": ["string", "null"] },
+        "pValues": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/hypothesisValue" }
+        },
+        "metadata": { "type": "object" }
+      }
+    },
+    "matrix": {
+      "type": "array",
+      "items": {
+        "type": "array",
+        "items": { "type": "number", "minimum": -1, "maximum": 1 }
+      }
+    },
+    "testGroup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "label",
+        "hypothesisIds",
+        "testType",
+        "correlation"
+      ],
+      "properties": {
+        "id": { "$ref": "#/$defs/nonEmptyString" },
+        "label": { "type": "string" },
+        "hypothesisIds": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/nonEmptyString" }
+        },
+        "testType": {
+          "enum": ["bonferroni", "parametric", "simes", "hochberg"]
+        },
+        "correlation": {
+          "oneOf": [
+            { "type": "null" },
+            { "$ref": "#/$defs/matrix" }
+          ]
+        }
+      }
+    },
+    "analysisOptions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["verbose", "testValues"],
+      "properties": {
+        "verbose": { "type": "boolean" },
+        "testValues": { "type": "boolean" }
+      }
+    },
+    "analysis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "label",
+        "description",
+        "datasetId",
+        "method",
+        "alpha",
+        "testGroups",
+        "options",
+        "metadata"
+      ],
+      "properties": {
+        "id": { "$ref": "#/$defs/nonEmptyString" },
+        "label": { "type": "string" },
+        "description": { "type": ["string", "null"] },
+        "datasetId": { "$ref": "#/$defs/nonEmptyString" },
+        "method": { "enum": ["shortcut", "closure"] },
+        "alpha": { "type": "number", "exclusiveMinimum": 0, "maximum": 1 },
+        "testGroups": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/testGroup" }
+        },
+        "options": { "$ref": "#/$defs/analysisOptions" },
+        "metadata": { "type": "object" }
+      }
+    },
+    "engine": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["alphagraphVersion", "graphicalMCPVersion"],
+      "properties": {
+        "alphagraphVersion": { "type": ["string", "null"] },
+        "graphicalMCPVersion": { "type": ["string", "null"] }
+      }
+    },
+    "result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "analysisId",
+        "inputHash",
+        "createdAt",
+        "engine",
+        "adjustedP",
+        "rejected",
+        "metadata"
+      ],
+      "properties": {
+        "id": { "$ref": "#/$defs/nonEmptyString" },
+        "analysisId": { "$ref": "#/$defs/nonEmptyString" },
+        "inputHash": { "$ref": "#/$defs/nonEmptyString" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "engine": { "$ref": "#/$defs/engine" },
+        "adjustedP": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/hypothesisValue" }
+        },
+        "rejected": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/hypothesisDecision" }
+        },
+        "metadata": { "type": "object" }
+      }
+    }
+  }
+}

@@ -72,7 +72,7 @@ getGraphDescription <- function(
         "",
         "<!-- This template was generated from the current AlphaGraph. -->",
         "<!-- Replace italic placeholders and add study-specific details as needed. -->",
-        paste0("<!--  Graph ID: ", .markdownCode(data$id), " -->"),
+        paste0("<!--  Graph ID: `", .markdownCode(data$id), "` -->"),
         "",
         if (length(summaries)) paste(summaries, collapse = "\n\n") else
             "_Please add a concise summary of the purpose of this graph._",

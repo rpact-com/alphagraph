@@ -81,10 +81,10 @@ moduleGraphServer <- function(id, graphStore = NULL, ..., args = list()) {
                 graph <- graphStore$snapshot()
                 ids <- vapply(graph$toList()$nodes, function(node) node$id, character(1L))
                 number <- 1L
-                while (paste0("H_new_", number) %in% ids) {
+                while (paste0("H_", number) %in% ids) {
                     number <- number + 1L
                 }
-                id <- paste0("H_new_", number)
+                id <- paste0("H_", number)
                 labels <- vapply(
                     graph$toList()$nodes,
                     function(node) node$label,

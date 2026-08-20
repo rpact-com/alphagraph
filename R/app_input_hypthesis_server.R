@@ -20,6 +20,10 @@
 #' @param id Module id (namespace) for this server module.
 #' @param graphStore Shared `AlphaGraphStore`. A private store is created when
 #'   omitted.
+#' @param projectStore Optional shared `AlphaProjectStore`. When supplied,
+#'   p-values are read from and written to its selected dataset instead of
+#'   being kept as module-local state.
+#' @param datasetId Project dataset used for p-values.
 #' @param ... Additional parameters (reserved for future use).
 #' @param args Named list of optional parameters passed to the module. The
 #'   `maxHypothesisLabelLength` entry overrides the application-wide option
@@ -28,12 +32,25 @@
 #' @return Invisibly NULL; registers server outputs and observers.
 #'
 #' @keywords internal
-moduleHypothesisServer <- function(id, graphStore = NULL, ..., args = list()) {
+moduleHypothesisServer <- function(
+        id,
+        graphStore = NULL,
+        projectStore = NULL,
+        datasetId = "primary",
+        ...,
+        args = list()) {
     shiny::moduleServer(
         id,
         function(input, output, session) {
             if (is.null(graphStore)) {
-                graphStore <- createAlphaGraphStore(createDemoAlphaGraph())
+                graphStore <- if (inherits(projectStore, "AlphaProjectStore")) {
+                    projectStore$graphStore
+                } else {
+                    createAlphaGraphStore(createDemoAlphaGraph())
+                }
+            }
+            if (!is.null(projectStore) && !inherits(projectStore, "AlphaProjectStore")) {
+                stop("projectStore must be an AlphaProjectStore object.", call. = FALSE)
             }
 
             maxHypothesisLabelLength <- args$maxHypothesisLabelLength %||%
@@ -55,7 +72,12 @@ moduleHypothesisServer <- function(id, graphStore = NULL, ..., args = list()) {
                 graphStore$revision()
                 tableRefresh()
                 graph <- graphStore$graph()
-                table <- .hypothesisTableData(graph, pValues$values)
+                currentPValues <- if (is.null(projectStore)) {
+                    pValues$values
+                } else {
+                    projectStore$pValues(datasetId)
+                }
+                table <- .hypothesisTableData(graph, currentPValues)
                 widget <- rhandsontable::rhandsontable(
                     table,
                     rowHeaders = NULL,
@@ -83,7 +105,15 @@ moduleHypothesisServer <- function(id, graphStore = NULL, ..., args = list()) {
                         pValues = shiny::isolate(pValues$values),
                         maxHypothesisLabelLength = maxHypothesisLabelLength
                     )
-                    pValues$values <- updatedPValues
+                    if (is.null(projectStore)) {
+                        pValues$values <- updatedPValues
+                    } else {
+                        projectStore$setPValues(
+                            updatedPValues,
+                            datasetId = datasetId,
+                            source = "hypotheses:p-values"
+                        )
+                    }
                 }, error = function(error) {
                     shiny::showNotification(conditionMessage(error), type = "error")
                     tableRefresh(shiny::isolate(tableRefresh()) + 1L)

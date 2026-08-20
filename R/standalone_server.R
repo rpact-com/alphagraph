@@ -29,14 +29,20 @@
 #' @export
 #' 
 createServer <- function(input, output, session) {
-    graphStore <- createAlphaGraphStore(createDemoAlphaGraph())
+    projectStore <- createAlphaProjectStore(createDemoAlphaProject())
+    graphStore <- projectStore$graphStore
     session$userData$alphaGraphStore <- graphStore
+    session$userData$alphaProjectStore <- projectStore
 
     moduleGraphServer("graphIO", graphStore = graphStore)
     moduleTransitionMatrixServer("transitionMatrix", graphStore = graphStore)
-    moduleHypothesisServer("hypothesisPanel", graphStore = graphStore)
+    moduleHypothesisServer(
+        "hypothesisPanel",
+        graphStore = graphStore,
+        projectStore = projectStore
+    )
     moduleDescriptionServer("descriptionPanel", graphStore = graphStore)
-    moduleAnalysisServer("analysisPanel")
+    moduleAnalysisServer("analysisPanel", projectStore = projectStore)
 
-    invisible(graphStore)
+    invisible(projectStore)
 }
