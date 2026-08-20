@@ -101,3 +101,12 @@ test_that("graph property editor stores syntax and renders its subscript", {
         )
     })
 })
+
+test_that("circle labels are drawn at the node center", {
+    widget <- getDemoGraph(identity, createDemoAlphaGraph())
+    beforeDrawing <- widget$x$events$beforeDrawing
+
+    expect_match(beforeDrawing, "node.options.shape !== 'circle'", fixed = TRUE)
+    expect_match(beforeDrawing, "node.x", fixed = TRUE)
+    expect_match(beforeDrawing, "__alphaGraphCentered", fixed = TRUE)
+})

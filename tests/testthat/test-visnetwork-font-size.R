@@ -11,9 +11,9 @@ test_that("visNetwork uses the reduced default font sizes", {
 
     nodeDefaults <- graph$toList()$settings$vis$nodes
     expect_equal(nodeDefaults$font$align, "center")
-    expect_equal(nodeDefaults$margin, 2)
+    expect_equal(nodeDefaults$margin, 6)
 
     widgetNodeOptions <- graph$toVisNetwork()$x$options$nodes
     expect_equal(widgetNodeOptions$font$align, "center")
-    expect_equal(widgetNodeOptions$margin, 2)
+    expect_equal(widgetNodeOptions$margin, 6)
 })

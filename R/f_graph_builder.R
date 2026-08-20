@@ -55,6 +55,41 @@ getDemoGraph <- function(ns, graph = createDemoAlphaGraph()) {
     oy <- -5
     graph$toVisNetwork(height = "400px") |>
         visNetwork::visEvents(
+            beforeDrawing = "
+                function(ctx) {
+                    // vis-network positions labels in circle nodes relative to
+                    // the circle's left edge. When a short multiline label makes
+                    // the circle height-driven, that places the label too far
+                    // left. Keep the public circle sizing behavior, but draw its
+                    // label at the actual node center.
+                    var nodes = this.body.nodes;
+                    Object.keys(nodes).forEach(function(id) {
+                        var node = nodes[id];
+                        var labelModule = node.shape && node.shape.labelModule;
+                        if (!labelModule || node.options.shape !== 'circle' ||
+                                labelModule.__alphaGraphCentered) {
+                            return;
+                        }
+
+                        var originalDraw = labelModule.draw;
+                        labelModule.draw = function(
+                                context, x, y, selected, hover, baseline) {
+                            return originalDraw.call(
+                                labelModule,
+                                context,
+                                node.x,
+                                y,
+                                selected,
+                                hover,
+                                baseline
+                            );
+                        };
+                        labelModule.__alphaGraphCentered = true;
+                    });
+                }
+            "
+        ) |>
+        visNetwork::visEvents(
             afterDrawing = sprintf("
                 function(ctx) {
                 // run only once after the first draw
