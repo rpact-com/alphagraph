@@ -42,3 +42,4 @@
 ^r_variable_temp\.html$
 ^artifacts$
 ^tests/testthat/artifacts$
+^LICENSE\.md$

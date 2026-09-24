@@ -32,7 +32,7 @@ Description: The alphagraph package provides a graphical multiple comparison too
     statistical analyses. It offers an intuitive interface for comparing 
     groups and understanding the relationships between them, making it easier 
     to identify significant differences and patterns in the data.
-License: LGPL-3
+License: AGPL-3
 Encoding: UTF-8
 LazyData: true
 URL: 

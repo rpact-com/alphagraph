@@ -70,10 +70,11 @@ createUI <- function(request) {
             ),
             
             sidebar = bs4Dash::dashboardSidebar(
-                width = "140px",
-                collapsed = FALSE,
-                expandOnHover = TRUE,
-                status = "secondary",
+                #width = "140px",
+                collapsed = TRUE,
+                expandOnHover = FALSE,
+                #status = "secondary",
+                skin = "dark",
                 fixed = TRUE,
                 customArea = NULL,
                 bs4Dash::sidebarMenu(

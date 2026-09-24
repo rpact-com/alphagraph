@@ -1,0 +1,125 @@
+.card-body:has(> .alpha-graph-resize-handle) {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-height: 300px;
+    padding-bottom: 20px;
+}
+
+.card-body:has(> .alpha-graph-resize-handle) > .row {
+    flex-shrink: 0;
+}
+
+.alpha-graph-canvas {
+    flex: 1 1 0;
+    min-height: 0;
+}
+
+.alpha-graph-resize-handle {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 14px;
+    cursor: ns-resize;
+    touch-action: none;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0 0 3px 3px;
+}
+
+.alpha-graph-resize-handle::after {
+    content: "";
+    width: 36px;
+    height: 4px;
+    border-radius: 2px;
+    background: #adb5bd;
+}
+
+.alpha-graph-resize-handle:hover,
+.alpha-graph-resize-handle:focus-visible {
+    background: #e9ecef;
+    outline: 2px solid #6c757d;
+    outline-offset: -2px;
+}
+
+/* Keep the Bootstrap stacked layout on small screens. */
+.alpha-design-splitter {
+    display: none;
+}
+
+@media (min-width: 768px) {
+    .alpha-design-split {
+        position: relative;
+        --alpha-left-width: 58.333333%;
+    }
+
+    .alpha-design-split > .alpha-design-left {
+        flex: 0 0 var(--alpha-left-width);
+        max-width: var(--alpha-left-width);
+        min-width: 0;
+    }
+
+    .alpha-design-split > .alpha-design-right {
+        flex: 0 0 calc(100% - var(--alpha-left-width));
+        max-width: calc(100% - var(--alpha-left-width));
+        min-width: 0;
+    }
+
+    .alpha-design-splitter {
+        display: flex;
+        position: absolute;
+        left: var(--alpha-left-width);
+        top: 0;
+        bottom: 16px;
+        width: 14px;
+        transform: translateX(-50%);
+        z-index: 2;
+        cursor: ew-resize;
+        touch-action: none;
+        user-select: none;
+        align-items: center;
+        justify-content: center;
+        border-radius: 3px;
+    }
+
+    .alpha-design-splitter::after {
+        content: "";
+        width: 4px;
+        height: 36px;
+        border-radius: 2px;
+        background: #adb5bd;
+    }
+
+    .alpha-design-splitter:hover,
+    .alpha-design-splitter:focus-visible {
+        background: #e9ecef;
+        outline: 2px solid #6c757d;
+        outline-offset: -2px;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .alpha-design-split > .alpha-design-left,
+    .alpha-design-split > .alpha-design-right {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+}
+
+/* Only the master data viewport owns a horizontal scrollbar. Header clones
+   follow its scroll position and must not show a second scrollbar. */
+.alpha-design-right .rhandsontable {
+    overflow: hidden;
+    max-width: 100%;
+}
+
+.alpha-design-right .rhandsontable .ht_clone_top .wtHolder,
+.alpha-design-right .rhandsontable .ht_clone_bottom .wtHolder,
+.alpha-design-right .rhandsontable .ht_clone_left .wtHolder,
+.alpha-design-right .rhandsontable .ht_clone_top_left_corner .wtHolder,
+.alpha-design-right .rhandsontable .ht_clone_bottom_left_corner .wtHolder {
+    overflow-x: hidden !important;
+}

@@ -137,7 +137,18 @@ Planned future developments include:
 
 ## License
 
-[LGPL-3](https://www.r-project.org/Licenses/LGPL-3)
+alphagraph is open-source software licensed under the
+GNU Affero General Public License version 3 ([AGPL-3.0](https://cran.r-project.org/web/licenses/AGPL-3)).
+
+The AGPL license permits use, modification, and distribution of
+alphagraph, including commercial use, subject to the terms and
+conditions of the AGPL.
+
+RPACT GmbH also offers commercial licenses for organizations that
+wish to integrate alphagraph into proprietary software or services
+without being subject to the requirements of the AGPL.
+
+For commercial licensing inquiries, please [contact RPACT](https://www.rpact.com/contact/).
 
 ---
 
