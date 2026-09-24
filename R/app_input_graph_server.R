@@ -56,10 +56,17 @@ moduleGraphServer <- function(id, graphStore = NULL, ..., args = list()) {
 
                 # Read the current state without making a button click rebuild the
                 # widget. Graph-data rebuilds still retain the selected view state.
-                visNetwork::visInteraction(
+                widget <- visNetwork::visInteraction(
                     widget,
                     dragView = !shiny::isolate(viewLocked())
                 )
+                htmlwidgets::onRender(widget, "
+                    function(el) {
+                        if (window.alphaGraphInitializeHeight) {
+                            window.alphaGraphInitializeHeight(el);
+                        }
+                    }
+                ")
             })
 
             #    shiny::observeEvent(input$node_right_click, {

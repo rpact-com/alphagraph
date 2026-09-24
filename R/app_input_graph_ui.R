@@ -117,7 +117,7 @@ moduleGraphUI <- function(id) {
             `aria-label` = "Resize graph panel",
             `aria-orientation` = "horizontal",
             `aria-controls` = ns("graph"),
-            `aria-valuemin` = "300",
+            `aria-valuemin` = "430",
             `aria-valuenow` = "430",
             title = "Drag to resize graph panel, or use Up and Down arrow keys"
         )
