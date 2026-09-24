@@ -31,7 +31,7 @@ moduleGraphUI <- function(id) {
         width = 12,
         height = "430px",
         solidHeader = TRUE,
-        title = "Graph",
+        title = iconTitle("Graph", "circle-nodes"),
         collapsible = FALSE,
         # maximizable = TRUE,
 

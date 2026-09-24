@@ -28,7 +28,7 @@ moduleHypothesisUI <- function(id) {
         width = 12,
         #height = "850px",
         solidHeader = TRUE,
-        title = iconTitle("Hypotheses", "code-compare"), 
+        title = iconTitle("Hypotheses", "diagram-project"), 
         shiny::tags$p(
             class = "text-muted small",
             "Cells are editable except ID and Rendered label. Use H1_ni or H1_(ni) for subscripts; weights may be decimals or fractions."
