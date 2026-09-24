@@ -26,7 +26,7 @@ moduleTransitionMatrixUI <- function(id) {
     bs4Dash::box(
         width = 12,
         solidHeader = TRUE,
-        title = "Transitions",
+        title = iconTitle("Transitions", "diagram-project"),
         shiny::tags$p(
             class = "text-muted small",
             "Cells are editable. Enter decimals or fractions such as 1/2; the diagonal is always 0."

@@ -133,3 +133,88 @@ isMaximumPackageVersion <- function(maxVersion, pkg, ..., inclusive = TRUE) {
     )
     return(TRUE)
 }
+
+getFontAwesomeHtmlDependency <- function() {
+    htmltools::htmlDependency(
+        name = "font-awesome", 
+        version = "6.4.0",
+        src = c(href = "fontawesome/css"),
+        stylesheet = c("all.min.css", "v4-shims.min.css")
+    )
+}
+
+faIcon <- function(name, ..., type = c("solid", "regular"), class = NULL, color = NULL, rep = 1, style = NULL) {
+    type <- match.arg(type)
+
+    if (identical(type, "solid") && identical(name, "chart-candlestick")) {
+        type <- "regular"
+    }
+
+    if (!is.null(color) && !is.na(color)) {
+        color <- trimws(color)
+        if (grepl("\\d", color) && !grepl("^#", color)) {
+            color <- paste0("#", color)
+        }
+        if (!grepl("; *$", color)) {
+            color <- paste0(color, ";")
+        }
+        if (!is.null(style) && !is.na(style)) {
+            if (!grepl("; *$", style)) {
+                style <- paste0(style, ";")
+            }
+        } else {
+            style <- ""
+        }
+        style <- paste0(style, "color:", color)
+    }
+
+    result <- NULL
+    if (!is.null(class) && !is.na(class)) {
+        if (!is.null(style) && !is.na(style)) {
+            result <- fontawesome::fa_i(
+                name = name, prefer_type = type,
+                class = class, style = style,
+                html_dependency = getFontAwesomeHtmlDependency()
+            )
+        } else {
+            result <- fontawesome::fa_i(
+                name = name, prefer_type = type, class = class,
+                html_dependency = getFontAwesomeHtmlDependency()
+            )
+        }
+    } else {
+        if (!is.null(style) && !is.na(style)) {
+            result <- fontawesome::fa_i(
+                name = name, prefer_type = type, style = style,
+                html_dependency = getFontAwesomeHtmlDependency()
+            )
+        } else {
+            result <- fontawesome::fa_i(
+                name = name, prefer_type = type,
+                html_dependency = getFontAwesomeHtmlDependency()
+            )
+        }
+    }
+    if (rep <= 1) {
+        return(result)
+    }
+
+    resultList <- list()
+    for (i in 1:rep) {
+        resultList[[i]] <- result
+    }
+    do.call(span, resultList)
+}
+
+iconTitle <- function(title, iconName = NULL, iconPosition = c("left", "right")) {
+    iconPosition <- match.arg(iconPosition)
+    if (is.null(iconName)) {
+        return(span(trimws(title)))
+    }
+
+    if (identical(iconPosition, "right")) {
+        return(span(paste0(trimws(title), " "), faIcon(iconName)))
+    }
+
+    return(span(faIcon(iconName), paste0(" ", trimws(title))))
+}

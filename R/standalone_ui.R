@@ -96,7 +96,7 @@ createUI <- function(request) {
                         bs4Dash::tabBox(
                             width = 12,
                             shiny::tabPanel(
-                                title = "Design",
+                                title = iconTitle("Design", "cube"),
                                 value = "design-tab",
                                 shiny::fluidRow(
                                     class = "alpha-design-split",
@@ -126,18 +126,11 @@ createUI <- function(request) {
                                         moduleTransitionMatrixUI("transitionMatrix"),
                                         moduleHypothesisUI("hypothesisPanel"),
                                         moduleAnalysisUI("analysisPanel")
-#                                        bs4Dash::box(
-#                                            width = 12,
-#                                            #height = "430px",
-#                                            solidHeader = TRUE,
-#                                            title = "Results",
-#                                            moduleAnalysisUI("analysisPanel")
-#                                        )
                                     )
                                 )
                             ),
                             shiny::tabPanel(
-                                title = "Reporting",
+                                title = iconTitle("Reporting", "chart-simple"),
                                 value = "reporting-tab",
                                 moduleDescriptionUI("descriptionPanel")
                             )

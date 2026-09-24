@@ -15,9 +15,8 @@ moduleAnalysisUI <- function(id) {
 
     bs4Dash::box(
         width = 12,
-        #height = "430px",
         solidHeader = TRUE,
-        title = "Results",
+        title = iconTitle("Results", "table"),
         shiny::fluidRow(
             bs4Dash::column(
                 4,

@@ -1,14 +1,17 @@
 (function() {
     "use strict";
     var drag = null;
+    var initializedGraphPanels = new WeakSet();
+    var pendingGraphPanels = new WeakSet();
 
     function resizePanel(handle, height) {
         var body = handle.parentElement;
+        initializedGraphPanels.add(body);
         var graphElement = document.getElementById("graph" + handle.dataset.graphId);
         var network = graphElement && graphElement.chart;
         var position = network && network.getViewPosition();
         var scale = network && network.getScale();
-        height = Math.max(300, Math.round(height));
+        height = Math.max(430, Math.round(height));
         body.style.height = height + "px";
         handle.setAttribute("aria-valuenow", height);
 
@@ -20,6 +23,37 @@
         }
     }
 
+    // Called by the widget after its first render. Later graph-data updates and
+    // browser resizes must not overwrite a user's chosen height.
+    window.alphaGraphInitializeHeight = function(element) {
+        var body = element.closest(".card-body");
+        if (!body || initializedGraphPanels.has(body) || pendingGraphPanels.has(body)) {
+            return;
+        }
+        pendingGraphPanels.add(body);
+        var observer = new ResizeObserver(function() {
+            window.requestAnimationFrame(function() {
+                if (initializedGraphPanels.has(body)) {
+                    observer.disconnect();
+                    return;
+                }
+                var rect = body.getBoundingClientRect();
+                if (rect.width <= 0 || rect.height <= 0) {
+                    return; // Wait until a graph in a hidden tab becomes visible.
+                }
+                var handle = body.querySelector(".alpha-graph-resize-handle");
+                if (handle) {
+                    // Use document position so restoring a scroll offset does not
+                    // make the panel taller. Leave breathing room at the bottom.
+                    var top = rect.top + window.scrollY;
+                    resizePanel(handle, Math.max(430,
+                        Math.floor(window.innerHeight - top - 24)));
+                    observer.disconnect();
+                }
+            });
+        });
+        observer.observe(body);
+    };
     var tableResizeFrame = null;
     var tableLayouts = new WeakMap();
 
