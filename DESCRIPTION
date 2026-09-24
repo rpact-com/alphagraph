@@ -45,6 +45,7 @@ Depends:
 Imports:
     visNetwork,
     rhandsontable,
+    htmlwidgets,
     R6,
     bs4Dash,
     jsonlite,

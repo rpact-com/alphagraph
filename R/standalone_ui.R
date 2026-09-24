@@ -104,14 +104,8 @@ createUI <- function(request) {
                                         7,
                                         id = "alpha-design-left",
                                         class = "alpha-design-left",
-                                        moduleGraphUI("graphIO"),
-                                        bs4Dash::box(
-                                            width = 12,
-                                            #height = "430px",
-                                            solidHeader = TRUE,
-                                            title = "Results",
-                                            moduleAnalysisUI("analysisPanel")
-                                        )
+                                        
+                                        moduleGraphUI("graphIO")
                                     ),
     
                                     shiny::tags$div(
@@ -130,7 +124,15 @@ createUI <- function(request) {
                                         5,
                                         class = "alpha-design-right",
                                         moduleTransitionMatrixUI("transitionMatrix"),
-                                        moduleHypothesisUI("hypothesisPanel")
+                                        moduleHypothesisUI("hypothesisPanel"),
+                                        moduleAnalysisUI("analysisPanel")
+#                                        bs4Dash::box(
+#                                            width = 12,
+#                                            #height = "430px",
+#                                            solidHeader = TRUE,
+#                                            title = "Results",
+#                                            moduleAnalysisUI("analysisPanel")
+#                                        )
                                     )
                                 )
                             ),
@@ -151,7 +153,7 @@ createUI <- function(request) {
             ),
             
             footer = bs4Dash::dashboardFooter(
-                left = "alphagraph",
+                left = "alphagraph - design, visualize, and analyze graphical multiple comparison procedures",
                 right = "© 2026 RPACT. Licensed under the GNU Affero General Public License v3.0"
             )
         )

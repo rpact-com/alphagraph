@@ -13,7 +13,11 @@
 moduleAnalysisUI <- function(id) {
     ns <- shiny::NS(id)
 
-    shiny::tagList(
+    bs4Dash::box(
+        width = 12,
+        #height = "430px",
+        solidHeader = TRUE,
+        title = "Results",
         shiny::fluidRow(
             bs4Dash::column(
                 4,
@@ -31,8 +35,9 @@ moduleAnalysisUI <- function(id) {
                 shiny::tags$br(),
                 shiny::actionButton(
                     ns("runShortcut"),
-                    "Run shortcut analysis",
-                    icon = shiny::icon("play")
+                    "Run",
+                    icon = shiny::icon("play"),
+                    title = "Run shortcut analysis"
                 )
             )
         ),

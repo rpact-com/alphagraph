@@ -84,6 +84,13 @@ moduleHypothesisServer <- function(
                     useTypes = TRUE,
                     stretchH = "all"
                 )
+                widget <- htmlwidgets::onRender(widget, "
+                    function(el) {
+                        if (window.alphaGraphTableRendered) {
+                            window.alphaGraphTableRendered(el);
+                        }
+                    }
+                ")
                 widget <- rhandsontable::hot_col(
                     widget,
                     col = "ID",

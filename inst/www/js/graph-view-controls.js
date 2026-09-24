@@ -21,6 +21,24 @@
     }
 
     var tableResizeFrame = null;
+    var tableLayouts = new WeakMap();
+
+    function scheduleOverflowCheck(element, state) {
+        if (state.frame !== null) {
+            window.cancelAnimationFrame(state.frame);
+        }
+        state.frame = window.requestAnimationFrame(function() {
+            state.frame = null;
+            var holder = element.querySelector(".ht_master .wtHolder");
+            var table = element.querySelector(".ht_master table.htCore");
+            if (holder && table && holder.clientWidth > 0) {
+                // Measure the finished table, not Walkontable's temporarily stale
+                // scrollWidth. Border rounding of up to two pixels is harmless.
+                element.classList.toggle("alpha-table-fits",
+                    table.getBoundingClientRect().width <= holder.clientWidth + 2);
+            }
+        });
+    }
 
     function scheduleTableResize(row) {
         if (tableResizeFrame !== null) {
@@ -31,22 +49,56 @@
             row.querySelectorAll(".rhandsontable").forEach(function(element) {
                 var instance = window.HTMLWidgets &&
                     window.HTMLWidgets.getInstance(element);
-                // Handsontable sets an inline pixel width on its root. Measuring
-                // that root would keep the old narrow width when the panel grows.
+                var state = tableLayouts.get(element);
+                if (!instance || !instance.hot || !state) {
+                    return;
+                }
                 var container = element.parentElement;
                 var style = window.getComputedStyle(container);
                 var width = Math.floor(container.clientWidth -
                     (parseFloat(style.paddingLeft) || 0) -
                     (parseFloat(style.paddingRight) || 0));
-                if (instance && instance.hot && width > 0) {
-                    // rhandsontable's widget resize callback is empty. Update the
-                    // existing table after layout, without replacing its data.
-                    instance.hot.updateSettings({ width: width });
-                    instance.hot.render();
+                if (width > 0) {
+                    if (state.width !== width) {
+                        state.width = width;
+                        // updateSettings already renders. No second render or
+                        // synthetic window resize is needed.
+                        instance.hot.updateSettings({ width: width });
+                    }
+                    scheduleOverflowCheck(element, state);
                 }
             });
         });
     }
+
+    // One shared lifecycle for both tables: initial render, data updates,
+    // splitter movement, sidebar transitions and viewport changes.
+    window.alphaGraphTableRendered = function(element) {
+        var row = element.closest(".alpha-design-split");
+        var instance = window.HTMLWidgets && window.HTMLWidgets.getInstance(element);
+        if (!row || !instance || !instance.hot) {
+            return;
+        }
+        var state = tableLayouts.get(element);
+        if (!state || state.hot !== instance.hot) {
+            if (state) {
+                state.observer.disconnect();
+                if (state.frame !== null) window.cancelAnimationFrame(state.frame);
+            }
+            state = { hot: instance.hot, width: null, frame: null };
+            tableLayouts.set(element, state);
+            state.hot.addHook("afterRender", function() {
+                scheduleOverflowCheck(element, state);
+            });
+            state.observer = new ResizeObserver(function() {
+                scheduleTableResize(row);
+            });
+            state.observer.observe(element.parentElement);
+        }
+        // A Shiny data update may reset widget settings even at the same width.
+        state.width = null;
+        scheduleTableResize(row);
+    };
     function resizeColumns(handle, percent) {
         var row = handle.parentElement;
         var graphHandle = row.querySelector(".alpha-graph-resize-handle");
@@ -59,8 +111,7 @@
         row.style.setProperty("--alpha-left-width", percent + "%");
         handle.setAttribute("aria-valuenow", percent.toFixed(2));
 
-        // Notify other widgets; Handsontable needs an explicit layout update.
-        window.dispatchEvent(new Event("resize"));
+
         scheduleTableResize(row);
         if (network) {
             network.setSize("100%", "100%");
@@ -84,6 +135,9 @@
         event.preventDefault();
         handle.focus({ preventScroll: true });
         handle.setPointerCapture(event.pointerId);
+        if (handle.classList.contains("alpha-design-splitter")) {
+            handle.parentElement.classList.add("alpha-columns-resizing");
+        }
         drag = {
             handle: handle,
             pointerId: event.pointerId,
@@ -113,6 +167,7 @@
         if (drag && drag.pointerId === event.pointerId) {
             var handle = drag.handle;
             if (drag.horizontal) {
+                handle.parentElement.classList.remove("alpha-columns-resizing");
                 scheduleTableResize(handle.parentElement);
             }
             drag = null;

@@ -62,6 +62,13 @@ moduleTransitionMatrixServer <- function(id, graphStore = NULL, ..., args = list
                     useTypes = FALSE,
                     stretchH = "all"
                 )
+                widget <- htmlwidgets::onRender(widget, "
+                    function(el) {
+                        if (window.alphaGraphTableRendered) {
+                            window.alphaGraphTableRendered(el);
+                        }
+                    }
+                ")
                 for (i in seq_len(nrow(display))) {
                     widget <- rhandsontable::hot_cell(
                         widget,

@@ -32,6 +32,7 @@ moduleGraphUI <- function(id) {
         height = "430px",
         solidHeader = TRUE,
         title = "Graph",
+        collapsible = FALSE,
         # maximizable = TRUE,
 
         shiny::singleton(
