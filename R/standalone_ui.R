@@ -33,8 +33,8 @@ createUI <- function(request) {
         header = bs4Dash::dashboardHeader(title = "alphagraph"),
         sidebar = bs4Dash::dashboardSidebar(
             bs4Dash::sidebarMenu(
-                bs4Dash::menuItem("Graph Editor", tabName = "graph", icon = shiny::icon("project-diagram")),
-                bs4Dash::menuItem("Settings", tabName = "settings", icon = shiny::icon("sliders-h"))
+                bs4Dash::menuItem("Graph Editor", tabName = "main-tab", icon = shiny::icon("project-diagram")),
+                bs4Dash::menuItem("Settings", tabName = "settings-tab", icon = shiny::icon("sliders-h"))
             )
         ),
         body = bs4Dash::dashboardBody(
@@ -43,35 +43,43 @@ createUI <- function(request) {
             includeJavaScript("www/js/toggle-button.js"),
             bs4Dash::tabItems(
                 bs4Dash::tabItem(
-                    tabName = "graph",
+                    tabName = "main-tab",
                     
-                    shiny::fluidRow(
-                        bs4Dash::column(
-                            7,
-                            moduleGraphUI("graphIO"),
-                            bs4Dash::tabBox(
-                                width = 12,
-                                shiny::tabPanel(
-                                    "Description",
-                                    moduleDescriptionUI("descriptionPanel")
+                    bs4Dash::tabBox(
+                        width = 12,
+                        shiny::tabPanel(
+                            title = "Design",
+                            value = "design-tab",
+                            shiny::fluidRow(
+                                bs4Dash::column(
+                                    7,
+                                    moduleGraphUI("graphIO"),
+                                    bs4Dash::box(
+                                        width = 12,
+                                        #height = "430px",
+                                        solidHeader = TRUE,
+                                        title = "Results",
+                                        moduleAnalysisUI("analysisPanel")
+                                    )
                                 ),
-                                shiny::tabPanel(
-                                    "Analysis",
-                                    moduleAnalysisUI("analysisPanel")
+
+                                bs4Dash::column(
+                                    5,
+                                    moduleTransitionMatrixUI("transitionMatrix"),
+                                    moduleHypothesisUI("hypothesisPanel")
                                 )
                             )
                         ),
-
-                        bs4Dash::column(
-                            5,
-                            moduleTransitionMatrixUI("transitionMatrix"),
-                            moduleHypothesisUI("hypothesisPanel")
+                        shiny::tabPanel(
+                            title = "Reporting",
+                            value = "reporting-tab",
+                            moduleDescriptionUI("descriptionPanel")
                         )
                     )
                 ),
 
                 bs4Dash::tabItem(
-                    tabName = "settings",
+                    tabName = "settings-tab",
                     shiny::tags$h2("Settings"),
                     shiny::tags$p("alphagraph settings will be implemented here in the future.")
                 )

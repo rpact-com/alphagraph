@@ -10,7 +10,7 @@
 ## RPACT company website: https://www.rpact.com
 ##
 
-#' 
+#'
 #' @title Graph editor UI module
 #'
 #' @description
@@ -23,10 +23,10 @@
 #' @return UI elements describing the module.
 #'
 #' @keywords internal
-#' 
+#'
 moduleGraphUI <- function(id) {
     ns <- shiny::NS(id)
-    
+
     bs4Dash::box(
         width = 12,
         height = "430px",
@@ -37,20 +37,43 @@ moduleGraphUI <- function(id) {
         shiny::singleton(
             shiny::includeScript(getSystemFile("www/js/graph-view-controls.js"))
         ),
-        
         shiny::uiOutput(ns("ctx_overlay")),
         shiny::uiOutput(ns("ctx_menu")),
-        
         shiny::fluidRow(
             bs4Dash::column(
                 12,
                 shiny::tags$div(
                     style = "margin-bottom:10px;",
-                    shiny::actionButton(ns("add_node"), label = NULL, icon = shiny::icon("plus-circle")),
-                    shiny::actionButton(ns("add_edge"), label = NULL, icon = shiny::icon("share")),
-                    shiny::actionButton(ns("edit_node"), label = NULL, icon = shiny::icon("edit")),
-                    shiny::actionButton(ns("edit_edge"), label = NULL, icon = shiny::icon("pencil-ruler")),
-                    shiny::actionButton(ns("delete"), label = NULL, icon = shiny::icon("trash")),
+                    shiny::actionButton(
+                        ns("add_node"),
+                        label = NULL,
+                        icon = shiny::icon("plus-circle"),
+                        title = "Add new node"
+                    ),
+                    shiny::actionButton(
+                        ns("add_edge"),
+                        label = NULL,
+                        icon = shiny::icon("share"),
+                        title = "Add new edge..."
+                    ),
+                    shiny::actionButton(
+                        ns("edit_node"),
+                        label = NULL,
+                        icon = shiny::icon("edit"),
+                        title = "Edit selected node"
+                    ),
+                    shiny::actionButton(
+                        ns("edit_edge"),
+                        label = NULL,
+                        icon = shiny::icon("pencil-ruler"),
+                        title = "Edit selected edge"
+                    ),
+                    shiny::actionButton(
+                        ns("delete"),
+                        label = NULL,
+                        icon = shiny::icon("trash"),
+                        title = "Delete selected node(s) or edge(s)"
+                    ),
                     shiny::actionButton(
                         ns("reset_view"),
                         label = NULL,
@@ -78,7 +101,6 @@ moduleGraphUI <- function(id) {
                 )
             )
         ),
-
         visNetwork::visNetworkOutput(ns("graph"), height = "350px")
     )
 }
