@@ -152,7 +152,7 @@ createUI <- function(request) {
             
             footer = bs4Dash::dashboardFooter(
                 left = "alphagraph",
-                right = "© 2026 RPACT"
+                right = "© 2026 RPACT. Licensed under the GNU Affero General Public License v3.0"
             )
         )
     )
