@@ -35,7 +35,10 @@ moduleGraphUI <- function(id) {
         # maximizable = TRUE,
 
         shiny::singleton(
-            shiny::includeScript(getSystemFile("www/js/graph-view-controls.js"))
+            shiny::tagList(
+                shiny::includeCSS(getSystemFile("www/graph-panel.css")),
+                shiny::includeScript(getSystemFile("www/js/graph-view-controls.js"))
+            )
         ),
         shiny::uiOutput(ns("ctx_overlay")),
         shiny::uiOutput(ns("ctx_menu")),
@@ -101,6 +104,21 @@ moduleGraphUI <- function(id) {
                 )
             )
         ),
-        visNetwork::visNetworkOutput(ns("graph"), height = "350px")
+        shiny::tags$div(
+            class = "alpha-graph-canvas",
+            visNetwork::visNetworkOutput(ns("graph"), height = "100%")
+        ),
+        shiny::tags$div(
+            class = "alpha-graph-resize-handle",
+            `data-graph-id` = ns("graph"),
+            role = "separator",
+            tabindex = "0",
+            `aria-label` = "Resize graph panel",
+            `aria-orientation` = "horizontal",
+            `aria-controls` = ns("graph"),
+            `aria-valuemin` = "300",
+            `aria-valuenow` = "430",
+            title = "Drag to resize graph panel, or use Up and Down arrow keys"
+        )
     )
 }
