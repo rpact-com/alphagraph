@@ -17,6 +17,17 @@ for (src in srcFiles) {
     )
 }
 
+registerResourcePath <- function(dir) {
+    resourceDir <- getSystemFile(dir)
+    if (identical(resourceDir, "")) {
+        stop("Could not find shiny app directory ", sQuote(dir), ". ",
+            "Try re-installing `rpact.cloud`.", call. = FALSE)
+    }
+    shiny::addResourcePath(dir, resourceDir)
+}
+
+registerResourcePath("www")
+
 shiny::shinyApp(
     ui = createUI, 
     server = createServer)

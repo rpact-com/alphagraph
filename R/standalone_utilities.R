@@ -117,3 +117,19 @@ includeJavaScript <- function(path) {
     # shiny::includeScript(path = getSystemFile(path))
     shiny::tags$script(src = path, defer = NA)
 }
+
+isMaximumPackageVersion <- function(maxVersion, pkg, ..., inclusive = TRUE) {
+    tryCatch(
+        {
+            if (isFALSE(inclusive)) {
+                return(utils::packageVersion(pkg) < maxVersion)
+            }
+
+            return(utils::packageVersion(pkg) <= maxVersion)
+        },
+        error = function(e) {
+            stop("Failed to check if package ", sQuote(pkg), " has version ", maxVersion, " or older: ", e$message)
+        }
+    )
+    return(TRUE)
+}
