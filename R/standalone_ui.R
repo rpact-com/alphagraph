@@ -51,8 +51,11 @@ createUI <- function(request) {
                             title = "Design",
                             value = "design-tab",
                             shiny::fluidRow(
+                                class = "alpha-design-split",
                                 bs4Dash::column(
                                     7,
+                                    id = "alpha-design-left",
+                                    class = "alpha-design-left",
                                     moduleGraphUI("graphIO"),
                                     bs4Dash::box(
                                         width = 12,
@@ -63,8 +66,21 @@ createUI <- function(request) {
                                     )
                                 ),
 
+                                shiny::tags$div(
+                                    class = "alpha-design-splitter",
+                                    role = "separator",
+                                    tabindex = "0",
+                                    `aria-label` = "Resize graph and results column",
+                                    `aria-orientation` = "vertical",
+                                    `aria-controls` = "alpha-design-left",
+                                    `aria-valuemin` = "25",
+                                    `aria-valuemax` = "75",
+                                    `aria-valuenow` = "58.33",
+                                    title = "Drag to resize columns, or use Left and Right arrow keys"
+                                ),
                                 bs4Dash::column(
                                     5,
+                                    class = "alpha-design-right",
                                     moduleTransitionMatrixUI("transitionMatrix"),
                                     moduleHypothesisUI("hypothesisPanel")
                                 )
