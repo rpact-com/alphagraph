@@ -44,7 +44,7 @@ moduleAnalysisUI <- function(id) {
             class = "text-muted small",
             "Raw p-values are stored in the project dataset, not in the graph. Results are invalidated when an input changes."
         ),
-        shiny::textOutput(ns("analysisStatus")),
-        shiny::tableOutput(ns("analysisTable"))
+        .responsiveTableOutput(ns("analysisTable")),
+        shiny::textOutput(ns("analysisStatus"))
     )
 }

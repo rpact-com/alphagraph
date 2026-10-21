@@ -28,11 +28,11 @@ moduleHypothesisUI <- function(id) {
         width = 12,
         #height = "850px",
         solidHeader = TRUE,
-        title = iconTitle("Hypotheses", "diagram-project"), 
+        title = iconTitle("Hypotheses", "diagram-project"),
+        .responsiveTableOutput(ns("hypothesisTable")), 
         shiny::tags$p(
             class = "text-muted small",
             "Cells are editable except ID and Rendered label. Use H1_ni or H1_(ni) for subscripts; weights may be decimals or fractions."
-        ),
-        rhandsontable::rHandsontableOutput(ns("hypothesisTable"))
+        )
     )
 }

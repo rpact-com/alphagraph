@@ -1,0 +1,19 @@
+/* Shared by every responsive table, independent of graph/sidebar placement.
+   Widget inline styles must never create a second outer scrollbar. */
+.alpha-table-layout.rhandsontable {
+    overflow: hidden !important;
+    max-width: 100%;
+}
+
+.alpha-table-layout .handsontable:not(.ht_master) > .wtHolder {
+    overflow-x: hidden !important;
+}
+
+.alpha-table-layout .ht_master > .wtHolder {
+    overflow-x: auto !important;
+}
+
+.alpha-table-layout.alpha-table-fits .ht_master > .wtHolder,
+.alpha-columns-resizing .alpha-table-layout .ht_master > .wtHolder {
+    overflow-x: hidden !important;
+}

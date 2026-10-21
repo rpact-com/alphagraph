@@ -48,9 +48,27 @@ moduleAnalysisServer <- function(
             )
         })
 
-        output$analysisTable <- shiny::renderTable({
-            .analysisTableData(projectStore$project(validate = FALSE), analysisId)
-        }, striped = TRUE, bordered = TRUE, spacing = "s")
+        output$analysisTable <- rhandsontable::renderRHandsontable({
+            table <- .analysisTableData(
+                projectStore$project(validate = FALSE), analysisId
+            )
+            widget <- rhandsontable::rhandsontable(
+                table,
+                rowHeaders = NULL,
+                readOnly = TRUE,
+                useTypes = TRUE,
+                contextMenu = FALSE,
+                stretchH = "all",
+                colWidths = c(60, 100, 75, 95, 120, 85)
+            )
+            htmlwidgets::onRender(widget, "
+                function(el) {
+                    if (window.alphaGraphTableRendered) {
+                        window.alphaGraphTableRendered(el);
+                    }
+                }
+            ")
+        })
 
         shiny::observeEvent(input$runShortcut, {
             tryCatch({

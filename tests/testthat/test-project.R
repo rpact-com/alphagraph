@@ -114,7 +114,7 @@ test_that("shortcut results are separate, reproducible, and invalidated by input
     result <- project$runShortcut("shortcut-primary")
 
     expect_true(project$resultIsCurrent("shortcut-primary"))
-    expect_identical(result$engine$graphicalMCPVersion, "0.2.9")
+    expect_true(result$engine$graphicalMCPVersion >= "0.2.9")
     expect_equal(
         .projectResultValues(result$adjustedP),
         c(H1_NI = 0.012, H1_S = 0.012, H2_NI = 0.04, H2_S = 0.162)

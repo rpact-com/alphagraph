@@ -27,10 +27,10 @@ moduleTransitionMatrixUI <- function(id) {
         width = 12,
         #solidHeader = TRUE,
         title = iconTitle("Transitions", "code-compare"),
+        .responsiveTableOutput(ns("transitionMatrix")),
         shiny::tags$p(
             class = "text-muted small",
             "Cells are editable. Enter decimals or fractions such as 1/2; the diagonal is always 0."
-        ),
-        rhandsontable::rHandsontableOutput(ns("transitionMatrix"))
+        )
     )
 }
