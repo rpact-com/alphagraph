@@ -17,18 +17,45 @@
     return(x)
 }
 
-#' @title JSON-friendly alphagraph graph model
+#'
+#' @title
+#' JSON-friendly alphagraph graph model
 #'
 #' @description
 #' R6 container for a canonical alphagraph graph definition. The internal data
 #' model is a plain R list that can be serialized with jsonlite and converted to
 #' graphicalMCP inputs, editable transition matrices, and visNetwork data.
 #'
+#' @details
+#' Create an instance with `AlphaGraph$new()`. Nodes represent hypotheses,
+#' edges represent directed transitions, and nested `vis` fields hold presentation
+#' properties. Symbolic drafts remain editable; numeric validation is required
+#' before passing inputs to graphicalMCP. Mutating methods return the instance
+#' invisibly unless their description states otherwise.
+#'
+#' @return An R6 class generator.
+#'
+#' @examples
+#' graph <- createDemoAlphaGraph()
+#' graph$validate(requireNumeric = TRUE)
+#' graph$toTransitionMatrix(type = "value", rowNames = "id")
+#'
 #' @keywords internal
 #' @importFrom graphicalMCP graph_create
+#'
 AlphaGraph <- R6::R6Class(
     "AlphaGraph",
     public = list(
+        #'
+        #' @description
+        #' Initialize an empty canonical graph with default presentation settings.
+        #'
+        #' @param id Character scalar identifying the object within its collection.
+        #' @param label Human-readable character label.
+        #' @param description Optional character description; NULL omits it.
+        #' @param metadata Named list of JSON-compatible metadata; empty by default.
+        #' @param settings Named list of graph settings merged with the defaults.
+        #'
         initialize = function(
                 id = "graph",
                 label = id,
@@ -52,6 +79,16 @@ AlphaGraph <- R6::R6Class(
             )
             invisible(self)
         },
+        #'
+        #' @description
+        #' Add a symbolic parameter, optionally replacing an existing parameter.
+        #'
+        #' @param id Character scalar identifying the object within its collection.
+        #' @param value Optional numeric scalar supplying the stored numeric value.
+        #' @param label Human-readable character label.
+        #' @param description Optional character description; NULL omits it.
+        #' @param replace Logical; whether an existing identifier may be replaced.
+        #'
         addParameter = function(
                 id,
                 value = NULL,
@@ -82,6 +119,15 @@ AlphaGraph <- R6::R6Class(
 
             invisible(self)
         },
+        #'
+        #' @description
+        #' Update non-NULL properties of an existing symbolic parameter.
+        #'
+        #' @param id Character scalar identifying the object within its collection.
+        #' @param value Optional numeric scalar supplying the stored numeric value.
+        #' @param label Human-readable character label.
+        #' @param description Optional character description; NULL omits it.
+        #'
         setParameter = function(id, value = NULL, label = NULL, description = NULL) {
             index <- private$requireParameterIndex(id)
             if (!is.null(value)) {
@@ -95,6 +141,29 @@ AlphaGraph <- R6::R6Class(
             }
             invisible(self)
         },
+        #'
+        #' @description
+        #' Add a hypothesis with a stable identifier, weight, and presentation properties.
+        #'
+        #' @param id Character scalar identifying the object within its collection.
+        #' @param label Human-readable character label.
+        #' @param weight Numeric weight, fraction string, or symbolic expression.
+        #' @param weightLabel Optional character display label for the hypothesis weight.
+        #' @param weightExpression Optional character expression for the hypothesis weight.
+        #' @param weightValue Optional numeric value for the hypothesis weight.
+        #' @param x Numeric scalar or fraction string to parse or format.
+        #' @param y Vertical numeric coordinate, or NULL for automatic placement.
+        #' @param visLabel Optional character network label; derived from label and weight by
+        #'   default.
+        #' @param shape Character visNetwork node shape; defaults to "circle".
+        #' @param colorBackground Node background color; defaults to "white".
+        #' @param colorBorder Node border color; defaults to "black".
+        #' @param borderWidth Numeric node border width; defaults to 2.
+        #' @param fontSize Numeric label font size in pixels.
+        #' @param vis Named list of additional visNetwork presentation properties.
+        #' @param metadata Named list of JSON-compatible metadata; empty by default.
+        #' @param replace Logical; whether an existing identifier may be replaced.
+        #'
         addNode = function(
                 id,
                 label = id,
@@ -162,6 +231,14 @@ AlphaGraph <- R6::R6Class(
 
             invisible(self)
         },
+        #'
+        #' @description
+        #' Remove a hypothesis and, by default, its incident edges.
+        #'
+        #' @param id Character scalar identifying the object within its collection.
+        #' @param removeEdges Logical; whether incident edges are also removed. Defaults to
+        #'   TRUE.
+        #'
         removeNode = function(id, removeEdges = TRUE) {
             index <- private$requireNodeIndex(id)
             private$data$nodes <- private$data$nodes[-index]
@@ -175,6 +252,27 @@ AlphaGraph <- R6::R6Class(
             }
             invisible(self)
         },
+        #'
+        #' @description
+        #' Add a directed transition between distinct existing hypotheses.
+        #'
+        #' @param from Character identifier of the source hypothesis.
+        #' @param to Character identifier of the target hypothesis.
+        #' @param transition Optional numeric transition, fraction string, or symbolic
+        #'   expression.
+        #' @param label Human-readable character label.
+        #' @param expression Optional character expression for the stored weight or transition.
+        #' @param value Optional numeric scalar supplying the stored numeric value.
+        #' @param id Character scalar identifying the object within its collection.
+        #' @param arrows visNetwork arrow specification; defaults to "to".
+        #' @param smooth Logical or list specifying visNetwork edge smoothing.
+        #' @param fontSize Numeric label font size in pixels.
+        #' @param fontAlign Character edge-label alignment; defaults to "top".
+        #' @param color Optional visNetwork color specification.
+        #' @param vis Named list of additional visNetwork presentation properties.
+        #' @param metadata Named list of JSON-compatible metadata; empty by default.
+        #' @param replace Logical; whether an existing identifier may be replaced.
+        #'
         addEdge = function(
                 from,
                 to,
@@ -250,12 +348,29 @@ AlphaGraph <- R6::R6Class(
 
             invisible(self)
         },
+        #'
+        #' @description
+        #' Remove a directed transition and refresh reciprocal-edge smoothing.
+        #'
+        #' @param edge Optional character edge identifier; otherwise use from and to.
+        #' @param from Character identifier of the source hypothesis.
+        #' @param to Character identifier of the target hypothesis.
+        #'
         removeEdge = function(edge = NULL, from = NULL, to = NULL) {
             index <- private$requireEdgeIndex(edge = edge, from = from, to = to)
             private$data$edges <- private$data$edges[-index]
             private$refreshReciprocalEdgeSmooth()
             invisible(self)
         },
+        #'
+        #' @description
+        #' Set a canonical hypothesis label and optionally refresh its network label.
+        #'
+        #' @param id Character scalar identifying the object within its collection.
+        #' @param label Human-readable character label.
+        #' @param updateVisLabel Logical; whether to regenerate the network label. Defaults to
+        #'   TRUE.
+        #'
         setNodeLabel = function(id, label, updateVisLabel = TRUE) {
             index <- private$requireNodeIndex(id)
             label <- as.character(label)
@@ -269,6 +384,18 @@ AlphaGraph <- R6::R6Class(
             }
             invisible(self)
         },
+        #'
+        #' @description
+        #' Update the weight specification and optionally refresh the network label.
+        #'
+        #' @param id Character scalar identifying the object within its collection.
+        #' @param weight Numeric weight, fraction string, or symbolic expression.
+        #' @param label Human-readable character label.
+        #' @param expression Optional character expression for the stored weight or transition.
+        #' @param value Optional numeric scalar supplying the stored numeric value.
+        #' @param updateVisLabel Logical; whether to regenerate the network label. Defaults to
+        #'   TRUE.
+        #'
         setNodeWeight = function(
                 id,
                 weight = NULL,
@@ -293,17 +420,42 @@ AlphaGraph <- R6::R6Class(
             }
             invisible(self)
         },
+        #'
+        #' @description
+        #' Set the presentation label without changing the canonical hypothesis label.
+        #'
+        #' @param id Character scalar identifying the object within its collection.
+        #' @param label Human-readable character label.
+        #'
         setNodeVisLabel = function(id, label) {
             index <- private$requireNodeIndex(id)
             private$data$nodes[[index]]$vis$label <- as.character(label)
             invisible(self)
         },
+        #'
+        #' @description
+        #' Set the stored network coordinates of a hypothesis.
+        #'
+        #' @param id Character scalar identifying the object within its collection.
+        #' @param x Horizontal numeric coordinate, or NULL for automatic placement.
+        #' @param y Vertical numeric coordinate, or NULL for automatic placement.
+        #'
         setNodeXY = function(id, x, y) {
             index <- private$requireNodeIndex(id)
             private$data$nodes[[index]]$vis$x <- private$asNullableNumber(x)
             private$data$nodes[[index]]$vis$y <- private$asNullableNumber(y)
             invisible(self)
         },
+        #'
+        #' @description
+        #' Update non-NULL node color properties.
+        #'
+        #' @param id Character scalar identifying the object within its collection.
+        #' @param background Optional node background color.
+        #' @param border Optional node border color.
+        #' @param highlight Optional visNetwork highlight color or color list.
+        #' @param hover Optional visNetwork hover color or color list.
+        #'
         setNodeColor = function(
                 id,
                 background = NULL,
@@ -327,6 +479,13 @@ AlphaGraph <- R6::R6Class(
             private$data$nodes[[index]]$vis$color <- color
             invisible(self)
         },
+        #'
+        #' @description
+        #' Set the node label font size.
+        #'
+        #' @param id Character scalar identifying the object within its collection.
+        #' @param size Numeric font size in pixels, or NULL to clear the stored size.
+        #'
         setNodeFontSize = function(id, size) {
             index <- private$requireNodeIndex(id)
             font <- private$data$nodes[[index]]$vis$font %||% list()
@@ -334,6 +493,13 @@ AlphaGraph <- R6::R6Class(
             private$data$nodes[[index]]$vis$font <- font
             invisible(self)
         },
+        #'
+        #' @description
+        #' Merge named presentation properties from ... into the node vis list.
+        #'
+        #' @param id Character scalar identifying the object within its collection.
+        #' @param ... Named arguments passed to the operation described above.
+        #'
         setNodeVis = function(id, ...) {
             index <- private$requireNodeIndex(id)
             private$data$nodes[[index]]$vis <- private$mergeLists(
@@ -342,6 +508,17 @@ AlphaGraph <- R6::R6Class(
             )
             invisible(self)
         },
+        #'
+        #' @description
+        #' Update the transition display label and optional expression or numeric value.
+        #'
+        #' @param edge Optional character edge identifier; otherwise use from and to.
+        #' @param label Human-readable character label.
+        #' @param from Character identifier of the source hypothesis.
+        #' @param to Character identifier of the target hypothesis.
+        #' @param expression Optional character expression for the stored weight or transition.
+        #' @param value Optional numeric scalar supplying the stored numeric value.
+        #'
         setEdgeLabel = function(
                 edge = NULL,
                 label,
@@ -361,6 +538,19 @@ AlphaGraph <- R6::R6Class(
             private$data$edges[[index]]$vis$label <- as.character(label)
             invisible(self)
         },
+        #'
+        #' @description
+        #' Update the transition specification and refresh its network label.
+        #'
+        #' @param edge Optional character edge identifier; otherwise use from and to.
+        #' @param transition Optional numeric transition, fraction string, or symbolic
+        #'   expression.
+        #' @param label Human-readable character label.
+        #' @param expression Optional character expression for the stored weight or transition.
+        #' @param value Optional numeric scalar supplying the stored numeric value.
+        #' @param from Character identifier of the source hypothesis.
+        #' @param to Character identifier of the target hypothesis.
+        #'
         setEdgeTransition = function(
                 edge = NULL,
                 transition = NULL,
@@ -381,6 +571,14 @@ AlphaGraph <- R6::R6Class(
             private$data$edges[[index]]$vis$label <- private$data$edges[[index]]$transition$display
             invisible(self)
         },
+        #'
+        #' @description
+        #' Set a numeric transition between 0 and 1, removing an edge when its weight is zero.
+        #'
+        #' @param from Character identifier of the source hypothesis.
+        #' @param to Character identifier of the target hypothesis.
+        #' @param weight Numeric weight, fraction string, or symbolic expression.
+        #'
         setTransitionWeight = function(from, to, weight) {
             private$requireNodeIndex(from)
             private$requireNodeIndex(to)
@@ -409,11 +607,29 @@ AlphaGraph <- R6::R6Class(
             }
             invisible(self)
         },
+        #'
+        #' @description
+        #' Set the presentation color of an existing edge.
+        #'
+        #' @param edge Optional character edge identifier; otherwise use from and to.
+        #' @param color Optional visNetwork color specification.
+        #' @param from Character identifier of the source hypothesis.
+        #' @param to Character identifier of the target hypothesis.
+        #'
         setEdgeColor = function(edge = NULL, color = NULL, from = NULL, to = NULL) {
             index <- private$requireEdgeIndex(edge = edge, from = from, to = to)
             private$data$edges[[index]]$vis$color <- color
             invisible(self)
         },
+        #'
+        #' @description
+        #' Set the edge label font size.
+        #'
+        #' @param edge Optional character edge identifier; otherwise use from and to.
+        #' @param size Numeric font size in pixels, or NULL to clear the stored size.
+        #' @param from Character identifier of the source hypothesis.
+        #' @param to Character identifier of the target hypothesis.
+        #'
         setEdgeFontSize = function(edge = NULL, size, from = NULL, to = NULL) {
             index <- private$requireEdgeIndex(edge = edge, from = from, to = to)
             font <- private$data$edges[[index]]$vis$font %||% list()
@@ -421,11 +637,29 @@ AlphaGraph <- R6::R6Class(
             private$data$edges[[index]]$vis$font <- font
             invisible(self)
         },
+        #'
+        #' @description
+        #' Set the edge smoothing specification.
+        #'
+        #' @param edge Optional character edge identifier; otherwise use from and to.
+        #' @param smooth Logical or list specifying visNetwork edge smoothing.
+        #' @param from Character identifier of the source hypothesis.
+        #' @param to Character identifier of the target hypothesis.
+        #'
         setEdgeSmooth = function(edge = NULL, smooth, from = NULL, to = NULL) {
             index <- private$requireEdgeIndex(edge = edge, from = from, to = to)
             private$data$edges[[index]]$vis$smooth <- smooth
             invisible(self)
         },
+        #'
+        #' @description
+        #' Merge named presentation properties from ... into the edge vis list.
+        #'
+        #' @param edge Optional character edge identifier; otherwise use from and to.
+        #' @param from Character identifier of the source hypothesis.
+        #' @param to Character identifier of the target hypothesis.
+        #' @param ... Named arguments passed to the operation described above.
+        #'
         setEdgeVis = function(edge = NULL, from = NULL, to = NULL, ...) {
             index <- private$requireEdgeIndex(edge = edge, from = from, to = to)
             private$data$edges[[index]]$vis <- private$mergeLists(
@@ -434,6 +668,12 @@ AlphaGraph <- R6::R6Class(
             )
             invisible(self)
         },
+        #'
+        #' @description
+        #' Merge named options from ... into the graph network settings.
+        #'
+        #' @param ... Named arguments passed to the operation described above.
+        #'
         setVisOptions = function(...) {
             private$data$settings$vis <- private$mergeLists(
                 private$data$settings$vis %||% list(),
@@ -441,9 +681,26 @@ AlphaGraph <- R6::R6Class(
             )
             invisible(self)
         },
+        #'
+        #' @description
+        #' Return the current number-format settings as a named list.
+        #'
         numberFormat = function() {
             private$data$settings$numbers %||% private$defaultSettings()$numbers
         },
+        #'
+        #' @description
+        #' Update non-NULL number-format settings and regenerate numeric display labels.
+        #'
+        #' @param fractions Optional logical enabling fraction display; NULL keeps the current
+        #'   setting.
+        #' @param maxDenominator Optional positive integer limiting displayed fraction
+        #'   denominators.
+        #' @param tolerance Numeric tolerance for the checks or approximation performed by this
+        #'   method.
+        #' @param digits Optional positive integer giving significant digits for decimal
+        #'   display.
+        #'
         setNumberFormat = function(
                 fractions = NULL,
                 maxDenominator = NULL,
@@ -466,12 +723,33 @@ AlphaGraph <- R6::R6Class(
             private$refreshNumericLabels()
             invisible(self)
         },
+        #'
+        #' @description
+        #' Parse one finite decimal number or fraction string.
+        #'
+        #' @param x Numeric scalar or fraction string to parse or format.
+        #' @param name Character name used in validation errors; defaults to "value".
+        #'
         parseNumber = function(x, name = "value") {
             alphaGraphParseNumber(x, name = name)
         },
+        #'
+        #' @description
+        #' Format a number using the graph number-format settings.
+        #'
+        #' @param x Numeric scalar or fraction string to parse or format.
+        #'
         formatNumber = function(x) {
             private$renderNumber(x)
         },
+        #'
+        #' @description
+        #' Replace the graph from a canonical list and normalize stored settings.
+        #'
+        #' @param x Canonical JSON-compatible list.
+        #' @param validate Logical; whether to validate the imported, returned, or modified
+        #'   object.
+        #'
         loadList = function(x, validate = TRUE) {
             if (!is.list(x)) {
                 stop("x must be a list.", call. = FALSE)
@@ -518,6 +796,18 @@ AlphaGraph <- R6::R6Class(
             }
             invisible(self)
         },
+        #'
+        #' @description
+        #' Update transitions while preserving canonical hypothesis order.
+        #'
+        #' @param transitions Square transition matrix or data frame in hypothesis order.
+        #' @param type Character choice of "value", "expression", or "display" representation.
+        #' @param nodeKeys Character choice of "id" or "label" used to match matrix dimnames.
+        #' @param removeZero Logical; whether zero cells remove existing edges. Defaults to
+        #'   TRUE.
+        #' @param validate Logical; whether to validate the imported, returned, or modified
+        #'   object.
+        #'
         updateFromTransitionMatrix = function(
                 transitions,
                 type = c("expression", "display", "value"),
@@ -577,6 +867,19 @@ AlphaGraph <- R6::R6Class(
             }
             invisible(self)
         },
+        #'
+        #' @description
+        #' Merge network data into the canonical graph using stable identifiers.
+        #'
+        #' @param nodes visNetwork node data frame containing stable node identifiers.
+        #' @param edges visNetwork edge data frame containing from and to identifiers.
+        #' @param removeMissing Logical; whether nodes and edges absent from the input are
+        #'   removed.
+        #' @param updateCanonicalLabels Logical; whether network labels also replace canonical
+        #'   labels. Defaults to FALSE.
+        #' @param validate Logical; whether to validate the imported, returned, or modified
+        #'   object.
+        #'
         updateFromVisNetworkData = function(
                 nodes,
                 edges,
@@ -673,6 +976,14 @@ AlphaGraph <- R6::R6Class(
             }
             invisible(self)
         },
+        #'
+        #' @description
+        #' Load a canonical graph using jsonlite::fromJSON().
+        #'
+        #' @param json JSON text, connection, or file path accepted by jsonlite::fromJSON().
+        #' @param validate Logical; whether to validate the imported, returned, or modified
+        #'   object.
+        #'
         fromJson = function(json, validate = TRUE) {
             if (!requireNamespace("jsonlite", quietly = TRUE)) {
                 stop("Package 'jsonlite' is required to read graph JSON.", call. = FALSE)
@@ -680,9 +991,24 @@ AlphaGraph <- R6::R6Class(
             self$loadList(jsonlite::fromJSON(json, simplifyVector = FALSE), validate = validate)
             invisible(self)
         },
+        #'
+        #' @description
+        #' Return the JSON-compatible canonical graph list.
+        #'
         toList = function() {
             private$data
         },
+        #'
+        #' @description
+        #' Serialize the canonical graph with jsonlite::toJSON(); ... supplies additional JSON
+        #'   options.
+        #'
+        #' @param pretty Logical; whether to indent JSON output. Defaults to TRUE.
+        #' @param auto_unbox Logical; whether to unbox JSON scalars. Defaults to TRUE.
+        #' @param null Character NULL encoding passed to jsonlite::toJSON(); defaults to
+        #'   "null".
+        #' @param ... Named arguments passed to the operation described above.
+        #'
         toJson = function(pretty = TRUE, auto_unbox = TRUE, null = "null", ...) {
             if (!requireNamespace("jsonlite", quietly = TRUE)) {
                 stop("Package 'jsonlite' is required to serialize graph JSON.", call. = FALSE)
@@ -695,12 +1021,38 @@ AlphaGraph <- R6::R6Class(
                 ...
             )
         },
+        #'
+        #' @description
+        #' Compatibility alias forwarding ... to toJson().
+        #'
+        #' @param ... Named arguments passed to the operation described above.
+        #'
         toJSON = function(...) {
             self$toJson(...)
         },
+        #'
+        #' @description
+        #' Compatibility alias forwarding ... to toJson().
+        #'
+        #' @param ... Named arguments passed to the operation described above.
+        #'
         toJason = function(...) {
             self$toJson(...)
         },
+        #'
+        #' @description
+        #' Return an n by n transition matrix or data frame in canonical node order.
+        #'
+        #' @param type Character choice of "value", "expression", or "display" representation.
+        #' @param parameters Named list of numeric parameter overrides for expression
+        #'   evaluation.
+        #' @param asDataFrame Logical; return a data frame when TRUE, a matrix otherwise.
+        #' @param rowNames Character choice of "label" or "id" for row and column names.
+        #' @param zero Optional fill value for missing transitions; defaults to numeric or
+        #'   character zero.
+        #' @param validate Logical; whether to validate the imported, returned, or modified
+        #'   object.
+        #'
         toTransitionMatrix = function(
                 type = c("display", "value", "expression"),
                 parameters = list(),
@@ -742,6 +1094,16 @@ AlphaGraph <- R6::R6Class(
 
             mat
         },
+        #'
+        #' @description
+        #' Return a weight vector in canonical node order, named by stable hypothesis IDs.
+        #'
+        #' @param type Character choice of "value", "expression", or "display" representation.
+        #' @param parameters Named list of numeric parameter overrides for expression
+        #'   evaluation.
+        #' @param validate Logical; whether to validate the imported, returned, or modified
+        #'   object.
+        #'
         toHypotheses = function(
                 type = c("value", "display", "expression"),
                 parameters = list(),
@@ -758,6 +1120,18 @@ AlphaGraph <- R6::R6Class(
             names(values) <- vapply(private$data$nodes, function(node) node$id, character(1L))
             values
         },
+        #'
+        #' @description
+        #' Return a list of hypotheses, transitions, and hyp_names with matching names and
+        #'   dimensions.
+        #'
+        #' @param parameters Named list of numeric parameter overrides for expression
+        #'   evaluation.
+        #' @param validate Logical; whether to validate the imported, returned, or modified
+        #'   object.
+        #' @param hypNames Character choice of "id" or "label" for unique engine hypothesis
+        #'   names.
+        #'
         toGraphicalMCPInput = function(
                 parameters = list(),
                 validate = TRUE,
@@ -794,6 +1168,17 @@ AlphaGraph <- R6::R6Class(
             }
             out
         },
+        #'
+        #' @description
+        #' Create a graphicalMCP initial_graph from numeric canonical inputs.
+        #'
+        #' @param parameters Named list of numeric parameter overrides for expression
+        #'   evaluation.
+        #' @param validate Logical; whether to validate the imported, returned, or modified
+        #'   object.
+        #' @param hypNames Character choice of "id" or "label" for unique engine hypothesis
+        #'   names.
+        #'
         toGraphicalMCP = function(
                 parameters = list(),
                 validate = TRUE,
@@ -814,6 +1199,10 @@ AlphaGraph <- R6::R6Class(
                 hyp_names = input$hyp_names
             )
         },
+        #'
+        #' @description
+        #' Return a list containing nodes and edges data frames for visNetwork.
+        #'
         toVisNetworkData = function() {
             list(
                 nodes = private$recordsToDataFrame(
@@ -824,6 +1213,15 @@ AlphaGraph <- R6::R6Class(
                 )
             )
         },
+        #'
+        #' @description
+        #' Return a visNetwork htmlwidget using the stored graph presentation.
+        #'
+        #' @param width Optional widget width; falls back to graph settings and then "100%".
+        #' @param height Optional widget height; falls back to graph settings and then "400px".
+        #' @param applyDefaults Logical; whether to apply saved network settings. Defaults to
+        #'   TRUE.
+        #'
         toVisNetwork = function(
                 width = NULL,
                 height = NULL,
@@ -857,6 +1255,18 @@ AlphaGraph <- R6::R6Class(
             }
             widget
         },
+        #'
+        #' @description
+        #' Validate graph structure and optionally numeric weights and transitions; return TRUE
+        #'   on success.
+        #'
+        #' @param requireNumeric Logical; whether weights and transitions must be numerically
+        #'   computable.
+        #' @param parameters Named list of numeric parameter overrides for expression
+        #'   evaluation.
+        #' @param tolerance Numeric validation tolerance; defaults to
+        #'   sqrt(.Machine$double.eps).
+        #'
         validate = function(
                 requireNumeric = FALSE,
                 parameters = list(),
@@ -1563,36 +1973,43 @@ AlphaGraph <- R6::R6Class(
     )
 )
 
-#' @title Create an AlphaGraph from its canonical list representation
+#'
+#' @title
+#' Create an AlphaGraph from external representations
+#'
+#' @description
+#' Construct a canonical graph from a list, JSON, a transition matrix, a
+#' graphicalMCP initial graph, or visNetwork node and edge data frames.
 #'
 #' @param x A JSON-compatible alphagraph list.
 #' @param validate Whether to validate the imported model.
 #'
 #' @return An `AlphaGraph` object.
 #'
+#' @name alphaGraphConverters
+#' @rdname alphaGraphConverters
 #' @keywords internal
+#'
 alphaGraphFromList <- function(x, validate = TRUE) {
     graph <- AlphaGraph$new()
     graph$loadList(x, validate = validate)
     graph
 }
 
-#' @title Create an AlphaGraph from JSON
 #'
 #' @param json JSON text, a connection, or a file path accepted by
 #'   `jsonlite::fromJSON()`.
 #' @param validate Whether to validate the imported model.
 #'
-#' @return An `AlphaGraph` object.
-#'
+#' @rdname alphaGraphConverters
 #' @keywords internal
+#'
 alphaGraphFromJson <- function(json, validate = TRUE) {
     graph <- AlphaGraph$new()
     graph$fromJson(json, validate = validate)
     graph
 }
 
-#' @title Create an AlphaGraph from a transition matrix
 #'
 #' @param transitions Square transition matrix or data frame.
 #' @param hypotheses Optional hypothesis weights, in matrix order.
@@ -1602,9 +2019,9 @@ alphaGraphFromJson <- function(json, validate = TRUE) {
 #' @param id,label,description,metadata,settings Graph-level properties.
 #' @param validate Whether to validate the resulting graph.
 #'
-#' @return An `AlphaGraph` object.
-#'
+#' @rdname alphaGraphConverters
 #' @keywords internal
+#'
 alphaGraphFromTransitionMatrix <- function(
         transitions,
         hypotheses = NULL,
@@ -1675,7 +2092,6 @@ alphaGraphFromTransitionMatrix <- function(
     graph
 }
 
-#' @title Create an AlphaGraph from a graphicalMCP graph
 #'
 #' @param graph An `initial_graph` object returned by
 #'   `graphicalMCP::graph_create()` or an equivalent list with `hypotheses` and
@@ -1683,9 +2099,9 @@ alphaGraphFromTransitionMatrix <- function(
 #' @param id,label,description,metadata,settings Graph-level properties.
 #' @param validate Whether to validate the resulting graph.
 #'
-#' @return An `AlphaGraph` object.
-#'
+#' @rdname alphaGraphConverters
 #' @keywords internal
+#'
 alphaGraphFromGraphicalMCP <- function(
         graph,
         id = "graph",
@@ -1715,15 +2131,14 @@ alphaGraphFromGraphicalMCP <- function(
     )
 }
 
-#' @title Create an AlphaGraph from visNetwork data
 #'
 #' @param nodes,edges Data frames accepted by `visNetwork::visNetwork()`.
 #' @param id,label,description,metadata,settings Graph-level properties.
 #' @param validate Whether to validate the resulting graph.
 #'
-#' @return An `AlphaGraph` object.
-#'
+#' @rdname alphaGraphConverters
 #' @keywords internal
+#'
 alphaGraphFromVisNetworkData <- function(
         nodes,
         edges,
@@ -1750,7 +2165,9 @@ alphaGraphFromVisNetworkData <- function(
     graph
 }
 
-#' @title Create the current Hung and Wang demo graph as an AlphaGraph
+#'
+#' @title
+#' Create the current Hung and Wang demo graph as an AlphaGraph
 #'
 #' @description
 #' Convenience constructor mirroring the current static example used in the
@@ -1759,6 +2176,7 @@ alphaGraphFromVisNetworkData <- function(
 #' @return An `AlphaGraph` object.
 #'
 #' @keywords internal
+#'
 createDemoAlphaGraph <- function() {
     graph <- AlphaGraph$new(
         id = "hung_wang_2010",

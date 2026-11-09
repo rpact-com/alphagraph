@@ -127,6 +127,20 @@ Planned future developments include:
 
 ---
 
+## Regenerating package documentation
+
+From the repository root, run `roxygen2::roxygenize()` (validated with
+roxygen2 8.1.1). `NAMESPACE` is generated from the Roxygen declarations in `R/`;
+its historical export pattern is declared in `R/alphagraph-package.R`.
+Maintain imports and exports in those declarations rather than editing
+`NAMESPACE` directly.
+
+The R6 class, converter, and number-format help pages are also generated from
+their R sources. Some other help pages remain hand-maintained; check the
+generated-file header before editing an Rd file.
+
+---
+
 ## Status
 
 ⚠️ **Early development**

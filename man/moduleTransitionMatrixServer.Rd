@@ -9,8 +9,8 @@ moduleTransitionMatrixServer(id, graphStore = NULL, ..., args = list())
 \arguments{
 \item{id}{Module id (namespace) for this server module.}
 
-\item{graphStore}{Shared \code{AlphaGraphStore}. A private store is created
-when omitted.}
+\item{graphStore}{Shared \code{AlphaGraphStore}. A private store is created when
+omitted.}
 
 \item{...}{Additional parameters (reserved for future use).}
 

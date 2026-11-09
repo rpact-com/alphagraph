@@ -19,6 +19,6 @@ Character scalar such as \code{H1_(ni)}.
 \description{
 Generate an editable hypothesis label using alphagraph's underscore syntax.
 The canonical value is converted to supported Unicode subscripts only when
-rendered by \pkg{visNetwork}.
+rendered by visNetwork.
 }
 \keyword{internal}

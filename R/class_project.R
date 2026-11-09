@@ -10,18 +10,48 @@
 ## RPACT company website: https://www.rpact.com
 ##
 
-#' @title JSON-friendly alphagraph project model
+#'
+#' @title
+#' JSON-friendly alphagraph project model
 #'
 #' @description
 #' Stores a reusable `AlphaGraph` together with p-value datasets, analysis
 #' specifications, optional derived results, project UI state, and metadata.
 #' Raw and adjusted p-values deliberately remain outside the graph definition.
 #'
+#' @details
+#' Create an instance with `AlphaProject$new()`. P-values use stable hypothesis
+#' identifiers. Dataset and analysis updates remove affected results; graph
+#' replacement removes all results. Use `$resultIsCurrent()` before displaying a
+#' stored result and `$validate(requireComputable = TRUE, analysisId = ...)`
+#' before a calculation. Derived results contain input hashes and engine versions.
+#' Mutating methods return the instance invisibly unless stated otherwise.
+#'
+#' @return An R6 class generator.
+#'
+#' @examples
+#' project <- createDemoAlphaProject()
+#' project$pValues("primary")
+#' project$validate(requireComputable = TRUE, analysisId = "shortcut-primary")
+#'
 #' @keywords internal
 #' @importFrom graphicalMCP graph_test_shortcut
+#'
 AlphaProject <- R6::R6Class(
     "AlphaProject",
     public = list(
+        #'
+        #' @description
+        #' Initialize a project containing a graph and empty datasets, analyses, and results.
+        #'
+        #' @param graph An AlphaGraph instance; the demo graph is used when omitted at
+        #'   initialization.
+        #' @param id Character scalar identifying the object within its collection.
+        #' @param label Human-readable character label.
+        #' @param description Optional character description; NULL omits it.
+        #' @param ui Named list of JSON-compatible project UI state; empty by default.
+        #' @param metadata Named list of JSON-compatible metadata; empty by default.
+        #'
         initialize = function(
                 graph = createDemoAlphaGraph(),
                 id = "project",
@@ -48,6 +78,14 @@ AlphaProject <- R6::R6Class(
             invisible(self)
         },
 
+        #'
+        #' @description
+        #' Restore a JSON-compatible project list and optionally validate it.
+        #'
+        #' @param x Canonical JSON-compatible list.
+        #' @param validate Logical; whether to validate the imported, returned, or modified
+        #'   object.
+        #'
         loadList = function(x, validate = TRUE) {
             if (!is.list(x)) {
                 stop("x must be a list.", call. = FALSE)
@@ -100,10 +138,24 @@ AlphaProject <- R6::R6Class(
             invisible(self)
         },
 
+        #'
+        #' @description
+        #' Return the JSON-compatible project list including stored results.
+        #'
         toList = function() {
             private$data
         },
 
+        #'
+        #' @description
+        #' Serialize the project with jsonlite::toJSON(); ... supplies additional JSON options.
+        #'
+        #' @param pretty Logical; whether to indent JSON output. Defaults to TRUE.
+        #' @param auto_unbox Logical; whether to unbox JSON scalars. Defaults to TRUE.
+        #' @param null Character NULL encoding passed to jsonlite::toJSON(); defaults to
+        #'   "null".
+        #' @param ... Named arguments passed to the operation described above.
+        #'
         toJson = function(pretty = TRUE, auto_unbox = TRUE, null = "null", ...) {
             jsonlite::toJSON(
                 private$data,
@@ -114,10 +166,21 @@ AlphaProject <- R6::R6Class(
             )
         },
 
+        #'
+        #' @description
+        #' Return an independent AlphaGraph restored from the embedded graph definition.
+        #'
         graph = function() {
             alphaGraphFromList(private$data$graph)
         },
 
+        #'
+        #' @description
+        #' Replace the embedded graph and clear all derived results.
+        #'
+        #' @param graph An AlphaGraph instance; the demo graph is used when omitted at
+        #'   initialization.
+        #'
         setGraph = function(graph) {
             if (!inherits(graph, "AlphaGraph")) {
                 stop("graph must be an AlphaGraph object.", call. = FALSE)
@@ -128,18 +191,49 @@ AlphaProject <- R6::R6Class(
             invisible(self)
         },
 
+        #'
+        #' @description
+        #' Return the list of supplied p-value datasets.
+        #'
         datasets = function() private$data$datasets,
+        #'
+        #' @description
+        #' Return the list of stored analysis specifications.
+        #'
         analyses = function() private$data$analyses,
+        #'
+        #' @description
+        #' Return the list of stored derived results, including any stale results.
+        #'
         results = function() private$data$results,
 
+        #'
+        #' @description
+        #' Return the dataset with the requested identifier; error if it does not exist.
+        #'
+        #' @param id Character scalar identifying the object within its collection.
+        #'
         dataset = function(id) {
             private$data$datasets[[private$requireIndex("datasets", id)]]
         },
 
+        #'
+        #' @description
+        #' Return the analysis with the requested identifier; error if it does not exist.
+        #'
+        #' @param id Character scalar identifying the object within its collection.
+        #'
         analysis = function(id) {
             private$data$analyses[[private$requireIndex("analyses", id)]]
         },
 
+        #'
+        #' @description
+        #' Return the latest stored result for an analysis, or NULL; use resultIsCurrent() to
+        #'   check validity.
+        #'
+        #' @param analysisId Character identifier of an analysis specification.
+        #'
         result = function(analysisId) {
             indices <- which(vapply(
                 private$data$results,
@@ -152,6 +246,17 @@ AlphaProject <- R6::R6Class(
             private$data$results[[tail(indices, 1L)]]
         },
 
+        #'
+        #' @description
+        #' Insert or replace a p-value dataset and remove results for affected analyses.
+        #'
+        #' @param id Character scalar identifying the object within its collection.
+        #' @param pValues Named numeric vector or list of hypothesisId/value records, keyed by
+        #'   stable hypothesis IDs.
+        #' @param label Human-readable character label.
+        #' @param description Optional character description; NULL omits it.
+        #' @param metadata Named list of JSON-compatible metadata; empty by default.
+        #'
         upsertDataset = function(
                 id,
                 pValues,
@@ -182,6 +287,12 @@ AlphaProject <- R6::R6Class(
             invisible(self)
         },
 
+        #'
+        #' @description
+        #' Return a numeric p-value vector named by stable hypothesis IDs.
+        #'
+        #' @param datasetId Character identifier of a p-value dataset.
+        #'
         pValues = function(datasetId) {
             records <- self$dataset(datasetId)$pValues
             values <- vapply(records, function(record) as.numeric(record$value), numeric(1L))
@@ -193,6 +304,25 @@ AlphaProject <- R6::R6Class(
             values
         },
 
+        #'
+        #' @description
+        #' Insert or replace an analysis specification and remove its derived results.
+        #'
+        #' @param id Character scalar identifying the object within its collection.
+        #' @param datasetId Character identifier of a p-value dataset.
+        #' @param method Character choice of "shortcut" or "closure"; only shortcut execution
+        #'   is implemented.
+        #' @param alpha Numeric significance level in (0, 1]; defaults to 0.025.
+        #' @param testGroups List of closure groups; empty by default. Each group has
+        #'   hypothesisIds, optional id and label, testType (bonferroni, parametric, simes, or
+        #'   hochberg), and a correlation matrix for parametric tests. Groups must partition
+        #'   the hypotheses.
+        #' @param verbose Logical passed to graphicalMCP shortcut execution; defaults to FALSE.
+        #' @param testValues Logical passed as test_values to graphicalMCP; defaults to FALSE.
+        #' @param label Human-readable character label.
+        #' @param description Optional character description; NULL omits it.
+        #' @param metadata Named list of JSON-compatible metadata; empty by default.
+        #'
         upsertAnalysis = function(
                 id,
                 datasetId,
@@ -226,6 +356,12 @@ AlphaProject <- R6::R6Class(
             invisible(self)
         },
 
+        #'
+        #' @description
+        #' Return a fingerprint of the graph, dataset, and analysis inputs.
+        #'
+        #' @param analysisId Character identifier of an analysis specification.
+        #'
         inputHash = function(analysisId) {
             analysis <- self$analysis(analysisId)
             dataset <- self$dataset(analysis$datasetId)
@@ -236,11 +372,24 @@ AlphaProject <- R6::R6Class(
             ))
         },
 
+        #'
+        #' @description
+        #' Return TRUE only when a stored result matches the current input fingerprint.
+        #'
+        #' @param analysisId Character identifier of an analysis specification.
+        #'
         resultIsCurrent = function(analysisId) {
             result <- self$result(analysisId)
             !is.null(result) && identical(result$inputHash, self$inputHash(analysisId))
         },
 
+        #'
+        #' @description
+        #' Run graphicalMCP shortcut testing and invisibly return the stored result with input
+        #'   hash and engine versions.
+        #'
+        #' @param analysisId Character identifier of an analysis specification.
+        #'
         runShortcut = function(analysisId) {
             if (!requireNamespace("graphicalMCP", quietly = TRUE)) {
                 stop("Package 'graphicalMCP' is required to run an analysis.",
@@ -291,6 +440,17 @@ AlphaProject <- R6::R6Class(
             invisible(result)
         },
 
+        #'
+        #' @description
+        #' Validate project structure and optionally computability; return TRUE on success.
+        #'
+        #' @param requireComputable Logical; whether to require complete numeric inputs for the
+        #'   selected analysis.
+        #' @param analysisId Character identifier of an analysis specification. Required when
+        #'   requireComputable is TRUE.
+        #' @param tolerance Numeric validation tolerance; defaults to
+        #'   sqrt(.Machine$double.eps).
+        #'
         validate = function(requireComputable = FALSE, analysisId = NULL,
                             tolerance = sqrt(.Machine$double.eps)) {
             if (!identical(private$data$format, "alphagraph.project")) {
@@ -685,16 +845,38 @@ AlphaProject <- R6::R6Class(
     )
 )
 
-#' @title Create an AlphaProject from a JSON-compatible list
+#'
+#' @title
+#' Create an AlphaProject from a JSON-compatible list
+#'
+#' @description
+#' Restore a project from its canonical list, optionally validating its contents.
+#'
+#' @param x Canonical JSON-compatible project list.
+#' @param validate Logical; whether to validate the restored project.
+#' @return An `AlphaProject` instance.
+#'
 #' @keywords internal
+#'
 alphaProjectFromList <- function(x, validate = TRUE) {
     project <- AlphaProject$new()
     project$loadList(x, validate = validate)
     project
 }
 
-#' @title Create an AlphaProject from JSON
+#'
+#' @title
+#' Create an AlphaProject from JSON
+#'
+#' @description
+#' Read a serialized project with jsonlite and restore its canonical model.
+#'
+#' @param json JSON text, connection, or file path accepted by `jsonlite::fromJSON()`.
+#' @param validate Logical; whether to validate the restored project.
+#' @return An `AlphaProject` instance.
+#'
 #' @keywords internal
+#'
 alphaProjectFromJson <- function(json, validate = TRUE) {
     alphaProjectFromList(
         jsonlite::fromJSON(json, simplifyVector = FALSE),
@@ -702,8 +884,17 @@ alphaProjectFromJson <- function(json, validate = TRUE) {
     )
 }
 
-#' @title Create the default alphagraph demonstration project
+#'
+#' @title
+#' Create the default alphagraph demonstration project
+#'
+#' @description
+#' Construct the demo graph, primary dataset, and shortcut analysis specification.
+#'
+#' @return An `AlphaProject` with the demo graph, primary p-values, and a shortcut analysis.
+#'
 #' @keywords internal
+#'
 createDemoAlphaProject <- function() {
     project <- AlphaProject$new(
         graph = createDemoAlphaGraph(),
@@ -726,8 +917,18 @@ createDemoAlphaProject <- function() {
     project
 }
 
-#' @title Create a deterministic fingerprint for analysis inputs
+#'
+#' @title
+#' Create a deterministic fingerprint for analysis inputs
+#'
+#' @description
+#' Serialize JSON-compatible inputs and compute their MD5 fingerprint.
+#'
+#' @param x JSON-compatible object containing analysis inputs.
+#' @return A character scalar containing the MD5 fingerprint of the serialized inputs.
+#'
 #' @keywords internal
+#'
 alphaGraphInputHash <- function(x) {
     path <- tempfile(fileext = ".json")
     on.exit(unlink(path), add = TRUE)
@@ -739,8 +940,18 @@ alphaGraphInputHash <- function(x) {
     unname(as.character(tools::md5sum(path)))
 }
 
-#' @title Obtain a package version without requiring attachment
+#'
+#' @title
+#' Obtain a package version without requiring attachment
+#'
+#' @description
+#' Look up an installed package version, returning NULL if it is unavailable.
+#'
+#' @param package Character scalar naming a package.
+#' @return A character version string, or NULL if the package is unavailable.
+#'
 #' @keywords internal
+#'
 alphaGraphPackageVersion <- function(package) {
     if (!requireNamespace(package, quietly = TRUE)) {
         return(NULL)

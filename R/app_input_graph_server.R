@@ -78,7 +78,7 @@ moduleGraphServer <- function(id, graphStore = NULL, ..., args = list()) {
                               gridButtonId = ns("toggle_grid")))
             })
 
-            #    shiny::observeEvent(input$node_right_click, {
+            #    shiny::observe({
             #        node_id <- input$node_right_click$id
             #
             #        shiny::showModal(shiny::modalDialog(
@@ -91,9 +91,16 @@ moduleGraphServer <- function(id, graphStore = NULL, ..., args = list()) {
             #                ),
             #                easyClose = TRUE
             #            ))
-            #    })
+            #    }, label = "graph-open-node-properties") |>
+            #        shiny::bindEvent(
+            #            input$node_right_click,
+            #            ignoreInit = FALSE,
+            #            ignoreNULL = TRUE,
+            #            label = "graph-open-node-properties"
+            #        )
 
-            shiny::observeEvent(input$add_node, {
+            # Preserve initial handling of an already available event.
+            shiny::observe({
                 graph <- graphStore$snapshot()
                 ids <- vapply(graph$toList()$nodes, function(node) node$id, character(1L))
                 number <- 1L
@@ -120,7 +127,13 @@ moduleGraphServer <- function(id, graphStore = NULL, ..., args = list()) {
                         vis = list(title = "New Node")
                     )
                 })
-            })
+            }, label = "graph-add-node") |>
+                shiny::bindEvent(
+                    input$add_node,
+                    ignoreInit = FALSE,
+                    ignoreNULL = TRUE,
+                    label = "graph-add-node"
+                )
 
             showEdgeEditor <- function(from = NULL, to = NULL) {
                 nodes <- graphStore$snapshot()$toList()$nodes
@@ -151,11 +164,19 @@ moduleGraphServer <- function(id, graphStore = NULL, ..., args = list()) {
                 ))
             }
 
-            shiny::observeEvent(input$add_edge, {
+            # Preserve initial handling of an already available event.
+            shiny::observe({
                 showEdgeEditor()
-            })
+            }, label = "graph-open-edge-editor") |>
+                shiny::bindEvent(
+                    input$add_edge,
+                    ignoreInit = FALSE,
+                    ignoreNULL = TRUE,
+                    label = "graph-open-edge-editor"
+                )
 
-            shiny::observeEvent(input$edge_drawn, {
+            # Preserve initial handling of an already available event.
+            shiny::observe({
                 from <- input$edge_drawn$from
                 to <- input$edge_drawn$to
                 data <- graphStore$snapshot()$toList()
@@ -173,9 +194,16 @@ moduleGraphServer <- function(id, graphStore = NULL, ..., args = list()) {
                     return()
                 }
                 showEdgeEditor(from, to)
-            })
+            }, label = "graph-edit-drawn-edge") |>
+                shiny::bindEvent(
+                    input$edge_drawn,
+                    ignoreInit = FALSE,
+                    ignoreNULL = TRUE,
+                    label = "graph-edit-drawn-edge"
+                )
 
-            shiny::observeEvent(input$save_edge, {
+            # Preserve initial handling of an already available event.
+            shiny::observe({
                 tryCatch({
                     shiny::req(input$edge_from, input$edge_to, input$edge_transition)
                     graphStore$transact("graph:add-edge", function(candidate) {
@@ -199,16 +227,30 @@ moduleGraphServer <- function(id, graphStore = NULL, ..., args = list()) {
                 }, error = function(error) {
                     shiny::showNotification(conditionMessage(error), type = "error")
                 })
-            })
+            }, label = "graph-save-edge") |>
+                shiny::bindEvent(
+                    input$save_edge,
+                    ignoreInit = FALSE,
+                    ignoreNULL = TRUE,
+                    label = "graph-save-edge"
+                )
 
-            shiny::observeEvent(input$edit_node, {
+            # Preserve initial handling of an already available event.
+            shiny::observe({
                 shiny::req(rv)
                 shiny::req(length(rv$selected_nodes) == 1L)
                 rv$ctx_node_id <- rv$selected_nodes[[1L]]
                 showNodeEditor(rv$ctx_node_id)
-            })
+            }, label = "graph-edit-node") |>
+                shiny::bindEvent(
+                    input$edit_node,
+                    ignoreInit = FALSE,
+                    ignoreNULL = TRUE,
+                    label = "graph-edit-node"
+                )
 
-            shiny::observeEvent(input$edit_edge, {
+            # Preserve initial handling of an already available event.
+            shiny::observe({
                 shiny::req(rv)
                 shiny::req(length(rv$selected_edges) == 1L)
                 edgeId <- rv$selected_edges[[1L]]
@@ -228,9 +270,16 @@ moduleGraphServer <- function(id, graphStore = NULL, ..., args = list()) {
                         shiny::actionButton(ns("save_edge_transition"), "Save")
                     )
                 ))
-            })
+            }, label = "graph-edit-edge") |>
+                shiny::bindEvent(
+                    input$edit_edge,
+                    ignoreInit = FALSE,
+                    ignoreNULL = TRUE,
+                    label = "graph-edit-edge"
+                )
 
-            shiny::observeEvent(input$delete, {
+            # Preserve initial handling of an already available event.
+            shiny::observe({
                 shiny::req(rv)
                 nodes <- rv$selected_nodes
                 edges <- rv$selected_edges
@@ -249,9 +298,16 @@ moduleGraphServer <- function(id, graphStore = NULL, ..., args = list()) {
                         }
                     }
                 })
-            })
+            }, label = "graph-delete-selection") |>
+                shiny::bindEvent(
+                    input$delete,
+                    ignoreInit = FALSE,
+                    ignoreNULL = TRUE,
+                    label = "graph-delete-selection"
+                )
 
-            shiny::observeEvent(input$reset_view, {
+            # Preserve initial handling of an already available event.
+            shiny::observe({
                 visNetwork::visNetworkProxy(ns("graph"), session = session) |>
                     visNetwork::visFit(
                         animation = list(
@@ -259,31 +315,59 @@ moduleGraphServer <- function(id, graphStore = NULL, ..., args = list()) {
                             easingFunction = "easeInOutQuad"
                         )
                     )
-            })
+            }, label = "graph-reset-view") |>
+                shiny::bindEvent(
+                    input$reset_view,
+                    ignoreInit = FALSE,
+                    ignoreNULL = TRUE,
+                    label = "graph-reset-view"
+                )
 
-            shiny::observeEvent(input$zoom_in, {
+            # Preserve initial handling of an already available event.
+            shiny::observe({
                 session$sendCustomMessage(
                     "alphaGraphZoom",
                     list(id = ns("graph"), factor = zoomFactor)
                 )
-            })
+            }, label = "graph-zoom-in") |>
+                shiny::bindEvent(
+                    input$zoom_in,
+                    ignoreInit = FALSE,
+                    ignoreNULL = TRUE,
+                    label = "graph-zoom-in"
+                )
 
-            shiny::observeEvent(input$zoom_out, {
+            # Preserve initial handling of an already available event.
+            shiny::observe({
                 session$sendCustomMessage(
                     "alphaGraphZoom",
                     list(id = ns("graph"), factor = 1 / zoomFactor)
                 )
-            })
+            }, label = "graph-zoom-out") |>
+                shiny::bindEvent(
+                    input$zoom_out,
+                    ignoreInit = FALSE,
+                    ignoreNULL = TRUE,
+                    label = "graph-zoom-out"
+                )
 
-            shiny::observeEvent(input$toggle_grid, {
+            # Preserve initial handling of an already available event.
+            shiny::observe({
                 visible <- !gridVisible()
                 gridVisible(visible)
                 session$sendCustomMessage("alphaGraphGridVisibility", list(
                     id = ns("graph"), visible = visible, buttonId = ns("toggle_grid")
                 ))
-            })
+            }, label = "graph-toggle-grid") |>
+                shiny::bindEvent(
+                    input$toggle_grid,
+                    ignoreInit = FALSE,
+                    ignoreNULL = TRUE,
+                    label = "graph-toggle-grid"
+                )
 
-            shiny::observeEvent(input$lock_pos, {
+            # Preserve initial handling of an already available event.
+            shiny::observe({
                 locked <- !viewLocked()
                 viewLocked(locked)
 
@@ -297,7 +381,13 @@ moduleGraphServer <- function(id, graphStore = NULL, ..., args = list()) {
                 # remains enabled so users can still reposition individual nodes.
                 visNetwork::visNetworkProxy(ns("graph"), session = session) |>
                     visNetwork::visInteraction(dragView = !locked)
-            })
+            }, label = "graph-toggle-view-lock") |>
+                shiny::bindEvent(
+                    input$lock_pos,
+                    ignoreInit = FALSE,
+                    ignoreNULL = TRUE,
+                    label = "graph-toggle-view-lock"
+                )
 
             rv <- shiny::reactiveValues(
                 ctx_open = FALSE,
@@ -376,7 +466,8 @@ moduleGraphServer <- function(id, graphStore = NULL, ..., args = list()) {
                 ))
             }
 
-            shiny::observeEvent(input$delete_edited_node, {
+            # Preserve initial handling of an already available event.
+            shiny::observe({
                 shiny::req(rv$edited_node_id)
                 id <- rv$edited_node_id
                 tryCatch({
@@ -389,7 +480,13 @@ moduleGraphServer <- function(id, graphStore = NULL, ..., args = list()) {
                 }, error = function(error) {
                     shiny::showNotification(conditionMessage(error), type = "error")
                 })
-            })
+            }, label = "graph-delete-edited-node") |>
+                shiny::bindEvent(
+                    input$delete_edited_node,
+                    ignoreInit = FALSE,
+                    ignoreNULL = TRUE,
+                    label = "graph-delete-edited-node"
+                )
 
             output$node_label_preview <- shiny::renderUI({
                 shiny::req(!is.null(input$node_label))
@@ -404,12 +501,18 @@ moduleGraphServer <- function(id, graphStore = NULL, ..., args = list()) {
                 shiny::tags$span(label)
             })
 
-            shiny::observeEvent(input$selection, {
+            shiny::observe({
                 rv$selected_nodes <- unlist(input$selection$nodes %||% list(),
                                             use.names = FALSE)
                 rv$selected_edges <- unlist(input$selection$edges %||% list(),
                                             use.names = FALSE)
-            }, ignoreInit = TRUE)
+            }, label = "graph-update-selection") |>
+                shiny::bindEvent(
+                    input$selection,
+                    ignoreInit = TRUE,
+                    ignoreNULL = TRUE,
+                    label = "graph-update-selection"
+                )
 
             # Overlay to capture click-away
             output$ctx_overlay <- shiny::renderUI({
@@ -467,7 +570,8 @@ moduleGraphServer <- function(id, graphStore = NULL, ..., args = list()) {
             })
 
             # Handle menu actions
-            shiny::observeEvent(input$ctx_action, {
+            # Preserve initial handling of an already available event.
+            shiny::observe({
                 shiny::req(rv$ctx_open, rv$ctx_node_id)
                 act <- input$ctx_action$action
                 id <- rv$ctx_node_id
@@ -490,22 +594,43 @@ moduleGraphServer <- function(id, graphStore = NULL, ..., args = list()) {
 
                 # Close menu after action
                 rv$ctx_open <- FALSE
-            })
+            }, label = "graph-apply-context-action") |>
+                shiny::bindEvent(
+                    input$ctx_action,
+                    ignoreInit = FALSE,
+                    ignoreNULL = TRUE,
+                    label = "graph-apply-context-action"
+                )
 
             # Open menu on right click
-            shiny::observeEvent(input$node_right_click, {
+            # Preserve initial handling of an already available event.
+            shiny::observe({
                 rv$ctx_open <- TRUE
                 rv$ctx_node_id <- input$node_right_click$id
                 rv$ctx_x <- input$node_right_click$x
                 rv$ctx_y <- input$node_right_click$y
-            })
+            }, label = "graph-open-context-menu") |>
+                shiny::bindEvent(
+                    input$node_right_click,
+                    ignoreInit = FALSE,
+                    ignoreNULL = TRUE,
+                    label = "graph-open-context-menu"
+                )
 
             # Close menu (click away or empty-space right click)
-            shiny::observeEvent(input$ctx_close, {
+            # Preserve initial handling of an already available event.
+            shiny::observe({
                 rv$ctx_open <- FALSE
-            })
+            }, label = "graph-close-context-menu") |>
+                shiny::bindEvent(
+                    input$ctx_close,
+                    ignoreInit = FALSE,
+                    ignoreNULL = TRUE,
+                    label = "graph-close-context-menu"
+                )
 
-            shiny::observeEvent(input$save_node_label, {
+            # Preserve initial handling of an already available event.
+            shiny::observe({
                 shiny::req(rv$ctx_node_id, input$node_color)
                 tryCatch({
                     label <- trimws(as.character(input$node_label))
@@ -527,9 +652,16 @@ moduleGraphServer <- function(id, graphStore = NULL, ..., args = list()) {
                 }, error = function(error) {
                     shiny::showNotification(conditionMessage(error), type = "error")
                 })
-            })
+            }, label = "graph-save-node-label") |>
+                shiny::bindEvent(
+                    input$save_node_label,
+                    ignoreInit = FALSE,
+                    ignoreNULL = TRUE,
+                    label = "graph-save-node-label"
+                )
 
-            shiny::observeEvent(input$save_edge_transition, {
+            # Preserve initial handling of an already available event.
+            shiny::observe({
                 shiny::req(rv$ctx_edge_id, input$edited_edge_transition)
                 tryCatch({
                     graphStore$transact("graph:edge-transition", function(candidate) {
@@ -548,14 +680,20 @@ moduleGraphServer <- function(id, graphStore = NULL, ..., args = list()) {
                 }, error = function(error) {
                     shiny::showNotification(conditionMessage(error), type = "error")
                 })
-            })
+            }, label = "graph-save-edge-transition") |>
+                shiny::bindEvent(
+                    input$save_edge_transition,
+                    ignoreInit = FALSE,
+                    ignoreNULL = TRUE,
+                    label = "graph-save-edge-transition"
+                )
 
             nodePositions <- shiny::debounce(
                 shiny::reactive(input$node_positions),
                 millis = args$positionDebounceMillis %||% 150L
             )
 
-            shiny::observeEvent(nodePositions(), {
+            shiny::observe({
                 positions <- nodePositions()$nodes
                 if (is.null(positions) || length(positions) == 0L) {
                     return()
@@ -574,7 +712,13 @@ moduleGraphServer <- function(id, graphStore = NULL, ..., args = list()) {
                         )
                     }
                 })
-            }, ignoreInit = TRUE)
+            }, label = "graph-persist-node-positions") |>
+                shiny::bindEvent(
+                    nodePositions(),
+                    ignoreInit = TRUE,
+                    ignoreNULL = TRUE,
+                    label = "graph-persist-node-positions"
+                )
 
             invisible(graphStore)
         }

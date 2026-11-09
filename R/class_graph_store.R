@@ -10,7 +10,9 @@
 ## RPACT company website: https://www.rpact.com
 ##
 
-#' @title Reactive store for a shared AlphaGraph
+#'
+#' @title
+#' Reactive store for a shared AlphaGraph
 #'
 #' @description
 #' Holds one canonical `AlphaGraph` per Shiny session. All mutations are
@@ -18,10 +20,31 @@
 #' counter. Views depend on the revision; view rendering never writes back to
 #' the store, preventing graph/matrix feedback loops.
 #'
+#' @details
+#' Use `$transact(source, mutate)` for changes. Nested transactions are ignored
+#' and failed transactions preserve the previous graph. Reactive accessors must
+#' be used inside a reactive context, or inside `shiny::isolate()`.
+#' `$snapshot()` returns an independent graph without reactive dependencies.
+#'
+#' @return An R6 class generator.
+#'
+#' @examples
+#' store <- createAlphaGraphStore()
+#' store$snapshot()$toHypotheses()
+#' shiny::isolate(store$revision())
+#'
 #' @keywords internal
+#'
 AlphaGraphStore <- R6::R6Class(
     "AlphaGraphStore",
     public = list(
+        #'
+        #' @description
+        #' Initialize the session store from a validated independent copy.
+        #'
+        #' @param graph An AlphaGraph instance; the demo graph is used when omitted at
+        #'   initialization.
+        #'
         initialize = function(graph = createDemoAlphaGraph()) {
             if (!inherits(graph, "AlphaGraph")) {
                 stop("graph must be an AlphaGraph object.", call. = FALSE)
@@ -37,27 +60,57 @@ AlphaGraphStore <- R6::R6Class(
             invisible(self)
         },
 
+        #'
+        #' @description
+        #' Return the current canonical AlphaGraph and register a reactive revision dependency.
+        #'
         graph = function() {
             private$state$revision
             private$state$graph
         },
 
+        #'
+        #' @description
+        #' Return the reactive revision counter used by dependent views.
+        #'
         revision = function() {
             private$state$revision
         },
 
+        #'
+        #' @description
+        #' Return the reactive source label of the last committed store change.
+        #'
         source = function() {
             private$state$source
         },
 
+        #'
+        #' @description
+        #' Return the reactive message from the last failed transaction, or NULL.
+        #'
         error = function() {
             private$state$error
         },
 
+        #'
+        #' @description
+        #' Return an independent snapshot without registering reactive dependencies.
+        #'
         snapshot = function() {
             shiny::isolate(alphaGraphFromList(private$state$graph$toList()))
         },
 
+        #'
+        #' @description
+        #' Replace the stored object and update its revision and source label.
+        #'
+        #' @param graph An AlphaGraph instance; the demo graph is used when omitted at
+        #'   initialization.
+        #' @param source Character scalar identifying the origin of a committed change.
+        #' @param validate Logical; whether to validate the imported, returned, or modified
+        #'   object.
+        #'
         replace = function(graph, source = "external", validate = TRUE) {
             if (!inherits(graph, "AlphaGraph")) {
                 stop("graph must be an AlphaGraph object.", call. = FALSE)
@@ -69,6 +122,20 @@ AlphaGraphStore <- R6::R6Class(
             )
         },
 
+        #'
+        #' @description
+        #' Apply mutate to a private candidate and commit after optional validation. Failures
+        #'   preserve the previous state and are rethrown. Return invisible TRUE on commit or
+        #'   FALSE for a nested transaction.
+        #'
+        #' @param source Character scalar identifying the origin of a committed change.
+        #' @param mutate Function that modifies a private candidate object before it is
+        #'   committed.
+        #' @param validate Logical; whether to validate the imported, returned, or modified
+        #'   object.
+        #' @param requireNumeric Logical; whether weights and transitions must be numerically
+        #'   computable.
+        #'
         transact = function(source, mutate, validate = TRUE,
                             requireNumeric = FALSE) {
             if (!is.function(mutate)) {
@@ -108,13 +175,19 @@ AlphaGraphStore <- R6::R6Class(
     )
 )
 
-#' @title Create a reactive AlphaGraph store
+#'
+#' @title
+#' Create a reactive AlphaGraph store
+#'
+#' @description
+#' Create a session store containing an independent copy of the supplied graph.
 #'
 #' @param graph Initial canonical graph.
 #'
 #' @return An `AlphaGraphStore` object.
 #'
 #' @keywords internal
+#'
 createAlphaGraphStore <- function(graph = createDemoAlphaGraph()) {
     AlphaGraphStore$new(graph)
 }

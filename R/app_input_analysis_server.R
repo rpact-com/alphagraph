@@ -88,7 +88,7 @@ moduleAnalysisServer <- function(
             ")
         })
 
-        shiny::observeEvent(input$runShortcut, {
+        shiny::observe({
             tryCatch({
                 projectStore$upsertAnalysis(
                     id = analysisId,
@@ -111,7 +111,13 @@ moduleAnalysisServer <- function(
             }, error = function(error) {
                 shiny::showNotification(conditionMessage(error), type = "error")
             })
-        }, ignoreInit = TRUE)
+        }, label = "analysis-run-shortcut") |>
+            shiny::bindEvent(
+                input$runShortcut,
+                ignoreInit = TRUE,
+                ignoreNULL = TRUE,
+                label = "analysis-run-shortcut"
+            )
 
         invisible(projectStore)
     })

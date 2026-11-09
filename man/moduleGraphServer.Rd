@@ -9,12 +9,14 @@ moduleGraphServer(id, graphStore = NULL, ..., args = list())
 \arguments{
 \item{id}{Module id (namespace) for this server module.}
 
-\item{graphStore}{Shared \code{AlphaGraphStore}. A private store is created
-when omitted, which keeps the module usable in isolation.}
+\item{graphStore}{Shared \code{AlphaGraphStore}. A private store is created when
+omitted, which keeps the module usable in isolation.}
 
 \item{...}{Additional parameters (reserved for future use).}
 
-\item{args}{Named list of optional parameters passed to the module.}
+\item{args}{Named list of optional parameters passed to the module. Supported
+entries include \code{positionDebounceMillis} and \code{zoomFactor}; the latter must
+be greater than one and defaults to \code{1.2}.}
 }
 \value{
 Invisibly NULL; the function registers server observers and outputs.

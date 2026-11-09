@@ -75,7 +75,7 @@ moduleDescriptionServer <- function(
 
             # Follow graph changes while the generated text is untouched. If
             # an edit is open, capture its current value before deciding.
-            shiny::observeEvent(generatedDescription(), {
+            shiny::observe({
                 editorValue <- shiny::isolate(input$descMarkdownInput)
                 if (identical(shiny::isolate(descRv$mode), "edit") &&
                         !is.null(editorValue) &&
@@ -86,10 +86,17 @@ moduleDescriptionServer <- function(
                 if (!isTRUE(shiny::isolate(descRv$userModified))) {
                     replaceWithGenerated()
                 }
-            }, ignoreInit = TRUE)
+            }, label = "description-follow-graph-changes") |>
+                shiny::bindEvent(
+                    generatedDescription(),
+                    ignoreInit = TRUE,
+                    ignoreNULL = TRUE,
+                    label = "description-follow-graph-changes"
+                )
 
             # Toggle to Edit mode
-            shiny::observeEvent(input$descModeEdit, {
+            # Preserve initial handling of an already available event.
+            shiny::observe({
                 descRv$mode <- "edit"
                 # Update button styling with JavaScript
                 session$sendCustomMessage(
@@ -99,10 +106,17 @@ moduleDescriptionServer <- function(
                         inactiveId = ns("descModePreview")
                     )
                 )
-            })
+            }, label = "description-switch-to-edit") |>
+                shiny::bindEvent(
+                    input$descModeEdit,
+                    ignoreInit = FALSE,
+                    ignoreNULL = TRUE,
+                    label = "description-switch-to-edit"
+                )
 
             # Toggle to Preview mode
-            shiny::observeEvent(input$descModePreview, {
+            # Preserve initial handling of an already available event.
+            shiny::observe({
                 # Save the edited content when switching to preview
                 if (!is.null(input$descMarkdownInput)) {
                     descRv$markdownContent <- input$descMarkdownInput
@@ -120,9 +134,16 @@ moduleDescriptionServer <- function(
                         inactiveId = ns("descModeEdit")
                     )
                 )
-            })
+            }, label = "description-switch-to-preview") |>
+                shiny::bindEvent(
+                    input$descModePreview,
+                    ignoreInit = FALSE,
+                    ignoreNULL = TRUE,
+                    label = "description-switch-to-preview"
+                )
 
-            shiny::observeEvent(input$descRegenerate, {
+            # Preserve initial handling of an already available event.
+            shiny::observe({
                 editorValue <- shiny::isolate(input$descMarkdownInput)
                 if (identical(shiny::isolate(descRv$mode), "edit") &&
                         !is.null(editorValue) &&
@@ -147,12 +168,25 @@ moduleDescriptionServer <- function(
                 } else {
                     replaceWithGenerated()
                 }
-            })
+            }, label = "description-request-regeneration") |>
+                shiny::bindEvent(
+                    input$descRegenerate,
+                    ignoreInit = FALSE,
+                    ignoreNULL = TRUE,
+                    label = "description-request-regeneration"
+                )
 
-            shiny::observeEvent(input$descRegenerateConfirm, {
+            # Preserve initial handling of an already available event.
+            shiny::observe({
                 shiny::removeModal()
                 replaceWithGenerated()
-            })
+            }, label = "description-confirm-regeneration") |>
+                shiny::bindEvent(
+                    input$descRegenerateConfirm,
+                    ignoreInit = FALSE,
+                    ignoreNULL = TRUE,
+                    label = "description-confirm-regeneration"
+                )
 
             reportMarkdown <- shiny::reactive({
                 if (identical(descRv$mode, "edit") && !is.null(input$descMarkdownInput)) {

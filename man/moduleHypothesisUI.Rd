@@ -14,6 +14,6 @@ UI elements for the hypothesis panel.
 }
 \description{
 UI for editing hypothesis labels, weights and p-values in a spreadsheet.
-The table also shows the read-only label rendered by \pkg{visNetwork}.
+The table also shows the read-only label rendered by visNetwork.
 }
 \keyword{internal}

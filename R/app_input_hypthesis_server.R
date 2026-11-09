@@ -103,7 +103,7 @@ moduleHypothesisServer <- function(
                 )
             })
 
-            shiny::observeEvent(input$hypothesisTable, {
+            shiny::observe({
                 tryCatch({
                     edited <- rhandsontable::hot_to_r(input$hypothesisTable)
                     updatedPValues <- .updateGraphFromHypothesisTable(
@@ -125,7 +125,13 @@ moduleHypothesisServer <- function(
                     shiny::showNotification(conditionMessage(error), type = "error")
                     tableRefresh(shiny::isolate(tableRefresh()) + 1L)
                 })
-            }, ignoreInit = TRUE)
+            }, label = "hypotheses-apply-table-edit") |>
+                shiny::bindEvent(
+                    input$hypothesisTable,
+                    ignoreInit = TRUE,
+                    ignoreNULL = TRUE,
+                    label = "hypotheses-apply-table-edit"
+                )
 
             invisible(graphStore)
         }

@@ -15,6 +15,6 @@ getGraphDescriptionFile(graph = createDemoAlphaGraph(), catalogPath = NULL)
 Path to a temporary Markdown file.
 }
 \description{
-Writes the dynamically generated description template to a temporary file.
+Write a dynamic graph description to a Markdown file
 }
 \keyword{internal}

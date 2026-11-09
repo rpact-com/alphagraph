@@ -80,7 +80,7 @@ moduleTransitionMatrixServer <- function(id, graphStore = NULL, ..., args = list
                 widget
             })
 
-            shiny::observeEvent(input$transitionMatrix, {
+            shiny::observe({
                 tryCatch({
                     edited <- rhandsontable::hot_to_r(input$transitionMatrix)
                     .updateGraphFromTransitionTable(graphStore, edited)
@@ -88,7 +88,13 @@ moduleTransitionMatrixServer <- function(id, graphStore = NULL, ..., args = list
                     shiny::showNotification(conditionMessage(error), type = "error")
                     tableRefresh(shiny::isolate(tableRefresh()) + 1L)
                 })
-            }, ignoreInit = TRUE)
+            }, label = "matrix-apply-table-edit") |>
+                shiny::bindEvent(
+                    input$transitionMatrix,
+                    ignoreInit = TRUE,
+                    ignoreNULL = TRUE,
+                    label = "matrix-apply-table-edit"
+                )
 
             invisible(graphStore)
         }

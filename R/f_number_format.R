@@ -10,7 +10,9 @@
 ## RPACT company website: https://www.rpact.com
 ##
 
-#' @title Parse and format AlphaGraph numeric values
+#'
+#' @title
+#' Parse and format AlphaGraph numeric values
 #'
 #' @description
 #' Strictly parse decimal and fraction input while keeping canonical graph
@@ -31,9 +33,12 @@
 #'
 #' @name alphaGraphNumberFormat
 #' @keywords internal
+#'
 NULL
 
+#'
 #' @rdname alphaGraphNumberFormat
+#'
 alphaGraphParseNumber <- function(x, name = "value") {
     if (is.numeric(x) || is.logical(x)) {
         if (length(x) != 1L || is.na(x) || !is.finite(x)) {
@@ -75,12 +80,16 @@ alphaGraphParseNumber <- function(x, name = "value") {
     value
 }
 
+#'
 #' @rdname alphaGraphNumberFormat
+#'
 alphaGraphTryParseNumber <- function(x) {
     tryCatch(alphaGraphParseNumber(x), error = function(error) NULL)
 }
 
+#'
 #' @rdname alphaGraphNumberFormat
+#'
 alphaGraphFormatNumber <- function(
         x,
         fractions = TRUE,
@@ -129,7 +138,9 @@ alphaGraphFormatNumber <- function(
     max(1L, a)
 }
 
+#'
 #' @rdname alphaGraphNumberFormat
+#'
 alphaGraphFormatMatrix <- function(matrix, settings = list()) {
     matrix <- as.matrix(matrix)
     formatted <- vapply(
@@ -146,7 +157,9 @@ alphaGraphFormatMatrix <- function(matrix, settings = list()) {
     formatted
 }
 
+#'
 #' @rdname alphaGraphNumberFormat
+#'
 alphaGraphParseMatrix <- function(x) {
     if (is.list(x) && !is.data.frame(x) && !is.matrix(x)) {
         x <- do.call(rbind, lapply(x, unlist, use.names = FALSE))
