@@ -129,6 +129,50 @@ test_that("description module follows the store without overwriting edits", {
     })
 })
 
+test_that("report downloads preserve the current Markdown in preview and edit mode", {
+    ui <- as.character(moduleDescriptionUI("description"))
+    expect_match(ui, 'id="description-descDownloadRmd"', fixed = TRUE)
+    expect_match(ui, 'id="description-descDownloadQmd"', fixed = TRUE)
+
+    shiny::testServer(function(input, output, session) {
+        store <- createAlphaGraphStore(createDemoAlphaGraph())
+        moduleDescriptionServer("description", graphStore = store)
+        session$userData$store <- store
+    }, {
+        session$flushReact()
+        expected <- getGraphDescription(session$userData$store$snapshot())
+        headers <- c(
+            `description-descDownloadRmd` = "---\noutput: html_document\n---\n\n",
+            `description-descDownloadQmd` = "---\nformat: html\n---\n\n"
+        )
+        for (id in c("description-descDownloadRmd", "description-descDownloadQmd")) {
+            file <- output[[id]]
+            expect_equal(
+                paste(readLines(file, encoding = "UTF-8", warn = FALSE), collapse = "\n"),
+                paste0(headers[[id]], expected)
+            )
+        }
+
+        edited <- "# My report\n\nUnicode: \u2099\u1D62 and \u00E4\n\n<!-- Keep this comment -->"
+        session$setInputs(`description-descModeEdit` = 1)
+        session$setInputs(`description-descMarkdownInput` = edited)
+        for (id in c("description-descDownloadRmd", "description-descDownloadQmd")) {
+            file <- output[[id]]
+            expect_equal(
+                paste(readLines(file, encoding = "UTF-8", warn = FALSE), collapse = "\n"),
+                paste0(headers[[id]], edited)
+            )
+        }
+
+        session$setInputs(`description-descModePreview` = 1)
+        file <- output[["description-descDownloadQmd"]]
+        expect_equal(
+            paste(readLines(file, encoding = "UTF-8", warn = FALSE), collapse = "\n"),
+            paste0(headers[["description-descDownloadQmd"]], edited)
+        )
+    })
+})
+
 test_that("preview removes multiline comments without changing Markdown", {
     markdown <- paste(
         "# Heading",

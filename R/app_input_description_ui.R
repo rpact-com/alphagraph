@@ -44,6 +44,18 @@ moduleDescriptionUI <- function(id) {
                     label = "Regenerate template",
                     class = "btn-sm btn-outline-secondary",
                     title = "Generate a fresh description from the current graph"
+                ),
+                shiny::downloadButton(
+                    outputId = ns("descDownloadRmd"),
+                    label = "Rmd",
+                    class = "btn-sm btn-outline-secondary",
+                    title = "Download report as R Markdown (.Rmd)"
+                ),
+                shiny::downloadButton(
+                    outputId = ns("descDownloadQmd"),
+                    label = "qmd",
+                    class = "btn-sm btn-outline-secondary",
+                    title = "Download report as Quarto Markdown (.qmd)"
                 )
             ),
             shiny::uiOutput(ns("descContent"))

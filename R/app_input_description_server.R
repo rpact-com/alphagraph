@@ -154,6 +154,31 @@ moduleDescriptionServer <- function(
                 replaceWithGenerated()
             })
 
+            reportMarkdown <- shiny::reactive({
+                if (identical(descRv$mode, "edit") && !is.null(input$descMarkdownInput)) {
+                    input$descMarkdownInput
+                } else {
+                    descRv$markdownContent
+                }
+            })
+
+            reportDownload <- function(extension) {
+                shiny::downloadHandler(
+                    filename = function() paste0("alphagraph-report.", extension),
+                    contentType = "text/plain; charset=utf-8",
+                    content = function(file) {
+                        header <- if (extension == "Rmd") {
+                            "---\noutput: html_document\n---\n"
+                        } else {
+                            "---\nformat: html\n---\n"
+                        }
+                        writeLines(enc2utf8(c(header, reportMarkdown())), file, useBytes = TRUE)
+                    }
+                )
+            }
+            output$descDownloadRmd <- reportDownload("Rmd")
+            output$descDownloadQmd <- reportDownload("qmd")
+
             # Render the appropriate content based on mode
             output$descContent <- shiny::renderUI({
                 if (descRv$mode == "preview") {
