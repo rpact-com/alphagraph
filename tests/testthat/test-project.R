@@ -190,10 +190,11 @@ test_that("analysis module runs against the shared project store", {
         {
             session$setInputs(alpha = 0.025, runShortcut = 0)
             session$flushReact()
+            expect_match(output$analysisStatus$html, "No current result", fixed = TRUE)
             session$setInputs(runShortcut = 1)
             session$flushReact()
             expect_false(is.null(store$result("shortcut-primary")))
-            expect_match(output$analysisStatus, "graphicalMCP")
+            expect_match(output$analysisStatus$html, "graphicalMCP", fixed = TRUE)
 
             store$graphStore$transact("test:graph-change", function(graph) {
                 graph$setNodeWeight("H1_NI", 0.9)
@@ -201,6 +202,7 @@ test_that("analysis module runs against the shared project store", {
             }, requireNumeric = TRUE)
             session$flushReact()
             expect_null(store$result("shortcut-primary"))
+            expect_match(output$analysisStatus$html, "No current result", fixed = TRUE)
         }
     )
 })
