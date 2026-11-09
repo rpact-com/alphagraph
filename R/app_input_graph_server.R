@@ -4,8 +4,8 @@
 ## This file is part of the R package alphagraph
 ##
 ## Author: Friedrich Pahlke, PhD
-## Licensed under "GNU Lesser General Public License" version 3
-## License text can be found here: https://www.r-project.org/Licenses/LGPL-3
+## Licensed under "GNU Affero General Public License" version 3.0
+## License text can be found here: https://cran.r-project.org/web/licenses/AGPL-3
 ##
 ## RPACT company website: https://www.rpact.com
 ##
@@ -49,6 +49,7 @@ moduleGraphServer <- function(id, graphStore = NULL, ..., args = list()) {
             logDebug("///--- moduleGraphServer id = ", id, " (", session$ns("xxx"), ")")
 
             viewLocked <- shiny::reactiveVal(TRUE)
+            gridVisible <- shiny::reactiveVal(TRUE)
 
             output$graph <- visNetwork::renderVisNetwork({
                 graphStore$revision()
@@ -68,8 +69,13 @@ moduleGraphServer <- function(id, graphStore = NULL, ..., args = list()) {
                         if (window.alphaGraphInitializeEdgeDrawing) {
                             window.alphaGraphInitializeEdgeDrawing(el, data.inputPrefix);
                         }
+                        window.alphaGraphSetGridVisibility({
+                            id: el.id, visible: data.gridVisible, buttonId: data.gridButtonId
+                        });
                     }
-                ", data = list(inputPrefix = ns("")))
+                ", data = list(inputPrefix = ns(""),
+                              gridVisible = shiny::isolate(gridVisible()),
+                              gridButtonId = ns("toggle_grid")))
             })
 
             #    shiny::observeEvent(input$node_right_click, {
@@ -264,6 +270,14 @@ moduleGraphServer <- function(id, graphStore = NULL, ..., args = list()) {
                     "alphaGraphZoom",
                     list(id = ns("graph"), factor = 1 / zoomFactor)
                 )
+            })
+
+            shiny::observeEvent(input$toggle_grid, {
+                visible <- !gridVisible()
+                gridVisible(visible)
+                session$sendCustomMessage("alphaGraphGridVisibility", list(
+                    id = ns("graph"), visible = visible, buttonId = ns("toggle_grid")
+                ))
             })
 
             shiny::observeEvent(input$lock_pos, {

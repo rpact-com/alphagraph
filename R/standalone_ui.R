@@ -4,8 +4,8 @@
 ## This file is part of the R package alphagraph
 ##
 ## Author: Friedrich Pahlke, PhD
-## Licensed under "GNU Lesser General Public License" version 3
-## License text can be found here: https://www.r-project.org/Licenses/LGPL-3
+## Licensed under "GNU Affero General Public License" version 3.0
+## License text can be found here: https://cran.r-project.org/web/licenses/AGPL-3
 ##
 ## RPACT company website: https://www.rpact.com
 ##
@@ -58,7 +58,7 @@ createUI <- function(request) {
                 title = bs4Dash::dashboardBrand(
                     title = "alphagraph",
                     color = "secondary",
-                    href = "https://www.rpact.com",
+                    href = "https://docs.alphagraph.org",
                     image = "www/alphagraph.png",
                     opacity = 0.8
                 ),

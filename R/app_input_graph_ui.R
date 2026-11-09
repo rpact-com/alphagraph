@@ -4,8 +4,8 @@
 ## This file is part of the R package alphagraph
 ##
 ## Author: Friedrich Pahlke, PhD
-## Licensed under "GNU Lesser General Public License" version 3
-## License text can be found here: https://www.r-project.org/Licenses/LGPL-3
+## Licensed under "GNU Affero General Public License" version 3.0
+## License text can be found here: https://cran.r-project.org/web/licenses/AGPL-3
 ##
 ## RPACT company website: https://www.rpact.com
 ##
@@ -96,6 +96,14 @@ moduleGraphUI <- function(id) {
                         label = NULL,
                         icon = shiny::icon("search-minus"),
                         title = "Zoom out"
+                    ),
+                    shiny::actionButton(
+                        ns("toggle_grid"),
+                        label = NULL,
+                        icon = shiny::icon("table-cells"),
+                        title = "Hide grid (snapping stays enabled)",
+                        `aria-label` = "Hide grid (snapping stays enabled)",
+                        `aria-pressed` = "true"
                     ),
                     shiny::actionButton(
                         ns("lock_pos"),
