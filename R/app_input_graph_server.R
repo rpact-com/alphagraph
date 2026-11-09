@@ -61,12 +61,15 @@ moduleGraphServer <- function(id, graphStore = NULL, ..., args = list()) {
                     dragView = !shiny::isolate(viewLocked())
                 )
                 htmlwidgets::onRender(widget, "
-                    function(el) {
+                    function(el, x, data) {
                         if (window.alphaGraphInitializeHeight) {
                             window.alphaGraphInitializeHeight(el);
                         }
+                        if (window.alphaGraphInitializeEdgeDrawing) {
+                            window.alphaGraphInitializeEdgeDrawing(el, data.inputPrefix);
+                        }
                     }
-                ")
+                ", data = list(inputPrefix = ns("")))
             })
 
             #    shiny::observeEvent(input$node_right_click, {
@@ -113,7 +116,7 @@ moduleGraphServer <- function(id, graphStore = NULL, ..., args = list()) {
                 })
             })
 
-            shiny::observeEvent(input$add_edge, {
+            showEdgeEditor <- function(from = NULL, to = NULL) {
                 nodes <- graphStore$snapshot()$toList()$nodes
                 if (length(nodes) < 2L) {
                     shiny::showNotification(
@@ -130,21 +133,56 @@ moduleGraphServer <- function(id, graphStore = NULL, ..., args = list()) {
                 )
                 shiny::showModal(shiny::modalDialog(
                     title = "Add transition",
-                    shiny::selectInput(ns("edge_from"), "From", choices = choices),
+                    shiny::selectInput(ns("edge_from"), "From", choices = choices,
+                                       selected = from %||% choices[[1L]]),
                     shiny::selectInput(ns("edge_to"), "To", choices = choices,
-                                       selected = choices[min(2L, length(choices))]),
+                                       selected = to %||% choices[min(2L, length(choices))]),
                     shiny::textInput(ns("edge_transition"), "Weight for Edge", value = "1/2"),
                     footer = shiny::tagList(
                         shiny::modalButton("Cancel"),
                         shiny::actionButton(ns("save_edge"), "Add")
                     )
                 ))
+            }
+
+            shiny::observeEvent(input$add_edge, {
+                showEdgeEditor()
+            })
+
+            shiny::observeEvent(input$edge_drawn, {
+                from <- input$edge_drawn$from
+                to <- input$edge_drawn$to
+                data <- graphStore$snapshot()$toList()
+                ids <- vapply(data$nodes, function(node) node$id, character(1L))
+                shiny::req(is.character(from), length(from) == 1L, from %in% ids,
+                           is.character(to), length(to) == 1L, to %in% ids,
+                           !identical(from, to))
+                if (any(vapply(data$edges, function(edge) {
+                    identical(edge$from, from) && identical(edge$to, to)
+                }, logical(1L)))) {
+                    shiny::showNotification(
+                        "A transition from this node to the target already exists. Use Edit edge weight to change it.",
+                        type = "warning"
+                    )
+                    return()
+                }
+                showEdgeEditor(from, to)
             })
 
             shiny::observeEvent(input$save_edge, {
                 tryCatch({
                     shiny::req(input$edge_from, input$edge_to, input$edge_transition)
                     graphStore$transact("graph:add-edge", function(candidate) {
+                        if (identical(input$edge_from, input$edge_to)) {
+                            stop("A transition must connect two different nodes.", call. = FALSE)
+                        }
+                        if (any(vapply(candidate$toList()$edges, function(edge) {
+                            identical(edge$from, input$edge_from) &&
+                                identical(edge$to, input$edge_to)
+                        }, logical(1L)))) {
+                            stop("This transition already exists. Use Edit edge weight to change it.",
+                                 call. = FALSE)
+                        }
                         candidate$setTransitionWeight(
                             from = input$edge_from,
                             to = input$edge_to,

@@ -38,7 +38,8 @@ moduleGraphUI <- function(id) {
         shiny::singleton(
             shiny::tagList(
                 shiny::includeCSS(getSystemFile("www/graph-panel.css")),
-                shiny::includeScript(getSystemFile("www/js/graph-view-controls.js"))
+                shiny::includeScript(getSystemFile("www/js/graph-view-controls.js")),
+                shiny::includeScript(getSystemFile("www/js/graph-edge-drawing.js"))
             )
         ),
         shiny::uiOutput(ns("ctx_overlay")),

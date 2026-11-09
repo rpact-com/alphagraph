@@ -18,6 +18,7 @@ moduleAnalysisUI <- function(id) {
         solidHeader = TRUE,
         title = iconTitle("Results", "table"),
         shiny::fluidRow(
+            style = "align-items: flex-end;",
             bs4Dash::column(
                 4,
                 shiny::numericInput(
@@ -31,12 +32,14 @@ moduleAnalysisUI <- function(id) {
             ),
             bs4Dash::column(
                 4,
-                shiny::tags$br(),
-                shiny::actionButton(
-                    ns("runShortcut"),
-                    "Run",
-                    icon = shiny::icon("play"),
-                    title = "Run shortcut analysis"
+                shiny::tags$div(
+                    class = "form-group",
+                    shiny::actionButton(
+                        ns("runShortcut"),
+                        "Run",
+                        icon = shiny::icon("play"),
+                        title = "Run shortcut analysis"
+                    )
                 )
             )
         ),
