@@ -27,6 +27,10 @@
     }
 
     window.alphaGraphGrid = {
+        setVisible: function(network, visible) {
+            network.__alphaGraphGridVisible = visible;
+            network.redraw();
+        },
         beforeRedraw: function(network, grid, inputId) {
             var initial = !network.__alphaGraphGridInitialized;
             network.__alphaGraphGridInitialized = true;
@@ -39,6 +43,7 @@
             publish(inputId, snap(network, grid, ids, true, false));
         },
         draw: function(ctx, network, grid) {
+            if (network.__alphaGraphGridVisible === false) return;
             // beforeDrawing already has the same translation, scale and device
             // pixel ratio as the nodes. Invert it only to find the visible area.
             var t = ctx.getTransform();

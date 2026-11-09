@@ -373,7 +373,7 @@ Rationale:
 - If a certain feature would not be available in visNetwork this could be added
   by us to the package or even the underlying JavaScript code.
 
-# Proof-of-Concept Shiny Application (alphagraph PoC)
+# Proof-of-Concept Shiny Application (alphagraph)
 
 Based on the technology evaluation described above, we implemented a
 **Proof-of-Concept (PoC) Shiny application** using **`visNetwork`** as the

@@ -233,6 +233,22 @@
         resizePanel(handle, handle.parentElement.getBoundingClientRect().height + delta);
     });
 
+    window.alphaGraphSetGridVisibility = function(message) {
+        var graphElement = document.getElementById("graph" + message.id);
+        if (graphElement && graphElement.chart && window.alphaGraphGrid) {
+            window.alphaGraphGrid.setVisible(graphElement.chart, message.visible);
+        }
+        var button = document.getElementById(message.buttonId);
+        if (button) {
+            var label = (message.visible ? "Hide" : "Show") + " grid (snapping stays enabled)";
+            button.setAttribute("aria-pressed", String(message.visible));
+            button.setAttribute("aria-label", label);
+            button.setAttribute("title", label);
+            button.classList.toggle("active", message.visible);
+        }
+    };
+    Shiny.addCustomMessageHandler("alphaGraphGridVisibility", window.alphaGraphSetGridVisibility);
+
     Shiny.addCustomMessageHandler("alphaGraphZoom", function(message) {
         // visNetwork stores its Network instance on a child element whose id
         // consists of "graph" followed by the namespaced Shiny output id.

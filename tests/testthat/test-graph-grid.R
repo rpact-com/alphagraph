@@ -19,6 +19,28 @@ test_that("canvas grid and snapping share the graph configuration", {
     expect_error(getDemoGraph(identity, graph), "Grid size must be positive")
 })
 
+test_that("toolbar grid toggle preserves its state across graph edits", {
+    ui <- as.character(moduleGraphUI("graph"))
+    expect_match(ui, 'id="graph-toggle_grid"', fixed = TRUE)
+    expect_match(ui, 'aria-pressed="true"', fixed = TRUE)
+    store <- createAlphaGraphStore(createDemoAlphaGraph())
+    shiny::testServer(moduleGraphServer, args = list(graphStore = store), {
+        session$flushReact()
+        expect_true(gridVisible())
+        session$setInputs(toggle_grid = 1)
+        expect_false(gridVisible())
+        expect_equal(graphStore$revision(), 0L)
+        graphStore$transact("test:color", function(graph) {
+            graph$setNodeColor("H1_NI", background = "white")
+        })
+        session$flushReact()
+        expect_false(gridVisible())
+        session$setInputs(toggle_grid = 2)
+        expect_true(gridVisible())
+        expect_equal(graphStore$revision(), 1L)
+    })
+})
+
 test_that("snapped node positions persist across later graph edits", {
     shiny::testServer(function(input, output, session) {
         store <- createAlphaGraphStore(createDemoAlphaGraph())

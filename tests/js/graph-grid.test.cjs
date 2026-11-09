@@ -35,6 +35,27 @@ test("initial snapping persists corrected centers once; drag frames do not mutat
     assert.equal(s.messages.length, count, "panning must not save node coordinates");
 });
 
+test("hiding the grid preserves snapping and stored node positions", () => {
+    const s = setup(), config = {size: 40, origin: {x: 14, y: -5}};
+    let redraws = 0;
+    s.network.redraw = () => redraws++;
+    s.grid.setVisible(s.network, false);
+    s.grid.draw({}, s.network, config); // Hidden grid must not touch the canvas.
+    assert.equal(s.updates.length, 0, "visibility alone must not change positions");
+    s.grid.beforeRedraw(s.network, config, "positions");
+    assert.equal(s.network.body.nodes.A.x, 14);
+    s.network.body.nodes.A.x = 39;
+    s.grid.beforeRedraw(s.network, config, "positions");
+    assert.equal(s.network.body.nodes.A.x, 54);
+    s.grid.dragEnd(s.network, config, "positions", ["A"]);
+    assert.equal(s.messages.at(-1).value.nodes[0].x, 54);
+    const updates = s.updates.length;
+    s.grid.setVisible(s.network, true);
+    assert.equal(s.network.__alphaGraphGridVisible, true);
+    assert.equal(s.updates.length, updates);
+    assert.equal(redraws, 2);
+});
+
 for (const size of [40, 24.5]) {
     test(`grid intersections track node centers with spacing ${size} through zoom, pan and resize`, () => {
         const s = setup(), config = {size, origin: {x: 14.5, y: -5.25}};

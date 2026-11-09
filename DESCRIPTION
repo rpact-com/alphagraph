@@ -1,7 +1,7 @@
 Package: alphagraph
 Type: Package
-Version: 0.1.0.9007
-Date: 2026-07-02
+Version: 0.1.0.9008
+Date: 2026-11-09
 Title: alphagraph: Graphical Multiple Comparison Tool
 Authors@R: c(
     person(
