@@ -4,10 +4,12 @@
 \alias{getDemoGraph}
 \title{Create a demo visNetwork graph for the UI}
 \usage{
-getDemoGraph(ns)
+getDemoGraph(ns, graph = createDemoAlphaGraph())
 }
 \arguments{
 \item{ns}{Shiny namespace function (usually obtained via session$ns).}
+
+\item{graph}{Canonical \code{AlphaGraph} to render.}
 }
 \value{
 A visNetwork object ready to be rendered.

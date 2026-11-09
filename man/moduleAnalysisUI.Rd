@@ -7,13 +7,12 @@
 moduleAnalysisUI(id)
 }
 \arguments{
-\item{id}{Module id (namespace) used for UI namespacing.}
+\item{id}{Module id used for namespacing.}
 }
 \value{
-UI elements for the analysis panel.
+UI elements for configuring and displaying a shortcut analysis.
 }
 \description{
-UI definition for the analysis output panel. This module provides a
-placeholder verbatim text output where analysis results can be displayed.
+Analysis panel UI module
 }
 \keyword{internal}

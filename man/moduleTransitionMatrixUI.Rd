@@ -13,7 +13,7 @@ moduleTransitionMatrixUI(id)
 UI elements for the transition matrix panel.
 }
 \description{
-UI for displaying the transition matrix in a datatable. The module
+UI for displaying the transition matrix in an editable spreadsheet. The module
 provides a boxed panel containing the rendered matrix output.
 }
 \keyword{internal}

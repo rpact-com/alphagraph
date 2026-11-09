@@ -3,6 +3,12 @@
 # Author: Friedrich Pahlke
 ###############################################################################
 
+
+graph <- createDemoAlphaGraph()
+graph$toGraphicalMCPInput()
+json <- graph$toJSON()
+json
+
 # install.packages("pak")
 pak::pak("openpharma/graphicalMCP")
 

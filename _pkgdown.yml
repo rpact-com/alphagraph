@@ -16,8 +16,8 @@ home:
   title: alphagraph
   description: Graphical Multiple Comparison Tool
   links:
-  - text: alphagraph PoC
-    href: https://rpact-alphagraph-poc.share.connect.posit.cloud/
+  - text: alphagraph
+    href: https://app.alphagraph.org
   - text: RPACT Cloud Demo
     href: https://rpact.cloud
   - text: RPACT Connect

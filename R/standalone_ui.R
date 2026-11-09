@@ -4,8 +4,8 @@
 ## This file is part of the R package alphagraph
 ##
 ## Author: Friedrich Pahlke, PhD
-## Licensed under "GNU Lesser General Public License" version 3
-## License text can be found here: https://www.r-project.org/Licenses/LGPL-3
+## Licensed under "GNU Affero General Public License" version 3.0
+## License text can be found here: https://cran.r-project.org/web/licenses/AGPL-3
 ##
 ## RPACT company website: https://www.rpact.com
 ##
@@ -27,54 +27,128 @@
 #' tab is currently a placeholder for future settings options.
 #' 
 #' @export
+#' @importFrom shiny tagList tags
 #' 
 createUI <- function(request) {
-    bs4Dash::dashboardPage(
-        header = bs4Dash::dashboardHeader(title = "alphagraph"),
-        sidebar = bs4Dash::dashboardSidebar(
-            bs4Dash::sidebarMenu(
-                bs4Dash::menuItem("Graph Editor", tabName = "graph", icon = shiny::icon("project-diagram")),
-                bs4Dash::menuItem("Settings", tabName = "settings", icon = shiny::icon("sliders-h"))
-            )
+    tagList(
+        tags$head(
+            tags$meta(charset = "UTF-8"),
+            tags$meta(
+                name = "keywords",
+                content = "alphagraph, graphicalMCP, gMCP, Clinical Trials, Friedrich Pahlke"
+            ),
+            tags$meta(
+                name = "description",
+                content = "alphagraph"
+            ),
+            tags$link(href = "www/favicon.ico", rel = "icon"),
+            tags$link(href = "www/favicon.ico", rel = "apple-touch-icon"),
+            tags$link(href = "www/favicon.ico", rel = "shortcut icon", type = "image/vnd.microsoft.icon"),
+            includeJavaScript("www/js/fix-sidebar-theme.js")
         ),
-        body = bs4Dash::dashboardBody(
-            shiny::includeCSS(getSystemFile("www/context-menu.css")),
-            shiny::includeCSS(getSystemFile("www/vis-network.css")),
-            includeJavaScript("www/js/toggle-button.js"),
-            bs4Dash::tabItems(
-                bs4Dash::tabItem(
-                    tabName = "graph",
-                    
-                    shiny::fluidRow(
-                        bs4Dash::column(
-                            7,
-                            moduleGraphUI("graphIO"),
-                            bs4Dash::tabBox(
-                                width = 12,
-                                shiny::tabPanel(
-                                    "Description",
-                                    moduleDescriptionUI("descriptionPanel")
-                                ),
-                                shiny::tabPanel(
-                                    "Analysis",
-                                    moduleAnalysisUI("analysisPanel")
-                                )
-                            )
-                        ),
-
-                        bs4Dash::column(
-                            5,
-                            moduleTransitionMatrixUI("transitionMatrix"),
-                            moduleHypothesisUI("hypothesisPanel")
-                        )
-                    )
+        
+        bs4Dash::dashboardPage(
+            title = "alphagraph",
+            dark = FALSE,
+            help = (if (isMaximumPackageVersion("2.3.0", "bs4Dash", inclusive = FALSE)) FALSE else NULL),
+            skin = "light",
+            fullscreen = TRUE,
+            scrollToTop = TRUE,
+            
+            header = bs4Dash::dashboardHeader(
+                title = bs4Dash::dashboardBrand(
+                    title = "alphagraph",
+                    color = "secondary",
+                    href = "https://docs.alphagraph.org",
+                    image = "www/alphagraph.png",
+                    opacity = 0.8
                 ),
-
-                bs4Dash::tabItem(
-                    tabName = "settings",
-                    shiny::tags$h2("Settings"),
-                    shiny::tags$p("alphagraph settings will be implemented here in the future.")
+                compact = FALSE,
+                skin = "dark",
+                status = "gray",
+                border = FALSE,
+                fixed = TRUE
+            ),
+            
+            sidebar = bs4Dash::dashboardSidebar(
+                #width = "140px",
+                collapsed = TRUE,
+                expandOnHover = FALSE,
+                #status = "secondary",
+                skin = "dark",
+                fixed = TRUE,
+                customArea = NULL,
+                bs4Dash::sidebarMenu(
+                    bs4Dash::menuItem("Graph", tabName = "main-tab", icon = shiny::icon("project-diagram")),
+                    bs4Dash::menuItem("Settings", tabName = "settings-tab", icon = shiny::icon("sliders-h"))
                 )
+            ),
+            
+            controlbar = NULL,
+            
+            body = bs4Dash::dashboardBody(
+                shiny::includeCSS(getSystemFile("www/context-menu.css")),
+                shiny::includeCSS(getSystemFile("www/vis-network.css")),
+                includeJavaScript("www/js/toggle-button.js"),
+                bs4Dash::tabItems(
+                    bs4Dash::tabItem(
+                        tabName = "main-tab",
+                        
+                        bs4Dash::tabBox(
+                            width = 12,
+                            shiny::tabPanel(
+                                title = iconTitle("Design", "cube"),
+                                value = "design-tab",
+                                shiny::fluidRow(
+                                    class = "alpha-design-split",
+                                    bs4Dash::column(
+                                        7,
+                                        id = "alpha-design-left",
+                                        class = "alpha-design-left",
+                                        
+                                        moduleGraphUI("graphIO")
+                                    ),
+    
+                                    shiny::tags$div(
+                                        class = "alpha-design-splitter",
+                                        role = "separator",
+                                        tabindex = "0",
+                                        `aria-label` = "Resize graph and results column",
+                                        `aria-orientation` = "vertical",
+                                        `aria-controls` = "alpha-design-left",
+                                        `aria-valuemin` = "25",
+                                        `aria-valuemax` = "75",
+                                        `aria-valuenow` = "58.33",
+                                        title = "Drag to resize columns, or use Left and Right arrow keys"
+                                    ),
+                                    bs4Dash::column(
+                                        5,
+                                        class = "alpha-design-right",
+                                        moduleTransitionMatrixUI("transitionMatrix"),
+                                        moduleHypothesisUI("hypothesisPanel"),
+                                        moduleAnalysisUI("analysisPanel")
+                                    )
+                                )
+                            ),
+                            shiny::tabPanel(
+                                title = iconTitle("Reporting", "chart-simple"),
+                                value = "reporting-tab",
+                                moduleDescriptionUI("descriptionPanel")
+                            )
+                        )
+                    ),
+    
+                    bs4Dash::tabItem(
+                        tabName = "settings-tab",
+                        shiny::tags$h2("Settings"),
+                        shiny::tags$p("alphagraph settings will be implemented here in the future.")
+                    )
+                )
+            ),
+            
+            footer = bs4Dash::dashboardFooter(
+                left = "alphagraph - design, visualize, and analyze graphical multiple comparison procedures",
+                right = "\u00a9 2026 RPACT. Licensed under the GNU Affero General Public License v3.0"
             )
         )
     )

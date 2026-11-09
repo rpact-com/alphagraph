@@ -1,7 +1,7 @@
 Package: alphagraph
 Type: Package
-Version: 0.1.0.9006
-Date: 2026-06-30
+Version: 0.1.0.9008
+Date: 2026-11-09
 Title: alphagraph: Graphical Multiple Comparison Tool
 Authors@R: c(
     person(
@@ -32,7 +32,7 @@ Description: The alphagraph package provides a graphical multiple comparison too
     statistical analyses. It offers an intuitive interface for comparing 
     groups and understanding the relationships between them, making it easier 
     to identify significant differences and patterns in the data.
-License: LGPL-3
+License: AGPL-3
 Encoding: UTF-8
 LazyData: true
 URL: 
@@ -44,12 +44,19 @@ Depends:
 	shiny (>= 1.6.0)
 Imports:
     visNetwork,
-    DT,
+    shinyWidgets,
+    rhandsontable,
+    htmlwidgets,
+    htmltools,
+    fontawesome,
+    markdown,
     R6,
     bs4Dash,
-	knitr (>= 1.19),
+    jsonlite,
+    graphicalMCP,
     here
 Suggests: 
+	knitr (>= 1.19),
 	testthat (>= 3.0.0),
     devtools,
     pagedown
@@ -57,4 +64,4 @@ Roxygen: list(markdown = TRUE)
 VignetteBuilder: knitr
 Config/testthat/edition: 3
 Config/testthat/parallel: false
-Config/roxygen2/version: 7.3.3.9000
+Config/roxygen2/version: 8.1.1

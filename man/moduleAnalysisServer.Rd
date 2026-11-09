@@ -4,21 +4,34 @@
 \alias{moduleAnalysisServer}
 \title{Analysis panel server module}
 \usage{
-moduleAnalysisServer(id, ..., args = list())
+moduleAnalysisServer(
+  id,
+  projectStore = NULL,
+  analysisId = "shortcut-primary",
+  datasetId = "primary",
+  ...,
+  args = list()
+)
 }
 \arguments{
-\item{id}{Module id (namespace) for this server module.}
+\item{id}{Module id.}
 
-\item{...}{Additional parameters (reserved for future use).}
+\item{projectStore}{Shared \code{AlphaProjectStore}.}
 
-\item{args}{Named list of optional parameters passed to the module.}
+\item{analysisId}{Shortcut analysis specification to update and run.}
+
+\item{datasetId}{Dataset containing raw p-values.}
+
+\item{...}{Additional parameters reserved for future use.}
+
+\item{args}{Optional module parameters.}
 }
 \value{
-Invisibly NULL; registers server outputs and observers.
+Invisibly, the project store.
 }
 \description{
-Server-side logic for the analysis panel. Currently this renders a
-placeholder text; in future it can be extended to perform computations
-and render results based on user inputs.
+Runs the first end-to-end graphicalMCP calculation. The graph comes from the
+project graph, raw p-values from a project dataset, and the derived result is
+stored separately with an input fingerprint and engine versions.
 }
 \keyword{internal}

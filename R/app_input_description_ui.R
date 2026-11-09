@@ -4,8 +4,8 @@
 ## This file is part of the R package alphagraph
 ##
 ## Author: Friedrich Pahlke, PhD
-## Licensed under "GNU Lesser General Public License" version 3
-## License text can be found here: https://www.r-project.org/Licenses/LGPL-3
+## Licensed under "GNU Affero General Public License" version 3.0
+## License text can be found here: https://cran.r-project.org/web/licenses/AGPL-3
 ##
 ## RPACT company website: https://www.rpact.com
 ##
@@ -38,6 +38,24 @@ moduleDescriptionUI <- function(id) {
                     inputId = ns("descModeEdit"),
                     label = "Edit",
                     class = "btn-sm btn-outline-secondary"
+                ),
+                shiny::actionButton(
+                    inputId = ns("descRegenerate"),
+                    label = "Regenerate template",
+                    class = "btn-sm btn-outline-secondary",
+                    title = "Generate a fresh description from the current graph"
+                ),
+                shiny::downloadButton(
+                    outputId = ns("descDownloadRmd"),
+                    label = "Rmd",
+                    class = "btn-sm btn-outline-secondary",
+                    title = "Download report as R Markdown (.Rmd)"
+                ),
+                shiny::downloadButton(
+                    outputId = ns("descDownloadQmd"),
+                    label = "qmd",
+                    class = "btn-sm btn-outline-secondary",
+                    title = "Download report as Quarto Markdown (.qmd)"
                 )
             ),
             shiny::uiOutput(ns("descContent"))

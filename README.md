@@ -127,6 +127,20 @@ Planned future developments include:
 
 ---
 
+## Regenerating package documentation
+
+From the repository root, run `roxygen2::roxygenize()` (validated with
+roxygen2 8.1.1). `NAMESPACE` is generated from the Roxygen declarations in `R/`;
+its historical export pattern is declared in `R/alphagraph-package.R`.
+Maintain imports and exports in those declarations rather than editing
+`NAMESPACE` directly.
+
+The R6 class, converter, and number-format help pages are also generated from
+their R sources. Some other help pages remain hand-maintained; check the
+generated-file header before editing an Rd file.
+
+---
+
 ## Status
 
 ⚠️ **Early development**
@@ -137,7 +151,18 @@ Planned future developments include:
 
 ## License
 
-[LGPL-3](https://www.r-project.org/Licenses/LGPL-3)
+alphagraph is open-source software licensed under the
+GNU Affero General Public License version 3 ([AGPL-3.0](https://cran.r-project.org/web/licenses/AGPL-3)).
+
+The AGPL license permits use, modification, and distribution of
+alphagraph, including commercial use, subject to the terms and
+conditions of the AGPL.
+
+RPACT GmbH also offers commercial licenses for organizations that
+wish to integrate alphagraph into proprietary software or services
+without being subject to the requirements of the AGPL.
+
+For commercial licensing inquiries, please [contact RPACT](https://www.rpact.com/contact/).
 
 ---
 

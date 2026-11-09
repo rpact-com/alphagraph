@@ -4,8 +4,8 @@
 ## This file is part of the R package alphagraph
 ##
 ## Author: Friedrich Pahlke, PhD
-## Licensed under "GNU Lesser General Public License" version 3
-## License text can be found here: https://www.r-project.org/Licenses/LGPL-3
+## Licensed under "GNU Affero General Public License" version 3.0
+## License text can be found here: https://cran.r-project.org/web/licenses/AGPL-3
 ##
 ## RPACT company website: https://www.rpact.com
 ##
@@ -116,4 +116,132 @@ getSystemFile <- function(path) {
 includeJavaScript <- function(path) {
     # shiny::includeScript(path = getSystemFile(path))
     shiny::tags$script(src = path, defer = NA)
+}
+
+#' @title Check an installed package against a maximum version
+#' @param maxVersion Maximum package version, as a character string.
+#' @param pkg Package name.
+#' @param ... Reserved for future use.
+#' @param inclusive Whether the maximum version itself is accepted.
+#' @return Logical scalar indicating whether the installed version is accepted.
+#' @keywords internal
+isMaximumPackageVersion <- function(maxVersion, pkg, ..., inclusive = TRUE) {
+    tryCatch(
+        {
+            if (isFALSE(inclusive)) {
+                return(utils::packageVersion(pkg) < maxVersion)
+            }
+
+            return(utils::packageVersion(pkg) <= maxVersion)
+        },
+        error = function(e) {
+            stop("Failed to check if package ", sQuote(pkg), " has version ", maxVersion, " or older: ", e$message)
+        }
+    )
+    return(TRUE)
+}
+
+#' @title Describe the bundled Font Awesome HTML dependency
+#' @return An HTML dependency for the bundled Font Awesome stylesheets.
+#' @keywords internal
+getFontAwesomeHtmlDependency <- function() {
+    htmltools::htmlDependency(
+        name = "font-awesome", 
+        version = "6.4.0",
+        src = c(href = "fontawesome/css"),
+        stylesheet = c("all.min.css", "v4-shims.min.css")
+    )
+}
+
+#' @title Create a Font Awesome icon
+#' @param name Font Awesome icon name.
+#' @param ... Reserved for future use.
+#' @param type Icon style, either solid or regular.
+#' @param class Optional CSS class.
+#' @param color Optional CSS color.
+#' @param rep Number of icon repetitions.
+#' @param style Optional inline CSS.
+#' @return An HTML icon tag, or a span containing repeated icons.
+#' @importFrom shiny span
+#' @keywords internal
+faIcon <- function(name, ..., type = c("solid", "regular"), class = NULL, color = NULL, rep = 1, style = NULL) {
+    type <- match.arg(type)
+
+    if (identical(type, "solid") && identical(name, "chart-candlestick")) {
+        type <- "regular"
+    }
+
+    if (!is.null(color) && !is.na(color)) {
+        color <- trimws(color)
+        if (grepl("\\d", color) && !grepl("^#", color)) {
+            color <- paste0("#", color)
+        }
+        if (!grepl("; *$", color)) {
+            color <- paste0(color, ";")
+        }
+        if (!is.null(style) && !is.na(style)) {
+            if (!grepl("; *$", style)) {
+                style <- paste0(style, ";")
+            }
+        } else {
+            style <- ""
+        }
+        style <- paste0(style, "color:", color)
+    }
+
+    result <- NULL
+    if (!is.null(class) && !is.na(class)) {
+        if (!is.null(style) && !is.na(style)) {
+            result <- fontawesome::fa_i(
+                name = name, prefer_type = type,
+                class = class, style = style,
+                html_dependency = getFontAwesomeHtmlDependency()
+            )
+        } else {
+            result <- fontawesome::fa_i(
+                name = name, prefer_type = type, class = class,
+                html_dependency = getFontAwesomeHtmlDependency()
+            )
+        }
+    } else {
+        if (!is.null(style) && !is.na(style)) {
+            result <- fontawesome::fa_i(
+                name = name, prefer_type = type, style = style,
+                html_dependency = getFontAwesomeHtmlDependency()
+            )
+        } else {
+            result <- fontawesome::fa_i(
+                name = name, prefer_type = type,
+                html_dependency = getFontAwesomeHtmlDependency()
+            )
+        }
+    }
+    if (rep <= 1) {
+        return(result)
+    }
+
+    resultList <- list()
+    for (i in 1:rep) {
+        resultList[[i]] <- result
+    }
+    do.call(shiny::tags$span, resultList)
+}
+
+#' @title Create a title with an optional icon
+#' @param title Title text.
+#' @param iconName Optional Font Awesome icon name.
+#' @param iconPosition Position of the icon relative to the title.
+#' @return An HTML span containing the title and optional icon.
+#' @keywords internal
+iconTitle <- function(title, iconName = NULL, iconPosition = c("left", "right")) {
+    iconPosition <- match.arg(iconPosition)
+    if (is.null(iconName)) {
+        return(shiny::tags$span(trimws(title)))
+    }
+
+    if (identical(iconPosition, "right")) {
+        return(shiny::tags$span(paste0(trimws(title), " "), faIcon(iconName)))
+    }
+
+    return(shiny::tags$span(faIcon(iconName), paste0(" ", trimws(title))))
 }

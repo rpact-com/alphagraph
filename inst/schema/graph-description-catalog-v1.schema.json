@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rpact.com/alphagraph/schema/graph-description-catalog-v1.schema.json",
+  "title": "AlphaGraph description catalog",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "graphs"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "graphs": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/graphDescription" }
+    }
+  },
+  "$defs": {
+    "nonEmptyString": {
+      "type": "string",
+      "minLength": 1
+    },
+    "hypothesis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "meaning"],
+      "properties": {
+        "id": { "$ref": "#/$defs/nonEmptyString" },
+        "meaning": { "$ref": "#/$defs/nonEmptyString" }
+      }
+    },
+    "literature": {
+      "oneOf": [
+        { "$ref": "#/$defs/nonEmptyString" },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["citation"],
+          "properties": {
+            "citation": { "$ref": "#/$defs/nonEmptyString" },
+            "url": { "type": "string", "format": "uri" }
+          }
+        }
+      ]
+    },
+    "graphDescription": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id"],
+      "properties": {
+        "id": { "$ref": "#/$defs/nonEmptyString" },
+        "summary": { "type": "string" },
+        "hypotheses": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/hypothesis" }
+        },
+        "context": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/nonEmptyString" }
+        },
+        "interpretation": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/nonEmptyString" }
+        },
+        "literature": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/literature" }
+        }
+      }
+    }
+  }
+}

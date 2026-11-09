@@ -4,8 +4,8 @@
 ## This file is part of the R package alphagraph
 ##
 ## Author: Friedrich Pahlke, PhD
-## Licensed under "GNU Lesser General Public License" version 3
-## License text can be found here: https://www.r-project.org/Licenses/LGPL-3
+## Licensed under "GNU Affero General Public License" version 3.0
+## License text can be found here: https://cran.r-project.org/web/licenses/AGPL-3
 ##
 ## RPACT company website: https://www.rpact.com
 ##
@@ -18,13 +18,20 @@
  #' preview modes.
  #'
  #' @param id Module id (namespace) for this server module.
+ #' @param graphStore Shared `AlphaGraphStore`. If omitted, the module creates
+ #'   a private store for backwards compatibility.
  #' @param ... Additional parameters (reserved for future use).
- #' @param args Named list of optional parameters passed to the module.
+ #' @param args Named list of optional parameters. `catalogPath` can point to
+ #'   an alternative graph-description catalog.
  #'
  #' @return Invisibly NULL; registers server observers and outputs.
  #'
  #' @keywords internal
-moduleDescriptionServer <- function(id, ..., args = list()) {
+moduleDescriptionServer <- function(
+        id,
+        graphStore = NULL,
+        ...,
+        args = list()) {
     shiny::moduleServer(
         id,
         function(input, output, session) {
@@ -32,24 +39,64 @@ moduleDescriptionServer <- function(id, ..., args = list()) {
 
             logDebug("///--- moduleDescriptionServer id = ", id, " (", session$ns("xxx"), ")")
 
-            # Reactive values for description editor
-            descRv <- shiny::reactiveValues(
-                markdownContent = getGraphDescription(),
-                mode = "preview" # "preview" or "edit"
+            if (is.null(graphStore)) {
+                graphStore <- createAlphaGraphStore(createDemoAlphaGraph())
+            }
+            if (!inherits(graphStore, "AlphaGraphStore")) {
+                stop("graphStore must be an AlphaGraphStore object.", call. = FALSE)
+            }
+
+            initialDescription <- getGraphDescription(
+                graph = graphStore$snapshot(),
+                catalogPath = args$catalogPath %||% NULL
             )
 
-            # Initialize the markdown input with default content (only once)
-            shiny::observe({
-                shiny::updateTextAreaInput(
-                    session = session,
-                    inputId = ns("descMarkdownInput"),
-                    value = descRv$markdownContent
+            descRv <- shiny::reactiveValues(
+                markdownContent = initialDescription,
+                lastGenerated = initialDescription,
+                userModified = FALSE,
+                mode = "preview"
+            )
+
+            generatedDescription <- shiny::reactive({
+                graphStore$revision()
+                getGraphDescription(
+                    graph = graphStore$snapshot(),
+                    catalogPath = args$catalogPath %||% NULL
                 )
-            }) |> 
-                shiny::bindEvent(descRv$markdownContent, once = TRUE)
+            })
+
+            replaceWithGenerated <- function() {
+                generated <- generatedDescription()
+                descRv$markdownContent <- generated
+                descRv$lastGenerated <- generated
+                descRv$userModified <- FALSE
+            }
+
+            # Follow graph changes while the generated text is untouched. If
+            # an edit is open, capture its current value before deciding.
+            shiny::observe({
+                editorValue <- shiny::isolate(input$descMarkdownInput)
+                if (identical(shiny::isolate(descRv$mode), "edit") &&
+                        !is.null(editorValue) &&
+                        !identical(editorValue, shiny::isolate(descRv$lastGenerated))) {
+                    descRv$markdownContent <- editorValue
+                    descRv$userModified <- TRUE
+                }
+                if (!isTRUE(shiny::isolate(descRv$userModified))) {
+                    replaceWithGenerated()
+                }
+            }, label = "description-follow-graph-changes") |>
+                shiny::bindEvent(
+                    generatedDescription(),
+                    ignoreInit = TRUE,
+                    ignoreNULL = TRUE,
+                    label = "description-follow-graph-changes"
+                )
 
             # Toggle to Edit mode
-            shiny::observeEvent(input$descModeEdit, {
+            # Preserve initial handling of an already available event.
+            shiny::observe({
                 descRv$mode <- "edit"
                 # Update button styling with JavaScript
                 session$sendCustomMessage(
@@ -59,13 +106,24 @@ moduleDescriptionServer <- function(id, ..., args = list()) {
                         inactiveId = ns("descModePreview")
                     )
                 )
-            })
+            }, label = "description-switch-to-edit") |>
+                shiny::bindEvent(
+                    input$descModeEdit,
+                    ignoreInit = FALSE,
+                    ignoreNULL = TRUE,
+                    label = "description-switch-to-edit"
+                )
 
             # Toggle to Preview mode
-            shiny::observeEvent(input$descModePreview, {
+            # Preserve initial handling of an already available event.
+            shiny::observe({
                 # Save the edited content when switching to preview
                 if (!is.null(input$descMarkdownInput)) {
                     descRv$markdownContent <- input$descMarkdownInput
+                    descRv$userModified <- !identical(
+                        input$descMarkdownInput,
+                        descRv$lastGenerated
+                    )
                 }
                 descRv$mode <- "preview"
                 # Update button styling with JavaScript
@@ -76,17 +134,99 @@ moduleDescriptionServer <- function(id, ..., args = list()) {
                         inactiveId = ns("descModeEdit")
                     )
                 )
+            }, label = "description-switch-to-preview") |>
+                shiny::bindEvent(
+                    input$descModePreview,
+                    ignoreInit = FALSE,
+                    ignoreNULL = TRUE,
+                    label = "description-switch-to-preview"
+                )
+
+            # Preserve initial handling of an already available event.
+            shiny::observe({
+                editorValue <- shiny::isolate(input$descMarkdownInput)
+                if (identical(shiny::isolate(descRv$mode), "edit") &&
+                        !is.null(editorValue) &&
+                        !identical(editorValue, shiny::isolate(descRv$lastGenerated))) {
+                    descRv$markdownContent <- editorValue
+                    descRv$userModified <- TRUE
+                }
+                if (isTRUE(descRv$userModified)) {
+                    shiny::showModal(shiny::modalDialog(
+                        title = "Regenerate description template?",
+                        "This replaces your current description with a new template generated from the graph.",
+                        footer = shiny::tagList(
+                            shiny::modalButton("Cancel"),
+                            shiny::actionButton(
+                                ns("descRegenerateConfirm"),
+                                "Regenerate",
+                                class = "btn-danger"
+                            )
+                        ),
+                        easyClose = TRUE
+                    ))
+                } else {
+                    replaceWithGenerated()
+                }
+            }, label = "description-request-regeneration") |>
+                shiny::bindEvent(
+                    input$descRegenerate,
+                    ignoreInit = FALSE,
+                    ignoreNULL = TRUE,
+                    label = "description-request-regeneration"
+                )
+
+            # Preserve initial handling of an already available event.
+            shiny::observe({
+                shiny::removeModal()
+                replaceWithGenerated()
+            }, label = "description-confirm-regeneration") |>
+                shiny::bindEvent(
+                    input$descRegenerateConfirm,
+                    ignoreInit = FALSE,
+                    ignoreNULL = TRUE,
+                    label = "description-confirm-regeneration"
+                )
+
+            reportMarkdown <- shiny::reactive({
+                if (identical(descRv$mode, "edit") && !is.null(input$descMarkdownInput)) {
+                    input$descMarkdownInput
+                } else {
+                    descRv$markdownContent
+                }
             })
+
+            reportDownload <- function(extension) {
+                shiny::downloadHandler(
+                    filename = function() paste0("alphagraph-report.", extension),
+                    contentType = "text/plain; charset=utf-8",
+                    content = function(file) {
+                        header <- if (extension == "Rmd") {
+                            "---\noutput: html_document\n---\n"
+                        } else {
+                            "---\nformat: html\n---\n"
+                        }
+                        writeLines(enc2utf8(c(header, reportMarkdown())), file, useBytes = TRUE)
+                    }
+                )
+            }
+            output$descDownloadRmd <- reportDownload("Rmd")
+            output$descDownloadQmd <- reportDownload("qmd")
 
             # Render the appropriate content based on mode
             output$descContent <- shiny::renderUI({
                 if (descRv$mode == "preview") {
-                    # Render markdown preview
-                    shiny::div(
-                        style = "padding: 10px; min-height: 300px;",
-                        #shiny::HTML(markdown::markdownToHTML(text = descRv$markdownContent, fragment.only = TRUE))
-                        shiny::HTML(markdown::markdownToHTML(text = htmltools::htmlEscape(descRv$markdownContent), fragment.only = TRUE))
-                    )
+                        shiny::div(
+                            style = "padding: 10px; min-height: 300px;",
+                            shiny::HTML(markdown::markdownToHTML(
+                                text = htmltools::htmlEscape(
+                                    .descriptionPreviewMarkdown(
+                                        descRv$markdownContent
+                                    )
+                                ),
+                                fragment.only = TRUE
+                            ))
+                        )
                 } else {
                     # Render markdown editor
                     shiny::textAreaInput(
@@ -100,6 +240,13 @@ moduleDescriptionServer <- function(id, ..., args = list()) {
                     )
                 }
             })
+
+            invisible(NULL)
         }
     )
+}
+
+.descriptionPreviewMarkdown <- function(markdown) {
+    # HTML comments remain in the editable Markdown but are omitted from preview.
+    gsub("(?s)<!--.*?-->", "", as.character(markdown), perl = TRUE)
 }

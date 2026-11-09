@@ -4,8 +4,8 @@
 ## This file is part of the R package alphagraph
 ##
 ## Author: Friedrich Pahlke, PhD
-## Licensed under "GNU Lesser General Public License" version 3
-## License text can be found here: https://www.r-project.org/Licenses/LGPL-3
+## Licensed under "GNU Affero General Public License" version 3.0
+## License text can be found here: https://cran.r-project.org/web/licenses/AGPL-3
 ##
 ## RPACT company website: https://www.rpact.com
 ##
@@ -14,38 +14,26 @@
 #' @title Create a formatted hypothesis label
 #'
 #' @description
-#' Generate a unicode-formatted label for hypotheses used in the graph
-#' visualization. The function converts simple tokens (e.g. "n", "s", digits)
-#' into appropriate unicode subscripts and returns a string suitable for node labels.
+#' Generate an editable hypothesis label using alphagraph's underscore syntax.
+#' The canonical value is converted to supported Unicode subscripts only when
+#' rendered by visNetwork.
 #'
 #' @param number Integer indicating hypothesis index (0/1/2 etc.).
 #' @param x Character short code describing the hypothesis (e.g. "ni", "s").
 #' @param i Optional additional index or annotation appended on a new line.
 #'
-#' @return Character scalar with the formatted hypothesis label.
+#' @return Character scalar such as `H1_(ni)`.
 #'
 #' @keywords internal
 #' 
 getHypothesisLabel <- function(number, x, i = NULL) {
-    subscript <- "\u208"
-    x <- sub("0", "\u2080", x)
-    x <- sub("1", "\u2081", x)
-    x <- sub("n", "\u2099", x)
-    x <- sub("i", "\u1D62", x)
-    x <- sub("s", "\u209B", x)
-    x <- sub("-", "\u208B", x)
-    if (number == 0) {
-        number <- "\u2080"
-    } else {
-        number <- "\u2081"
-    }
-    label <- paste0("H", number, "\u208D", x, "\u208E")
+    label <- paste0("H", as.character(number), "_(", as.character(x), ")")
+    alphaGraphRenderHypothesisLabel(label)
     if (!is.null(i)) {
         label <- paste0(label, "\n", i)
     }
-    return(label)
+    label
 }
-
 #' 
 #' @title Create a demo visNetwork graph for the UI
 #'
@@ -55,126 +43,111 @@ getHypothesisLabel <- function(number, x, i = NULL) {
 #' as a demonstration / initial view.
 #'
 #' @param ns Shiny namespace function (usually obtained via session$ns).
+#' @param graph Canonical `AlphaGraph` to render.
 #'
 #' @return A visNetwork object ready to be rendered.
 #'
 #' @keywords internal
 #' 
-getDemoGraph <- function(ns) {
-    # ---- NODES ----
-    nodes <- data.frame(
-        id = c("H1_NI", "H1_S", "H2_NI", "H2_S"),
-        label = c(
-            getHypothesisLabel(1, "ni", 1),
-            getHypothesisLabel(1, "s", 0),
-            getHypothesisLabel(2, "ni", 0),
-            getHypothesisLabel(2, "s", 0)
-        ),
-        # label = c("H1,NI\n1", "H1,S\n0", "H2,NI\n0", "H2,S\n0"),
-        x = c(0, 300, 0, 300),
-        y = c(0, 0, 200, 200),
-        shape = "circle",
-        
-        color.background = c("#7CFF7C", "white", "white", "white"),
-        color.border = "black",
-        borderWidth = 2,
-        font = list(size = 22)
+getDemoGraph <- function(ns, graph = createDemoAlphaGraph()) {
+    grid <- graph$toList()$settings$grid %||% list()
+    grid <- list(
+        size = grid$size %||% 40,
+        origin = list(x = grid$origin$x %||% 14, y = grid$origin$y %||% -5)
     )
-
-    # ---- EDGES ----
-    edges <- data.frame(
-        from = c("H1_NI", "H1_NI", "H2_NI", "H1_S", "H2_NI", "H1_S"),
-        to = c("H1_S", "H2_NI", "H1_S", "H2_NI", "H2_S", "H2_S"),
-        label = c("\u03BD", "1-\u03BD", "\u03C9", "t", "1-\u03C9", "1-t"),
-        arrows = "to",
-        smooth = c(FALSE, FALSE, TRUE, TRUE, FALSE, FALSE),
-        font = list(size = 20, align = "top")
-    )
-
-    grid_size <- 40
-    ox <- 14
-    oy <- -5
-    visNetwork::visNetwork(
-        nodes,
-        edges,
-        width = "100%",
-        height = "400px"
-    ) |>
-        visNetwork::visEdges(
-            arrows = "to",
-            smooth = list(type = "curvedCW", roundness = 0.3)
-        ) |>
-        visNetwork::visNodes(
-            shape = "circle",
-            borderWidth = 2,
-            color = list(
-                background = "white",
-                border = "black"
-            ),
-            scaling = list(
-                label = list(
-                    enabled = TRUE, 
-                    min = 10, 
-                    max = 16
-                )
-            )
-        ) |>
-        visNetwork::visInteraction(
-            dragNodes = TRUE,
-            dragView = TRUE,
-            zoomView = FALSE # disables mouse wheel zoom
-        ) |>
-        visNetwork::visPhysics(enabled = FALSE) |>
+    validCoordinate <- function(value) {
+        is.numeric(value) && length(value) == 1L && is.finite(value)
+    }
+    if (!validCoordinate(grid$size) || grid$size <= 0 ||
+            !validCoordinate(grid$origin$x) || !validCoordinate(grid$origin$y)) {
+        stop("Grid size must be positive and grid origins must be finite numbers.", call. = FALSE)
+    }
+    gridJson <- as.character(jsonlite::toJSON(grid, auto_unbox = TRUE, digits = NA))
+    positionInputJson <- as.character(jsonlite::toJSON(ns("node_positions"), auto_unbox = TRUE))
+    widget <- graph$toVisNetwork(height = "400px")
+    widget$dependencies <- c(widget$dependencies, list(htmltools::htmlDependency(
+        name = "alphagraph-grid", version = "1.0.0",
+        src = c(file = getSystemFile("www/js")), script = "graph-grid.js"
+    )))
+    widget |>
         visNetwork::visEvents(
-            afterDrawing = sprintf("
+            initRedraw = sprintf("function() {
+                window.alphaGraphGrid.beforeRedraw(this, %s, %s);
+            }", gridJson, positionInputJson),
+            dragging = sprintf("function() {
+                window.alphaGraphGrid.beforeRedraw(this, %s, %s);
+            }", gridJson, positionInputJson)
+        ) |>
+        visNetwork::visEvents(
+            beforeDrawing = paste0("
                 function(ctx) {
-                // run only once after the first draw
-                if (this.__alphagraphInitialSnapDone) return;
-                this.__alphagraphInitialSnapDone = true;
-                
-                var grid = %d;
-                var ox = %d;
-                var oy = %d;
-                
-                var ids = this.body.data.nodes.getIds();
-                var updates = [];
-                
-                for (var i = 0; i < ids.length; i++) {
-                var id = ids[i];
-                var n = this.body.nodes[id];
-                if (!n) continue;
-                
-                var x = Math.round((n.x - ox) / grid) * grid + ox;
-                var y = Math.round((n.y - oy) / grid) * grid + oy;
-                
-                updates.push({ id: id, x: x, y: y });
+                    window.alphaGraphGrid.draw(ctx, this, ", gridJson, ");
+                    // vis-network positions labels in circle nodes relative to
+                    // the circle's left edge. When a short multiline label makes
+                    // the circle height-driven, that places the label too far
+                    // left. Keep the public circle sizing behavior, but draw its
+                    // label at the actual node center.
+                    var nodes = this.body.nodes;
+                    Object.keys(nodes).forEach(function(id) {
+                        var node = nodes[id];
+                        var labelModule = node.shape && node.shape.labelModule;
+                        if (!labelModule || node.options.shape !== 'circle' ||
+                                labelModule.__alphaGraphCentered) {
+                            return;
+                        }
+
+                        var originalDraw = labelModule.draw;
+                        labelModule.draw = function(
+                                context, x, y, selected, hover, baseline) {
+                            return originalDraw.call(
+                                labelModule,
+                                context,
+                                node.x,
+                                y,
+                                selected,
+                                hover,
+                                baseline
+                            );
+                        };
+                        labelModule.__alphaGraphCentered = true;
+                    });
                 }
-                
-                this.body.data.nodes.update(updates);
-                
-                // optional: fit view after snapping
-                // this.fit();
-                }
-                ", grid_size, ox, oy)
+            ")
         ) |>
         visNetwork::visEvents(
-            dragEnd = sprintf("
-                function (params) {
-                    if (params.nodes.length === 0) return;
-                    
-                    var grid = %d;
-                    var ox = %d;
-                    var oy = %d;
-                    
-                    var nodeId = params.nodes[0];
-                    var node = this.body.nodes[nodeId];
-                    
-                    var x = Math.round((node.x - ox) / grid) * grid + ox;
-                    var y = Math.round((node.y - oy) / grid) * grid + oy;
-                    
-                    this.body.data.nodes.update({ id: nodeId, x: x, y: y });
+            dragEnd = sprintf("function(params) {
+                window.alphaGraphGrid.dragEnd(this, %s, %s, params.nodes);
+            }", gridJson, positionInputJson)
+        ) |>
+        visNetwork::visEvents(
+            selectNode = paste0("
+                function(params) {
+                    Shiny.setInputValue('", ns("selection"), "', {
+                        nodes: params.nodes || [], edges: [], nonce: Math.random()
+                    }, {priority: 'event'});
                 }
-                ", grid_size, ox, oy)
+            "),
+            selectEdge = paste0("
+                function(params) {
+                    Shiny.setInputValue('", ns("selection"), "', {
+                        nodes: params.nodes || [], edges: params.edges || [], nonce: Math.random()
+                    }, {priority: 'event'});
+                }
+            "),
+            deselectNode = paste0("
+                function(params) {
+                    Shiny.setInputValue('", ns("selection"), "', {
+                        nodes: params.nodes || [], edges: params.edges || [], nonce: Math.random()
+                    }, {priority: 'event'});
+                }
+            "),
+            deselectEdge = paste0("
+                function(params) {
+                    Shiny.setInputValue('", ns("selection"), "', {
+                        nodes: params.nodes || [], edges: params.edges || [], nonce: Math.random()
+                    }, {priority: 'event'});
+                }
+            ")
         ) |>
         visNetwork::visEvents(
             # Right click / context menu
@@ -213,50 +186,4 @@ getDemoGraph <- function(ns) {
 #                }
 #                "
 #        )
-}
-
-#' 
-#' @title Return a Markdown description of the graph
-#'
-#' @description
-#' Provide the textual description (in Markdown) that accompanies the graph
-#' visualization. The returned text can be rendered in a preview pane or
-#' written to a temporary file.
-#'
-#' @return Character scalar containing Markdown text describing the graph.
-#'
-#' @keywords internal
-#' 
-getGraphDescription <- function() {
-    mdText <- 
-"### Graph representing the procedure from Hung and Wang (2010)
-
-**H1,NI**: Non-inferiority of the primary endpoint  
-**H1,S**: Superiority of the primary endpoint  
-**H2,NI**: Non-inferiority of the secondary endpoint  
-**H2,S**: Superiority of the secondary endpoint  
-
-**Literature:**  
-
-Hung H.M.J., Wang S.-J. (2010). *Challenges to multiple testing in clinical trials.*  
-*Biometrical Journal*, 52, 747-756."
-    return(mdText)
-}
-
-#' 
-#' @title Write the graph description to a temporary markdown file
-#'
-#' @description
-#' Create a temporary file containing the Markdown returned by
-#' getGraphDescription() and return the file path. This is convenient for
-#' passing the description to components that expect a file path.
-#'
-#' @return Path to a temporary markdown file containing the graph description.
-#'
-#' @keywords internal
-#' 
-getGraphDescriptionFile <- function() {
-    mdFile <- tempfile(fileext = ".md")
-    writeLines(text = getGraphDescription(), con = mdFile)
-    return(mdFile)
 }

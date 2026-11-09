@@ -4,21 +4,39 @@
 \alias{moduleHypothesisServer}
 \title{Hypotheses server module}
 \usage{
-moduleHypothesisServer(id, ..., args = list())
+moduleHypothesisServer(
+  id,
+  graphStore = NULL,
+  projectStore = NULL,
+  datasetId = "primary",
+  ...,
+  args = list()
+)
 }
 \arguments{
 \item{id}{Module id (namespace) for this server module.}
 
+\item{graphStore}{Shared \code{AlphaGraphStore}. A private store is created when
+omitted.}
+
+\item{projectStore}{Optional shared \code{AlphaProjectStore}. When supplied,
+p-values are read from and written to its selected dataset instead of
+being kept as module-local state.}
+
+\item{datasetId}{Project dataset used for p-values.}
+
 \item{...}{Additional parameters (reserved for future use).}
 
-\item{args}{Named list of optional parameters passed to the module.}
+\item{args}{Named list of optional parameters passed to the module. The
+\code{maxHypothesisLabelLength} entry overrides the application-wide option
+\code{alphagraph.maxHypothesisLabelLength} for this module.}
 }
 \value{
 Invisibly NULL; registers server outputs and observers.
 }
 \description{
-Server-side logic for the hypotheses editor. Renders a dynamic list of
-inputs for hypothesis labels, weights and p-values which can be extended
-later to perform validation and matrix creation.
+Server-side logic for the hypotheses table. Editable labels and weights are
+synchronized with the shared graph store. Rendered labels are read-only
+previews, while p-values remain local analysis inputs.
 }
 \keyword{internal}

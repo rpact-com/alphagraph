@@ -14,11 +14,11 @@ getHypothesisLabel(number, x, i = NULL)
 \item{i}{Optional additional index or annotation appended on a new line.}
 }
 \value{
-Character scalar with the formatted hypothesis label.
+Character scalar such as \code{H1_(ni)}.
 }
 \description{
-Generate a unicode-formatted label for hypotheses used in the graph
-visualization. The function converts simple tokens (e.g. "n", "s", digits)
-into appropriate unicode subscripts and returns a string suitable for node labels.
+Generate an editable hypothesis label using alphagraph's underscore syntax.
+The canonical value is converted to supported Unicode subscripts only when
+rendered by visNetwork.
 }
 \keyword{internal}

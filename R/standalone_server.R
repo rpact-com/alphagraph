@@ -4,8 +4,8 @@
 ## This file is part of the R package alphagraph
 ##
 ## Author: Friedrich Pahlke, PhD
-## Licensed under "GNU Lesser General Public License" version 3
-## License text can be found here: https://www.r-project.org/Licenses/LGPL-3
+## Licensed under "GNU Affero General Public License" version 3.0
+## License text can be found here: https://cran.r-project.org/web/licenses/AGPL-3
 ##
 ## RPACT company website: https://www.rpact.com
 ##
@@ -29,9 +29,20 @@
 #' @export
 #' 
 createServer <- function(input, output, session) {
-    moduleGraphServer("graphIO")
-    moduleTransitionMatrixServer("transitionMatrix")
-    moduleHypothesisServer("hypothesisPanel")
-    moduleDescriptionServer("descriptionPanel")
-    moduleAnalysisServer("analysisPanel")
+    projectStore <- createAlphaProjectStore(createDemoAlphaProject())
+    graphStore <- projectStore$graphStore
+    session$userData$alphaGraphStore <- graphStore
+    session$userData$alphaProjectStore <- projectStore
+
+    moduleGraphServer("graphIO", graphStore = graphStore)
+    moduleTransitionMatrixServer("transitionMatrix", graphStore = graphStore)
+    moduleHypothesisServer(
+        "hypothesisPanel",
+        graphStore = graphStore,
+        projectStore = projectStore
+    )
+    moduleDescriptionServer("descriptionPanel", graphStore = graphStore)
+    moduleAnalysisServer("analysisPanel", projectStore = projectStore)
+
+    invisible(projectStore)
 }
