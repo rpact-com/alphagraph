@@ -50,13 +50,38 @@ getHypothesisLabel <- function(number, x, i = NULL) {
 #' @keywords internal
 #' 
 getDemoGraph <- function(ns, graph = createDemoAlphaGraph()) {
-    grid_size <- 40
-    ox <- 14
-    oy <- -5
-    graph$toVisNetwork(height = "400px") |>
+    grid <- graph$toList()$settings$grid %||% list()
+    grid <- list(
+        size = grid$size %||% 40,
+        origin = list(x = grid$origin$x %||% 14, y = grid$origin$y %||% -5)
+    )
+    validCoordinate <- function(value) {
+        is.numeric(value) && length(value) == 1L && is.finite(value)
+    }
+    if (!validCoordinate(grid$size) || grid$size <= 0 ||
+            !validCoordinate(grid$origin$x) || !validCoordinate(grid$origin$y)) {
+        stop("Grid size must be positive and grid origins must be finite numbers.", call. = FALSE)
+    }
+    gridJson <- as.character(jsonlite::toJSON(grid, auto_unbox = TRUE, digits = NA))
+    positionInputJson <- as.character(jsonlite::toJSON(ns("node_positions"), auto_unbox = TRUE))
+    widget <- graph$toVisNetwork(height = "400px")
+    widget$dependencies <- c(widget$dependencies, list(htmltools::htmlDependency(
+        name = "alphagraph-grid", version = "1.0.0",
+        src = c(file = getSystemFile("www/js")), script = "graph-grid.js"
+    )))
+    widget |>
         visNetwork::visEvents(
-            beforeDrawing = "
+            initRedraw = sprintf("function() {
+                window.alphaGraphGrid.beforeRedraw(this, %s, %s);
+            }", gridJson, positionInputJson),
+            dragging = sprintf("function() {
+                window.alphaGraphGrid.beforeRedraw(this, %s, %s);
+            }", gridJson, positionInputJson)
+        ) |>
+        visNetwork::visEvents(
+            beforeDrawing = paste0("
                 function(ctx) {
+                    window.alphaGraphGrid.draw(ctx, this, ", gridJson, ");
                     // vis-network positions labels in circle nodes relative to
                     // the circle's left edge. When a short multiline label makes
                     // the circle height-driven, that places the label too far
@@ -87,65 +112,12 @@ getDemoGraph <- function(ns, graph = createDemoAlphaGraph()) {
                         labelModule.__alphaGraphCentered = true;
                     });
                 }
-            "
+            ")
         ) |>
         visNetwork::visEvents(
-            afterDrawing = sprintf("
-                function(ctx) {
-                // run only once after the first draw
-                if (this.__alphagraphInitialSnapDone) return;
-                this.__alphagraphInitialSnapDone = true;
-                
-                var grid = %d;
-                var ox = %d;
-                var oy = %d;
-                
-                var ids = this.body.data.nodes.getIds();
-                var updates = [];
-                
-                for (var i = 0; i < ids.length; i++) {
-                var id = ids[i];
-                var n = this.body.nodes[id];
-                if (!n) continue;
-                
-                var x = Math.round((n.x - ox) / grid) * grid + ox;
-                var y = Math.round((n.y - oy) / grid) * grid + oy;
-                
-                updates.push({ id: id, x: x, y: y });
-                }
-                
-                this.body.data.nodes.update(updates);
-                
-                // optional: fit view after snapping
-                // this.fit();
-                }
-                ", grid_size, ox, oy)
-        ) |>
-        visNetwork::visEvents(
-            dragEnd = sprintf("
-                function (params) {
-                    if (params.nodes.length === 0) return;
-                    
-                    var grid = %d;
-                    var ox = %d;
-                    var oy = %d;
-                    
-                    var updates = [];
-                    for (var i = 0; i < params.nodes.length; i++) {
-                        var nodeId = params.nodes[i];
-                        var node = this.body.nodes[nodeId];
-                        if (!node) continue;
-                        var x = Math.round((node.x - ox) / grid) * grid + ox;
-                        var y = Math.round((node.y - oy) / grid) * grid + oy;
-                        updates.push({ id: nodeId, x: x, y: y });
-                    }
-                    this.body.data.nodes.update(updates);
-                    Shiny.setInputValue('%s', {
-                        nodes: updates,
-                        nonce: Math.random()
-                    }, {priority: 'event'});
-                }
-                ", grid_size, ox, oy, ns("node_positions"))
+            dragEnd = sprintf("function(params) {
+                window.alphaGraphGrid.dragEnd(this, %s, %s, params.nodes);
+            }", gridJson, positionInputJson)
         ) |>
         visNetwork::visEvents(
             selectNode = paste0("

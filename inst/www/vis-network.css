@@ -1,6 +1,4 @@
 .vis-network {
-	background-image: linear-gradient(#e0e0e0 1px, transparent 1px),
-		linear-gradient(90deg, #e0e0e0 1px, transparent 1px);
-	background-size: 40px 40px;
-	background-position: 0px 0px; /* <-- Offset  */
+    /* The grid is drawn in graph coordinates on the canvas. */
+    background-image: none;
 }
