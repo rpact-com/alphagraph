@@ -1,7 +1,7 @@
 # Transition matrix UI module
 
-UI for displaying the transition matrix in a datatable. The module
-provides a boxed panel containing the rendered matrix output.
+UI for displaying the transition matrix in an editable spreadsheet. The
+module provides a boxed panel containing the rendered matrix output.
 
 ## Usage
 

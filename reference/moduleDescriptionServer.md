@@ -7,7 +7,7 @@ preview modes.
 ## Usage
 
 ``` r
-moduleDescriptionServer(id, ..., args = list())
+moduleDescriptionServer(id, graphStore = NULL, ..., args = list())
 ```
 
 ## Arguments
@@ -16,13 +16,19 @@ moduleDescriptionServer(id, ..., args = list())
 
   Module id (namespace) for this server module.
 
+- graphStore:
+
+  Shared `AlphaGraphStore`. If omitted, the module creates a private
+  store for backwards compatibility.
+
 - ...:
 
   Additional parameters (reserved for future use).
 
 - args:
 
-  Named list of optional parameters passed to the module.
+  Named list of optional parameters. `catalogPath` can point to an
+  alternative graph-description catalog.
 
 ## Value
 

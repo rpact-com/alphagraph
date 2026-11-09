@@ -1,15 +1,23 @@
-# Write the graph description to a temporary markdown file
+# Write a dynamic graph description to a Markdown file
 
-Create a temporary file containing the Markdown returned by
-getGraphDescription() and return the file path. This is convenient for
-passing the description to components that expect a file path.
+Write a dynamic graph description to a Markdown file
 
 ## Usage
 
 ``` r
-getGraphDescriptionFile()
+getGraphDescriptionFile(graph = createDemoAlphaGraph(), catalogPath = NULL)
 ```
+
+## Arguments
+
+- graph:
+
+  An `AlphaGraph` instance.
+
+- catalogPath:
+
+  Optional path to the curated graph-description JSON.
 
 ## Value
 
-Path to a temporary markdown file containing the graph description.
+Path to a temporary Markdown file.

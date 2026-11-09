@@ -7,7 +7,7 @@ demonstration / initial view.
 ## Usage
 
 ``` r
-getDemoGraph(ns)
+getDemoGraph(ns, graph = createDemoAlphaGraph())
 ```
 
 ## Arguments
@@ -15,6 +15,10 @@ getDemoGraph(ns)
 - ns:
 
   Shiny namespace function (usually obtained via session\$ns).
+
+- graph:
+
+  Canonical `AlphaGraph` to render.
 
 ## Value
 

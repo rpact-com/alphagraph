@@ -1,13 +1,12 @@
 # Transition matrix server module
 
-Server-side logic for rendering the transition matrix datatable. The
-module obtains the example matrix from getTransitionMatrix() and renders
-it using DT.
+Server-side logic for an editable transition matrix backed by the shared
+canonical graph store.
 
 ## Usage
 
 ``` r
-moduleTransitionMatrixServer(id, ..., args = list())
+moduleTransitionMatrixServer(id, graphStore = NULL, ..., args = list())
 ```
 
 ## Arguments
@@ -15,6 +14,10 @@ moduleTransitionMatrixServer(id, ..., args = list())
 - id:
 
   Module id (namespace) for this server module.
+
+- graphStore:
+
+  Shared `AlphaGraphStore`. A private store is created when omitted.
 
 - ...:
 
