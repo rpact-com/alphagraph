@@ -202,12 +202,14 @@ moduleGraphServer <- function(id, graphStore = NULL, ..., args = list()) {
             })
 
             shiny::observeEvent(input$edit_node, {
+                shiny::req(rv)
                 shiny::req(length(rv$selected_nodes) == 1L)
                 rv$ctx_node_id <- rv$selected_nodes[[1L]]
                 showNodeEditor(rv$ctx_node_id)
             })
 
             shiny::observeEvent(input$edit_edge, {
+                shiny::req(rv)
                 shiny::req(length(rv$selected_edges) == 1L)
                 edgeId <- rv$selected_edges[[1L]]
                 edges <- graphStore$snapshot()$toList()$edges
@@ -229,6 +231,7 @@ moduleGraphServer <- function(id, graphStore = NULL, ..., args = list()) {
             })
 
             shiny::observeEvent(input$delete, {
+                shiny::req(rv)
                 nodes <- rv$selected_nodes
                 edges <- rv$selected_edges
                 shiny::req(length(nodes) + length(edges) > 0L)

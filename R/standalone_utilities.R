@@ -224,7 +224,7 @@ faIcon <- function(name, ..., type = c("solid", "regular"), class = NULL, color 
     for (i in 1:rep) {
         resultList[[i]] <- result
     }
-    do.call(span, resultList)
+    do.call(shiny::tags$span, resultList)
 }
 
 #' @title Create a title with an optional icon
@@ -236,12 +236,12 @@ faIcon <- function(name, ..., type = c("solid", "regular"), class = NULL, color 
 iconTitle <- function(title, iconName = NULL, iconPosition = c("left", "right")) {
     iconPosition <- match.arg(iconPosition)
     if (is.null(iconName)) {
-        return(span(trimws(title)))
+        return(shiny::tags$span(trimws(title)))
     }
 
     if (identical(iconPosition, "right")) {
-        return(span(paste0(trimws(title), " "), faIcon(iconName)))
+        return(shiny::tags$span(paste0(trimws(title), " "), faIcon(iconName)))
     }
 
-    return(span(faIcon(iconName), paste0(" ", trimws(title))))
+    return(shiny::tags$span(faIcon(iconName), paste0(" ", trimws(title))))
 }
