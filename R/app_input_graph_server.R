@@ -247,6 +247,7 @@ moduleGraphServer <- function(id, graphStore = NULL, ..., args = list()) {
             rv <- shiny::reactiveValues(
                 ctx_open = FALSE,
                 ctx_node_id = NULL,
+                edited_node_id = NULL,
                 ctx_edge_id = NULL,
                 ctx_x = 0,
                 ctx_y = 0,
@@ -258,6 +259,7 @@ moduleGraphServer <- function(id, graphStore = NULL, ..., args = list()) {
                 nodes <- graphStore$snapshot()$toList()$nodes
                 node <- Filter(function(x) identical(x$id, id), nodes)
                 shiny::req(length(node) == 1L)
+                rv$edited_node_id <- id
                 shiny::showModal(shiny::modalDialog(
                     title = paste("Edit Node", id),
                     shiny::fluidRow(
@@ -301,12 +303,38 @@ moduleGraphServer <- function(id, graphStore = NULL, ..., args = list()) {
                         width = "260px"
                     ),
                     footer = shiny::tagList(
+                        shiny::tags$button(
+                            type = "button",
+                            class = "btn btn-danger",
+                            style = "float: left; margin-right: auto;",
+                            onclick = paste0(
+                                "if (window.confirm('Delete this node and all connected edges?')) {",
+                                "Shiny.setInputValue('", ns("delete_edited_node"),
+                                "', Math.random(), {priority: 'event'});}"
+                            ),
+                            shiny::icon("trash"), "Delete"
+                        ),
                         shiny::modalButton("Cancel"),
                         shiny::actionButton(ns("save_node_label"), "Save")
                     ),
                     easyClose = TRUE
                 ))
             }
+
+            shiny::observeEvent(input$delete_edited_node, {
+                shiny::req(rv$edited_node_id)
+                id <- rv$edited_node_id
+                tryCatch({
+                    graphStore$transact("graph:delete-node", function(candidate) {
+                        candidate$removeNode(id)
+                    })
+                    rv$edited_node_id <- NULL
+                    rv$ctx_node_id <- NULL
+                    shiny::removeModal()
+                }, error = function(error) {
+                    shiny::showNotification(conditionMessage(error), type = "error")
+                })
+            })
 
             output$node_label_preview <- shiny::renderUI({
                 shiny::req(!is.null(input$node_label))
