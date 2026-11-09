@@ -269,7 +269,7 @@ AlphaProject <- R6::R6Class(
                 id = paste0(analysisId, "-result"),
                 analysisId = analysisId,
                 inputHash = self$inputHash(analysisId),
-                createdAt = format(Sys.time(), "%Y-%m-%dT%H:%M:%SZ", tz = "UTC"),
+                createdAt = format(Sys.time(), "%Y-%m-%d %H:%M", tz = "UTC"),
                 engine = list(
                     alphagraphVersion = alphaGraphPackageVersion("alphagraph"),
                     graphicalMCPVersion = alphaGraphPackageVersion("graphicalMCP")

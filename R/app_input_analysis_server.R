@@ -37,14 +37,20 @@ moduleAnalysisServer <- function(
 
         logDebug("///--- moduleAnalysisServer id = ", id, " (", session$ns("xxx"), ")")
 
-        output$analysisStatus <- shiny::renderText({
+        output$analysisStatus <- shiny::renderUI({
             result <- projectStore$result(analysisId)
-            if (is.null(result)) {
-                return("No current result. Run the shortcut analysis after entering one p-value per hypothesis.")
+            
+            statusText <- if (is.null(result)) {
+                "No current result. Run the shortcut analysis after entering one p-value per hypothesis."
+            } else {
+                paste0(
+                    "Current result computed ", result$createdAt,
+                    " with graphicalMCP ", result$engine$graphicalMCPVersion %||% "unknown", "."
+                )
             }
-            paste0(
-                "Current result computed ", result$createdAt,
-                " with graphicalMCP ", result$engine$graphicalMCPVersion %||% "unknown", "."
+            shiny::tags$p(
+                class = "text-muted small",
+                statusText
             )
         })
 
