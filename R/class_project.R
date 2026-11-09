@@ -1,7 +1,13 @@
 ##
 ## alphagraph
 ##
-## JSON-friendly project model containing a reusable graph and analysis data.
+## This file is part of the R package alphagraph
+##
+## Author: Friedrich Pahlke, PhD
+## Licensed under "GNU Affero General Public License" version 3.0
+## License text can be found here: https://cran.r-project.org/web/licenses/AGPL-3
+##
+## RPACT company website: https://www.rpact.com
 ##
 
 #' @title JSON-friendly alphagraph project model
@@ -12,6 +18,7 @@
 #' Raw and adjusted p-values deliberately remain outside the graph definition.
 #'
 #' @keywords internal
+#' @importFrom graphicalMCP graph_test_shortcut
 AlphaProject <- R6::R6Class(
     "AlphaProject",
     public = list(

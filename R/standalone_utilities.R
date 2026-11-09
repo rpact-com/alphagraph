@@ -118,6 +118,13 @@ includeJavaScript <- function(path) {
     shiny::tags$script(src = path, defer = NA)
 }
 
+#' @title Check an installed package against a maximum version
+#' @param maxVersion Maximum package version, as a character string.
+#' @param pkg Package name.
+#' @param ... Reserved for future use.
+#' @param inclusive Whether the maximum version itself is accepted.
+#' @return Logical scalar indicating whether the installed version is accepted.
+#' @keywords internal
 isMaximumPackageVersion <- function(maxVersion, pkg, ..., inclusive = TRUE) {
     tryCatch(
         {
@@ -134,6 +141,9 @@ isMaximumPackageVersion <- function(maxVersion, pkg, ..., inclusive = TRUE) {
     return(TRUE)
 }
 
+#' @title Describe the bundled Font Awesome HTML dependency
+#' @return An HTML dependency for the bundled Font Awesome stylesheets.
+#' @keywords internal
 getFontAwesomeHtmlDependency <- function() {
     htmltools::htmlDependency(
         name = "font-awesome", 
@@ -143,6 +153,17 @@ getFontAwesomeHtmlDependency <- function() {
     )
 }
 
+#' @title Create a Font Awesome icon
+#' @param name Font Awesome icon name.
+#' @param ... Reserved for future use.
+#' @param type Icon style, either solid or regular.
+#' @param class Optional CSS class.
+#' @param color Optional CSS color.
+#' @param rep Number of icon repetitions.
+#' @param style Optional inline CSS.
+#' @return An HTML icon tag, or a span containing repeated icons.
+#' @importFrom shiny span
+#' @keywords internal
 faIcon <- function(name, ..., type = c("solid", "regular"), class = NULL, color = NULL, rep = 1, style = NULL) {
     type <- match.arg(type)
 
@@ -206,6 +227,12 @@ faIcon <- function(name, ..., type = c("solid", "regular"), class = NULL, color 
     do.call(span, resultList)
 }
 
+#' @title Create a title with an optional icon
+#' @param title Title text.
+#' @param iconName Optional Font Awesome icon name.
+#' @param iconPosition Position of the icon relative to the title.
+#' @return An HTML span containing the title and optional icon.
+#' @keywords internal
 iconTitle <- function(title, iconName = NULL, iconPosition = c("left", "right")) {
     iconPosition <- match.arg(iconPosition)
     if (is.null(iconName)) {

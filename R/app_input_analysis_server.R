@@ -16,6 +16,18 @@
 #' @param analysisId Shortcut analysis specification to update and run.
 #' @param datasetId Dataset containing raw p-values.
 #' @param ... Additional parameters reserved for future use.
+##
+## alphagraph
+##
+## This file is part of the R package alphagraph
+##
+## Author: Friedrich Pahlke, PhD
+## Licensed under "GNU Affero General Public License" version 3.0
+## License text can be found here: https://cran.r-project.org/web/licenses/AGPL-3
+##
+## RPACT company website: https://www.rpact.com
+##
+
 #' @param args Optional module parameters.
 #'
 #' @return Invisibly, the project store.

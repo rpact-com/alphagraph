@@ -1,7 +1,13 @@
 ##
 ## alphagraph
 ##
-## Dynamic Markdown descriptions for canonical AlphaGraph objects.
+## This file is part of the R package alphagraph
+##
+## Author: Friedrich Pahlke, PhD
+## Licensed under "GNU Affero General Public License" version 3.0
+## License text can be found here: https://cran.r-project.org/web/licenses/AGPL-3
+##
+## RPACT company website: https://www.rpact.com
 ##
 
 #' @title Generate a Markdown description template for an AlphaGraph
@@ -199,7 +205,7 @@ getGraphDescriptionFile <- function(
 }
 
 .graphDescriptionCatalogPath <- function() {
-    getSystemFile("data/graph-description-catalog.json")
+    getSystemFile("catalog/graph-description-catalog.json")
 }
 
 .readGraphDescriptionCatalog <- function(path = NULL) {

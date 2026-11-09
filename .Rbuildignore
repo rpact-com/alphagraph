@@ -6,6 +6,7 @@
 ^javacore.*\.txt$
 ^\.Rproj\.user$
 ^_dev$
+^_temp$
 ^_docs$
 ^_version$
 ^_deploy$

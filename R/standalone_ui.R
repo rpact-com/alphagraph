@@ -27,6 +27,7 @@
 #' tab is currently a placeholder for future settings options.
 #' 
 #' @export
+#' @importFrom shiny tagList tags
 #' 
 createUI <- function(request) {
     tagList(
@@ -147,7 +148,7 @@ createUI <- function(request) {
             
             footer = bs4Dash::dashboardFooter(
                 left = "alphagraph - design, visualize, and analyze graphical multiple comparison procedures",
-                right = "© 2026 RPACT. Licensed under the GNU Affero General Public License v3.0"
+                right = "\u00a9 2026 RPACT. Licensed under the GNU Affero General Public License v3.0"
             )
         )
     )

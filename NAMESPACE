@@ -1,1 +1,6 @@
 exportPattern("^[[:alpha:]]+")
+importFrom(graphicalMCP,graph_create)
+importFrom(graphicalMCP,graph_test_shortcut)
+importFrom(shiny,span)
+importFrom(shiny,tagList)
+importFrom(shiny,tags)

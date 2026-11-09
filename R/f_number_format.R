@@ -1,8 +1,13 @@
 ##
 ## alphagraph
 ##
-## Numeric input and presentation helpers. Canonical graph values remain
-## numeric; fractions are accepted and produced only at the UI/model boundary.
+## This file is part of the R package alphagraph
+##
+## Author: Friedrich Pahlke, PhD
+## Licensed under "GNU Affero General Public License" version 3.0
+## License text can be found here: https://cran.r-project.org/web/licenses/AGPL-3
+##
+## RPACT company website: https://www.rpact.com
 ##
 
 #' @title Parse and format AlphaGraph numeric values

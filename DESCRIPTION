@@ -47,13 +47,16 @@ Imports:
     shinyWidgets,
     rhandsontable,
     htmlwidgets,
+    htmltools,
+    fontawesome,
+    markdown,
     R6,
     bs4Dash,
     jsonlite,
     graphicalMCP,
-	knitr (>= 1.19),
     here
 Suggests: 
+	knitr (>= 1.19),
 	testthat (>= 3.0.0),
     devtools,
     pagedown

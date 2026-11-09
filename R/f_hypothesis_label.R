@@ -1,9 +1,14 @@
 ##
 ## alphagraph
 ##
-## Conversion between editable hypothesis labels and visNetwork labels.
+## This file is part of the R package alphagraph
 ##
-
+## Author: Friedrich Pahlke, PhD
+## Licensed under "GNU Affero General Public License" version 3.0
+## License text can be found here: https://cran.r-project.org/web/licenses/AGPL-3
+##
+## RPACT company website: https://www.rpact.com
+##
 # Change this option once during application startup to configure the maximum
 # effective length accepted by the hypotheses table, for example:
 # options(alphagraph.maxHypothesisLabelLength = 10L)
@@ -20,6 +25,7 @@
 }
 
 #' @title Calculate the effective length of a hypothesis label
+#' @name alphaGraphHypothesisLabels
 #'
 #' @description
 #' Underscores do not count. Characters following an underscore count at half

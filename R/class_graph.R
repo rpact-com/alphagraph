@@ -25,6 +25,7 @@
 #' graphicalMCP inputs, editable transition matrices, and visNetwork data.
 #'
 #' @keywords internal
+#' @importFrom graphicalMCP graph_create
 AlphaGraph <- R6::R6Class(
     "AlphaGraph",
     public = list(
