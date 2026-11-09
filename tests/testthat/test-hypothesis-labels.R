@@ -70,6 +70,16 @@ test_that("maximum effective label length is centrally configurable", {
 })
 
 test_that("graph property editor stores syntax and renders its subscript", {
+    oldLocale <- Sys.getlocale("LC_CTYPE")
+    on.exit(Sys.setlocale("LC_CTYPE", oldLocale), add = TRUE)
+    Sys.setlocale("LC_CTYPE", "C")
+
+    modal <- NULL
+    local_mocked_bindings(
+        showModal = function(ui, ...) modal <<- as.character(ui),
+        .package = "shiny"
+    )
+
     shiny::testServer(function(input, output, session) {
         store <- createAlphaGraphStore(createDemoAlphaGraph())
         moduleGraphServer("graph", graphStore = store)
@@ -83,8 +93,28 @@ test_that("graph property editor stores syntax and renders its subscript", {
             `graph-edit_node` = 1
         )
         session$flushReact()
+        session$setInputs(`graph-node_label` = "H1_(ni)")
+        expect_match(modal, '"theme":"nano"', fixed = TRUE)
+        expect_match(modal, 'id="graph-node_color"', fixed = TRUE)
+        expect_equal(
+            as.character(output[["graph-node_label_preview"]]$html),
+            paste0("<span>", alphaGraphRenderHypothesisLabel("H1_(ni)"), "</span>")
+        )
+        session$setInputs(`graph-node_label` = "H1_beta")
+        expect_error(output[["graph-node_label_preview"]],
+                     "Unsupported subscript character")
+        session$setInputs(`graph-node_label` = "H1_ni")
+        expect_equal(
+            as.character(output[["graph-node_label_preview"]]$html),
+            paste0("<span>", alphaGraphRenderHypothesisLabel("H1_ni"), "</span>")
+        )
+        session$setInputs(`graph-node_label` = "<b>H1</b>")
+        expect_equal(as.character(output[["graph-node_label_preview"]]$html),
+                     "<span>&lt;b&gt;H1&lt;/b&gt;</span>")
+        expect_equal(store$revision(), 0L)
         session$setInputs(
             `graph-node_label` = "H1_ni",
+            `graph-node_color` = "#2468AC",
             `graph-save_node_label` = 1
         )
         session$flushReact()
@@ -94,10 +124,26 @@ test_that("graph property editor stores syntax and renders its subscript", {
             store$snapshot()$toList()$nodes
         )[[1L]]
         expect_equal(node$label, "H1_ni")
+        expect_equal(node$vis$color$background, "#2468AC")
         expect_match(
             node$vis$label,
             paste0("H1", "\u2099", "\u1D62"),
             fixed = TRUE
+        )
+        session$setInputs(`graph-edit_node` = 2)
+        expect_match(modal, '"default":"#2468AC"', fixed = TRUE)
+
+        # Editing alone leaves the graph unchanged, and invalid labels cannot
+        # partially commit a new color.
+        session$setInputs(`graph-node_color` = "#123456")
+        expect_equal(store$revision(), 1L)
+        session$setInputs(`graph-node_label` = "H1_beta",
+                          `graph-save_node_label` = 2)
+        expect_equal(store$revision(), 1L)
+        expect_equal(
+            Filter(function(item) item$id == "H1_S",
+                   store$snapshot()$toList()$nodes)[[1L]]$vis$color$background,
+            "#2468AC"
         )
     })
 })

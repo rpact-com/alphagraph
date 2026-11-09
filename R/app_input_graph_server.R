@@ -260,13 +260,45 @@ moduleGraphServer <- function(id, graphStore = NULL, ..., args = list()) {
                 shiny::req(length(node) == 1L)
                 shiny::showModal(shiny::modalDialog(
                     title = paste("Edit Node", id),
-                    shiny::textInput(
-                        ns("node_label"),
-                        "Label",
-                        value = node[[1L]]$label
+                    shiny::fluidRow(
+                        shiny::column(6,
+                            shiny::textInput(
+                                ns("node_label"),
+                                "Label",
+                                value = node[[1L]]$label,
+                                width = "100%"
+                            )
+                        ),
+                        shiny::column(6,
+                            shiny::tags$div(
+                                class = "form-group",
+                                shiny::tags$label("Rendered label"),
+                                shiny::uiOutput(
+                                    ns("node_label_preview"),
+                                    container = function(...) shiny::tags$div(
+                                        ...,
+                                        class = "form-control-static",
+                                        style = "white-space: pre-wrap; overflow-wrap: anywhere;",
+                                        `aria-live` = "polite"
+                                    )
+                                )
+                            )
+                        )
                     ),
                     shiny::helpText(
                         "Use H1_ni or H1_(ni) to render a Unicode subscript. Only supported subscript characters are accepted."
+                    ),
+                    shinyWidgets::colorPickr(
+                        inputId = ns("node_color"),
+                        label = "Color",
+                        selected = node[[1L]]$vis$color$background %||% "#FFFFFF",
+                        theme = "nano",
+                        inline = TRUE,
+                        swatches = c("#FFFFFF", "#7CFF7C"),
+                        opacity = FALSE,
+                        update = "change",
+                        interaction = list(clear = FALSE, save = FALSE, rgba = FALSE),
+                        width = "260px"
                     ),
                     footer = shiny::tagList(
                         shiny::modalButton("Cancel"),
@@ -275,6 +307,19 @@ moduleGraphServer <- function(id, graphStore = NULL, ..., args = list()) {
                     easyClose = TRUE
                 ))
             }
+
+            output$node_label_preview <- shiny::renderUI({
+                shiny::req(!is.null(input$node_label))
+                # renderText() uses cat(), which replaces Unicode characters
+                # with <U+....> placeholders in non-UTF-8 locales on Windows.
+                label <- tryCatch(
+                    alphaGraphRenderHypothesisLabel(trimws(input$node_label)),
+                    error = function(error) {
+                        shiny::validate(shiny::need(FALSE, conditionMessage(error)))
+                    }
+                )
+                shiny::tags$span(label)
+            })
 
             shiny::observeEvent(input$selection, {
                 rv$selected_nodes <- unlist(input$selection$nodes %||% list(),
@@ -378,9 +423,14 @@ moduleGraphServer <- function(id, graphStore = NULL, ..., args = list()) {
             })
 
             shiny::observeEvent(input$save_node_label, {
-                shiny::req(rv$ctx_node_id)
+                shiny::req(rv$ctx_node_id, input$node_color)
                 tryCatch({
                     label <- trimws(as.character(input$node_label))
+                    color <- as.character(input$node_color)
+                    if (length(color) != 1L || is.na(color) ||
+                            !grepl("^#[0-9A-Fa-f]{6}$", color)) {
+                        stop("Please select a valid node color.", call. = FALSE)
+                    }
                     graphStore$transact("graph:node-label", function(candidate) {
                         nodes <- candidate$toList()$nodes
                         ids <- vapply(nodes, function(node) node$id, character(1L))
@@ -388,6 +438,7 @@ moduleGraphServer <- function(id, graphStore = NULL, ..., args = list()) {
                         labels[match(rv$ctx_node_id, ids)] <- label
                         alphaGraphValidateHypothesisLabels(labels)
                         candidate$setNodeLabel(rv$ctx_node_id, label)
+                        candidate$setNodeColor(rv$ctx_node_id, background = color)
                     })
                     shiny::removeModal()
                 }, error = function(error) {
